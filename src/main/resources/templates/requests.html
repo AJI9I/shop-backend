@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="color-two">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title -->
+    <title>Заявки - Miners Shop</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
+    <!-- select 2 -->
+    <link rel="stylesheet" th:href="@{/assets/css/select2.min.css}" href="assets/css/select2.min.css">
+    <!-- Slick -->
+    <link rel="stylesheet" th:href="@{/assets/css/slick.css}" href="assets/css/slick.css">
+    <!-- jQuery UI -->
+    <link rel="stylesheet" th:href="@{/assets/css/jquery-ui.css}" href="assets/css/jquery-ui.css">
+    <!-- Main css -->
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
+    <!-- Custom styles для таблицы заявок -->
+    <style>
+        .requests-table {
+            font-size: 0.875rem;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        .requests-table thead th {
+            background-color: #2c3e50;
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            border: 1px solid #34495e;
+            white-space: nowrap;
+        }
+        
+        .requests-table tbody td {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            vertical-align: middle;
+        }
+        
+        .requests-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+        
+        .requests-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .requests-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        
+        .requests-table tbody tr:hover {
+            background-color: #e8f4f8;
+            cursor: pointer;
+        }
+        
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            font-weight: 500;
+            border-radius: 4px;
+        }
+        
+        .status-new {
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        .status-processed {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .status-closed {
+            background-color: #198754;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head> 
+<body>
+    
+<!--==================== Preloader Start ====================-->
+  <div class="preloader">
+    <img th:src="@{/assets/images/icon/preloader.gif}" src="assets/images/icon/preloader.gif" alt="">
+  </div>
+<!--==================== Preloader End ====================-->
+
+<!--==================== Overlay Start ====================-->
+<div class="overlay"></div>
+<!--==================== Overlay End ====================-->
+
+<!--==================== Sidebar Overlay Start ====================-->
+<div class="side-overlay"></div>
+<!--==================== Sidebar Overlay End ====================-->
+
+<!-- ==================== Scroll to Top Start ==================== -->
+<div class="progress-wrap">
+  <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+  </svg>
+</div>
+<!-- ==================== Scroll to Top End ==================== -->
+
+<!-- ==================== Search Box Start ==================== -->
+ <form action="#" class="search-box">
+  <button type="button" class="search-box__close position-absolute inset-block-start-0 inset-inline-end-0 m-16 w-48 h-48 border border-gray-100 rounded-circle flex-center text-white hover-text-gray-800 hover-bg-white text-2xl transition-1">
+    <i class="ph ph-x"></i>
+  </button>
+  <div class="container">
+    <div class="position-relative">
+      <input type="text" class="form-control py-16 px-24 text-xl rounded-pill pe-64" placeholder="Поиск майнеров...">
+      <button type="submit" class="w-48 h-48 bg-main-two-600 rounded-circle flex-center text-xl text-white position-absolute top-50 translate-middle-y inset-inline-end-0 me-8">
+        <i class="ph ph-magnifying-glass"></i>
+      </button>
+    </div>
+  </div>
+ </form>
+<!-- ==================== Search Box End ==================== -->
+
+<!-- ==================== Mobile Menu Start ==================== -->
+<div class="mobile-menu scroll-sm d-lg-none d-block">
+    <button type="button" class="close-button"> <i class="ph ph-x"></i> </button>
+    <div class="mobile-menu__inner">
+        <a th:href="@{/}" class="mobile-menu__logo">
+            <img th:src="@{/assets/images/logo/logo.png}" src="assets/images/logo/logo.png" alt="Logo">
+        </a>
+        <div class="mobile-menu__menu">
+            <!-- Nav Menu Start -->
+<ul class="nav-menu flex-align nav-menu--mobile">
+    <li class="nav-menu__item">
+        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/messages}" class="nav-menu__link">Сообщения</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/requests}" class="nav-menu__link">Заявки</a>
+    </li>
+</ul>
+<!-- Nav Menu End -->
+        </div>
+    </div>
+</div>
+<!-- ==================== Mobile Menu End ==================== -->
+
+    <!-- ======================= Header Top Start ========================= -->
+<div class="header-top bg-main-two-600 flex-between">
+    <div class="container container-lg">
+        <div class="flex-between flex-wrap gap-8">
+            <ul class="flex-align flex-wrap d-none d-md-flex">
+                <li class="border-right-item"><a href="#shipping" class="text-white text-sm hover-text-decoration-underline">О нас</a></li>
+                <li class="border-right-item"><a href="#shipping" class="text-white text-sm hover-text-decoration-underline">Доставка</a></li>
+                <li class="border-right-item"><a href="#shipping" class="text-white text-sm hover-text-decoration-underline">Возврат</a></li>
+            </ul>
+        <ul class="header-top__right flex-align flex-wrap">
+                <li class="border-right-item">
+                    <a th:href="@{/messages}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-chat-dots"></i> </span> 
+                        <span class="hover-text-decoration-underline">Сообщения</span>
+                    </a>
+                </li>
+                <li class="border-right-item">
+                    <a th:href="@{/products}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-box"></i> </span> 
+                        <span class="hover-text-decoration-underline">Товары</span>
+                    </a>
+                </li>
+                <li class="border-right-item">
+                    <a th:href="@{/requests}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-list-checks"></i> </span> 
+                        <span class="hover-text-decoration-underline">Заявки</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- ======================= Header Top End ========================= -->
+
+    <!-- ======================= Middle Header Two Start ========================= -->
+<header class="header-middle style-two bg-color-neutral">
+    <div class="container container-lg">
+        <nav class="header-inner flex-between">
+            <!-- Logo Start -->
+            <div class="logo">
+                <a th:href="@{/}" class="link">
+                    <img th:src="@{/assets/images/logo/logo-two.png}" src="assets/images/logo/logo-two.png" alt="Logo">
+                </a>
+            </div>
+            <!-- Logo End  -->
+
+            <!-- form Category Start -->
+            <div class="flex-align gap-16">
+                <form action="#" class="flex-align flex-wrap form-location-wrapper">
+                    <div class="search-category style-two d-flex h-48 search-form d-sm-flex d-none">
+                        <div class="search-form__wrapper position-relative">
+                            <input type="text" class="search-form__input common-input py-13 ps-16 pe-18 rounded-0 border-0" placeholder="Поиск майнеров...">
+                        </div>
+                        <button type="submit" class="bg-main-two-600 flex-center text-xl text-white flex-shrink-0 w-48 hover-bg-main-two-700 d-lg-flex d-none"><i class="ph ph-magnifying-glass"></i></button>
+                    </div>
+                </form>
+            </div>
+            <!-- form Category End -->
+             
+            <!-- Header Middle Right start -->
+            <div class="header-right flex-align d-lg-block d-none">
+                <div class="header-two-activities flex-align flex-wrap gap-32">
+                    <button type="button" class="flex-align search-icon d-lg-none d-flex gap-4 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-magnifying-glass"></i>
+                        </span>
+                    </button>
+                    <a th:href="@{/messages}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-chat-dots"></i>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Сообщения</span>
+                    </a>
+                    <a th:href="@{/products}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-box"></i>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Товары</span>
+                    </a>
+                    <a th:href="@{/requests}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-list-checks"></i>
+                            <span class="w-16 h-16 flex-center rounded-circle bg-main-two-600 text-white text-xs position-absolute top-n6 end-n4" 
+                                  th:text="${statistics != null ? statistics.TOTAL : 0}" 
+                                  th:if="${statistics != null && statistics.TOTAL > 0}">0</span>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Заявки</span>
+                    </a>
+                </div>
+            </div>
+            <!-- Header Middle Right End  -->
+        </nav>
+    </div>
+</header>
+<!-- ======================= Middle Header Two End ========================= -->
+
+    <!-- ==================== Header Start ==================== -->
+<header class="header bg-white border-bottom border-gray-100">
+    <div class="container container-lg">
+        <nav class="header-inner d-flex justify-content-between gap-8">
+            <!-- Menu Start  -->
+            <div class="header-menu d-lg-block d-none flex-grow-1">
+                <!-- Nav Menu Start -->
+<ul class="nav-menu flex-align">
+    <li class="nav-menu__item">
+        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/messages}" class="nav-menu__link">Сообщения</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/requests}" class="nav-menu__link">Заявки</a>
+    </li>
+</ul>
+<!-- Nav Menu End -->
+            </div>
+        </nav>
+    </div>
+</header>
+<!-- ==================== Header End ==================== -->
+
+<!-- ============================ Breadcrumb Start =============================== -->
+<section class="breadcrumb py-16 bg-color-neutral">
+    <div class="container container-lg">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-gray-600 hover-text-main-two-600">Главная</a></li>
+                <li class="breadcrumb-item active text-gray-900" aria-current="page">Заявки</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+<!-- ============================ Breadcrumb End =============================== -->
+
+<!-- ============================ Requests Section Start =============================== -->
+<section class="pt-80 pb-80">
+    <div class="container container-lg">
+        <div class="section-heading text-center mb-40">
+            <h2 class="section-heading__title mb-8">Заявки клиентов</h2>
+            <p class="text-gray-600">Просмотр и управление заявками на предложения</p>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="row g-4 mb-32" th:if="${statistics != null}">
+            <div class="col-md-3 col-sm-6">
+                <div class="border rounded-16 p-24 text-center">
+                    <div class="text-main-two-600 text-2xl mb-8">
+                        <i class="ph ph-circle-wavy-warning"></i>
+                    </div>
+                    <h5 class="mb-4" th:text="${statistics.NEW}">0</h5>
+                    <p class="text-gray-600 mb-0 text-sm">Новые</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="border rounded-16 p-24 text-center">
+                    <div class="text-warning text-2xl mb-8">
+                        <i class="ph ph-clock"></i>
+                    </div>
+                    <h5 class="mb-4" th:text="${statistics.PROCESSED}">0</h5>
+                    <p class="text-gray-600 mb-0 text-sm">В обработке</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="border rounded-16 p-24 text-center">
+                    <div class="text-success text-2xl mb-8">
+                        <i class="ph ph-check-circle"></i>
+                    </div>
+                    <h5 class="mb-4" th:text="${statistics.CLOSED}">0</h5>
+                    <p class="text-gray-600 mb-0 text-sm">Закрыты</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="border rounded-16 p-24 text-center">
+                    <div class="text-gray-700 text-2xl mb-8">
+                        <i class="ph ph-list-checks"></i>
+                    </div>
+                    <h5 class="mb-4" th:text="${statistics.TOTAL}">0</h5>
+                    <p class="text-gray-600 mb-0 text-sm">Всего</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Фильтры по статусу -->
+        <div class="border rounded-24 p-24 mb-32">
+            <div class="flex-align gap-8 flex-wrap">
+                <span class="text-sm text-gray-600 fw-semibold">Фильтр по статусу:</span>
+                <a th:href="@{/requests}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == '' || currentStatus == null} ? 'btn-main-two' : 'btn-outline-main-two'">
+                    Все
+                </a>
+                <a th:href="@{/requests(status='NEW')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == 'NEW'} ? 'btn-main-two' : 'btn-outline-main-two'">
+                    Новые
+                </a>
+                <a th:href="@{/requests(status='PROCESSED')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == 'PROCESSED'} ? 'btn-main-two' : 'btn-outline-main-two'">
+                    В обработке
+                </a>
+                <a th:href="@{/requests(status='CLOSED')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == 'CLOSED'} ? 'btn-main-two' : 'btn-outline-main-two'">
+                    Закрыты
+                </a>
+                <a th:href="@{/requests(status='CANCELLED')}" 
+                   class="btn btn-sm" 
+                   th:classappend="${currentStatus == 'CANCELLED'} ? 'btn-main-two' : 'btn-outline-main-two'">
+                    Отменены
+                </a>
+            </div>
+        </div>
+        
+        <!-- Таблица заявок -->
+        <div class="border rounded-24 p-32">
+            <div class="table-responsive">
+                <table class="requests-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Клиент</th>
+                            <th>Телефон</th>
+                            <th>Товар</th>
+                            <th>Предложение</th>
+                            <th>Сообщение</th>
+                            <th>Статус</th>
+                            <th>Дата создания</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="request : ${requests.content}" 
+                            th:onclick="'window.location.href=\'/requests/' + ${request.id} + '\''">
+                            <td th:text="${request.id}">-</td>
+                            <td>
+                                <span class="fw-semibold" th:text="${request.clientName}">-</span>
+                            </td>
+                            <td>
+                                <a th:href="'tel:' + ${request.clientPhone}" 
+                                   class="text-main-two-600 hover-text-main-two-700" 
+                                   th:text="${request.clientPhone}"
+                                   onclick="event.stopPropagation();">-</a>
+                            </td>
+                            <td>
+                                <a th:href="@{'/products/' + ${request.offer.product.id}}" 
+                                   class="text-main-two-600 hover-text-main-two-700"
+                                   th:text="${request.offer.product.model}"
+                                   onclick="event.stopPropagation();">-</a>
+                            </td>
+                            <td>
+                                <span th:if="${request.offer.price != null}">
+                                    <span th:text="${request.offer.price}"></span>
+                                    <span th:utext="' ' + ${request.offer.currency}"></span>
+                                </span>
+                                <span th:if="${request.offer.price == null}" class="text-gray-400">-</span>
+                            </td>
+                            <td style="max-width: 250px;">
+                                <span th:if="${request.message != null && !#strings.isEmpty(request.message)}" 
+                                      class="text-muted small"
+                                      th:utext="${#strings.abbreviate(request.message, 100)}">-</span>
+                                <span th:if="${request.message == null || #strings.isEmpty(request.message)}" 
+                                      class="text-gray-400">-</span>
+                            </td>
+                            <td>
+                                <span th:switch="${request.status.name()}">
+                                    <span th:case="'NEW'" class="status-badge status-new">Новая</span>
+                                    <span th:case="'PROCESSED'" class="status-badge status-processed">В обработке</span>
+                                    <span th:case="'CLOSED'" class="status-badge status-closed">Закрыта</span>
+                                    <span th:case="'CANCELLED'" class="status-badge status-cancelled">Отменена</span>
+                                </span>
+                            </td>
+                            <td th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</td>
+                            <td onclick="event.stopPropagation();">
+                                <a th:href="@{'/requests/' + ${request.id}}" 
+                                   class="btn btn-sm btn-main-two">
+                                    <i class="ph ph-eye"></i> Просмотр
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(requests.content)}">
+                            <td colspan="9" class="text-center py-48 text-gray-500">
+                                <div class="w-120 h-120 bg-gray-100 rounded-circle flex-center mx-auto mb-24">
+                                    <i class="ph ph-inbox text-gray-400" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5 class="text-gray-600 mb-8">Заявок пока нет</h5>
+                                <p class="text-gray-500">Заявки появятся здесь после отправки клиентами</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Пагинация -->
+            <div class="mt-32" th:if="${requests.totalPages > 1}">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${requests.first} ? 'disabled'">
+                            <a class="page-link" th:href="@{/requests(page=${requests.number - 1}, status=${currentStatus})}">Предыдущая</a>
+                        </li>
+                        <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, requests.totalPages - 1)}"
+                            th:classappend="${pageNum == requests.number} ? 'active'">
+                            <a class="page-link" th:href="@{/requests(page=${pageNum}, status=${currentStatus})}" th:text="${pageNum + 1}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${requests.last} ? 'disabled'">
+                            <a class="page-link" th:href="@{/requests(page=${requests.number + 1}, status=${currentStatus})}">Следующая</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- ============================ Requests Section End =============================== -->
+
+<!-- ==================== Footer Start ==================== -->
+<footer class="footer bg-color-one pt-80 pb-40">
+    <div class="container container-lg">
+        <div class="footer__inner">
+            <div class="row gy-4">
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <div class="footer__logo mb-24">
+                            <a th:href="@{/}">
+                                <img th:src="@{/assets/images/logo/logo.png}" src="assets/images/logo/logo.png" alt="Logo">
+                            </a>
+                        </div>
+                        <p class="text-gray-600">Интернет-магазин майнеров с автоматическим обновлением ассортимента из WhatsApp</p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Быстрые ссылки</h6>
+                        <ul class="footer__list">
+                            <li><a th:href="@{/}" class="text-gray-600 hover-text-main-two-600">Главная</a></li>
+                            <li><a th:href="@{/products}" class="text-gray-600 hover-text-main-two-600">Товары</a></li>
+                            <li><a th:href="@{/messages}" class="text-gray-600 hover-text-main-two-600">Сообщения</a></li>
+                            <li><a th:href="@{/requests}" class="text-gray-600 hover-text-main-two-600">Заявки</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Информация</h6>
+                        <ul class="footer__list">
+                            <li><a href="#" class="text-gray-600 hover-text-main-two-600">О нас</a></li>
+                            <li><a href="#" class="text-gray-600 hover-text-main-two-600">Доставка</a></li>
+                            <li><a href="#" class="text-gray-600 hover-text-main-two-600">Возврат</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Контакты</h6>
+                        <ul class="footer__list">
+                            <li class="text-gray-600">Email: info@minersshop.ru</li>
+                            <li class="text-gray-600">Телефон: +7 (XXX) XXX-XX-XX</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- ==================== Footer End ==================== -->
+
+    <!-- jQuery js -->
+    <script th:src="@{/assets/js/jquery-3.7.1.min.js}" src="assets/js/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap Bundle Js -->
+    <script th:src="@{/assets/js/boostrap.bundle.min.js}" src="assets/js/boostrap.bundle.min.js"></script>
+    <!-- Phosphor Icons -->
+    <script th:src="@{/assets/js/phosphor-icon.js}" src="assets/js/phosphor-icon.js"></script>
+    <!-- Select 2 -->
+    <script th:src="@{/assets/js/select2.min.js}" src="assets/js/select2.min.js"></script>
+    <!-- Slick js -->
+    <script th:src="@{/assets/js/slick.min.js}" src="assets/js/slick.min.js"></script>
+    <!-- jQuery UI -->
+    <script th:src="@{/assets/js/jquery-ui.js}" src="assets/js/jquery-ui.js"></script>
+    <!-- Main js -->
+    <script th:src="@{/assets/js/main.js}" src="assets/js/main.js"></script>
+
+</body>
+</html>
+

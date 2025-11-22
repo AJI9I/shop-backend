@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр сообщения - Miners Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .json-container {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .json-key {
+            color: #e06c75;
+        }
+        .json-string {
+            color: #98c379;
+        }
+        .json-number {
+            color: #d19a66;
+        }
+        .json-boolean {
+            color: #56b6c2;
+        }
+        .json-null {
+            color: #c678dd;
+        }
+        .section-card {
+            margin-bottom: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .section-header {
+            background-color: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+        .section-body {
+            padding: 20px;
+        }
+        .info-row {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 150px;
+            display: inline-block;
+        }
+        .copy-btn {
+            margin-top: 10px;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Miners Shop</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">Главная</a>
+                <a class="nav-link" href="/products">Товары</a>
+                <a class="nav-link active" href="/messages">Сообщения</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="mb-3">
+            <a href="/messages" class="btn btn-secondary">← Назад к списку</a>
+            <a th:href="@{'/messages/' + ${message.id} + '/json'}" target="_blank" class="btn btn-outline-primary ms-2">
+                📄 JSON API
+            </a>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger">
+            <span th:text="${error}">Ошибка</span>
+        </div>
+
+        <div th:if="${message != null}">
+            <!-- Информация о сообщении -->
+            <div class="section-card">
+                <div class="section-header">
+                    📱 Информация о сообщении
+                </div>
+                <div class="section-body">
+                    <div class="info-row">
+                        <span class="info-label">ID:</span>
+                        <span th:text="${message.id}">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Message ID:</span>
+                        <span th:text="${message.messageId}">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Чат:</span>
+                        <span th:text="${message.chatName}">-</span>
+                        <span class="badge bg-secondary ms-2" th:text="${message.chatType}">type</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Отправитель:</span>
+                        <span th:text="${message.senderName}">-</span>
+                        <span class="text-muted ms-2" th:text="${message.senderPhoneNumber}">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Время:</span>
+                        <span th:text="${message.timestamp}">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Статус:</span>
+                        <span th:if="${message.isUpdate}" class="badge bg-warning me-1">Обновление</span>
+                        <span th:if="${message.parsedData != null && !#strings.isEmpty(message.parsedData)}" 
+                              class="badge bg-success me-1">Обработано нейросетью</span>
+                        <span th:if="${message.parsedData == null || #strings.isEmpty(message.parsedData)}" 
+                              class="badge bg-danger me-1">Не обработано</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Оригинальное сообщение из WhatsApp -->
+            <div class="section-card">
+                <div class="section-header">
+                    💬 Оригинальное сообщение из WhatsApp
+                </div>
+                <div class="section-body">
+                    <div class="mb-3">
+                        <strong>Текст сообщения:</strong>
+                        <div class="mt-2 p-3 bg-light border rounded" style="white-space: pre-wrap;" 
+                             th:text="${message.content}">Content</div>
+                    </div>
+                    <div>
+                        <strong>JSON формат:</strong>
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" 
+                                onclick="copyToClipboard('original-json')">📋 Копировать</button>
+                        <div id="original-json" class="json-container mt-2" th:utext="${originalMessageJson}">JSON</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Обработанные данные от нейросети -->
+            <div class="section-card" th:if="${parsedData != null}">
+                <div class="section-header">
+                    🤖 Обработанные данные от нейросети (Ollama)
+                </div>
+                <div class="section-body">
+                    <div class="alert alert-success mb-3">
+                        ✅ Сообщение успешно обработано нейросетью
+                    </div>
+                    <div>
+                        <strong>JSON формат:</strong>
+                        <button class="btn btn-sm btn-outline-secondary copy-btn" 
+                                onclick="copyToClipboard('parsed-json')">📋 Копировать</button>
+                        <div id="parsed-json" class="json-container mt-2" th:utext="${parsedDataJson}">Parsed JSON</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" th:if="${parsedData == null}">
+                <div class="section-header">
+                    🤖 Обработанные данные от нейросети (Ollama)
+                </div>
+                <div class="section-body">
+                    <div class="alert alert-warning mb-0">
+                        ⚠️ Сообщение не обработано нейросетью. Возможно, Ollama не вернул данные или произошла ошибка при парсинге.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Функция для копирования JSON в буфер обмена
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent || element.innerText;
+            
+            navigator.clipboard.writeText(text).then(function() {
+                // Временное уведомление об успехе
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Скопировано!';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-outline-secondary');
+                
+                setTimeout(function() {
+                    btn.textContent = originalText;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-secondary');
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Ошибка при копировании:', err);
+                alert('Не удалось скопировать в буфер обмена');
+            });
+        }
+
+        // Подсветка синтаксиса JSON (простая версия)
+        document.addEventListener('DOMContentLoaded', function() {
+            const jsonContainers = document.querySelectorAll('.json-container');
+            jsonContainers.forEach(container => {
+                let text = container.textContent;
+                // Простая подсветка JSON (можно улучшить)
+                text = text.replace(/("([^"\\]|\\.)*")\s*:/g, '<span class="json-key">$1</span>:');
+                text = text.replace(/:\s*("([^"\\]|\\.)*")/g, ': <span class="json-string">$1</span>');
+                text = text.replace(/:\s*(\d+\.?\d*)/g, ': <span class="json-number">$1</span>');
+                text = text.replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>');
+                text = text.replace(/:\s*(null)/g, ': <span class="json-null">$1</span>');
+                container.innerHTML = text;
+            });
+        });
+    </script>
+</body>
+</html>
+

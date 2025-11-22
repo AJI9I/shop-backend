@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="color-two">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title -->
+    <title th:text="'Заявка #' + ${request.id} + ' - Miners Shop'">Заявка - Miners Shop</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
+    <!-- select 2 -->
+    <link rel="stylesheet" th:href="@{/assets/css/select2.min.css}" href="assets/css/select2.min.css">
+    <!-- Slick -->
+    <link rel="stylesheet" th:href="@{/assets/css/slick.css}" href="assets/css/slick.css">
+    <!-- jQuery UI -->
+    <link rel="stylesheet" th:href="@{/assets/css/jquery-ui.css}" href="assets/css/jquery-ui.css">
+    <!-- Main css -->
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
+    <style>
+        .info-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .info-card__header {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-row {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 180px;
+        }
+        
+        .info-value {
+            color: #212529;
+            flex-grow: 1;
+            text-align: right;
+        }
+        
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            font-weight: 500;
+            border-radius: 6px;
+        }
+        
+        .status-new {
+            background-color: #0d6efd;
+            color: white;
+        }
+        
+        .status-processed {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .status-closed {
+            background-color: #198754;
+            color: white;
+        }
+        
+        .status-cancelled {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .message-box {
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #0d6efd;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head> 
+<body>
+    
+<!--==================== Preloader Start ====================-->
+  <div class="preloader">
+    <img th:src="@{/assets/images/icon/preloader.gif}" src="assets/images/icon/preloader.gif" alt="">
+  </div>
+<!--==================== Preloader End ====================-->
+
+<!--==================== Overlay Start ====================-->
+<div class="overlay"></div>
+<!--==================== Overlay End ====================-->
+
+<!--==================== Sidebar Overlay Start ====================-->
+<div class="side-overlay"></div>
+<!--==================== Sidebar Overlay End ====================-->
+
+<!-- ==================== Scroll to Top Start ==================== -->
+<div class="progress-wrap">
+  <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+  </svg>
+</div>
+<!-- ==================== Scroll to Top End ==================== -->
+
+<!-- ==================== Search Box Start ==================== -->
+ <form action="#" class="search-box">
+  <button type="button" class="search-box__close position-absolute inset-block-start-0 inset-inline-end-0 m-16 w-48 h-48 border border-gray-100 rounded-circle flex-center text-white hover-text-gray-800 hover-bg-white text-2xl transition-1">
+    <i class="ph ph-x"></i>
+  </button>
+  <div class="container">
+    <div class="position-relative">
+      <input type="text" class="form-control py-16 px-24 text-xl rounded-pill pe-64" placeholder="Поиск майнеров...">
+      <button type="submit" class="w-48 h-48 bg-main-two-600 rounded-circle flex-center text-xl text-white position-absolute top-50 translate-middle-y inset-inline-end-0 me-8">
+        <i class="ph ph-magnifying-glass"></i>
+      </button>
+    </div>
+  </div>
+ </form>
+<!-- ==================== Search Box End ==================== -->
+
+<!-- ==================== Mobile Menu Start ==================== -->
+<div class="mobile-menu scroll-sm d-lg-none d-block">
+    <button type="button" class="close-button"> <i class="ph ph-x"></i> </button>
+    <div class="mobile-menu__inner">
+        <a th:href="@{/}" class="mobile-menu__logo">
+            <img th:src="@{/assets/images/logo/logo.png}" src="assets/images/logo/logo.png" alt="Logo">
+        </a>
+        <div class="mobile-menu__menu">
+            <!-- Nav Menu Start -->
+<ul class="nav-menu flex-align nav-menu--mobile">
+    <li class="nav-menu__item">
+        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/messages}" class="nav-menu__link">Сообщения</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/requests}" class="nav-menu__link">Заявки</a>
+    </li>
+</ul>
+<!-- Nav Menu End -->
+        </div>
+    </div>
+</div>
+<!-- ==================== Mobile Menu End ==================== -->
+
+    <!-- ======================= Header Top Start ========================= -->
+<div class="header-top bg-main-two-600 flex-between">
+    <div class="container container-lg">
+        <div class="flex-between flex-wrap gap-8">
+            <ul class="flex-align flex-wrap d-none d-md-flex">
+                <li class="border-right-item"><a href="#shipping" class="text-white text-sm hover-text-decoration-underline">О нас</a></li>
+                <li class="border-right-item"><a href="#shipping" class="text-white text-sm hover-text-decoration-underline">Доставка</a></li>
+                <li class="border-right-item"><a href="#shipping" class="text-white text-sm hover-text-decoration-underline">Возврат</a></li>
+            </ul>
+        <ul class="header-top__right flex-align flex-wrap">
+                <li class="border-right-item">
+                    <a th:href="@{/messages}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-chat-dots"></i> </span> 
+                        <span class="hover-text-decoration-underline">Сообщения</span>
+                    </a>
+                </li>
+                <li class="border-right-item">
+                    <a th:href="@{/products}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-box"></i> </span> 
+                        <span class="hover-text-decoration-underline">Товары</span>
+                    </a>
+                </li>
+                <li class="border-right-item">
+                    <a th:href="@{/requests}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-list-checks"></i> </span> 
+                        <span class="hover-text-decoration-underline">Заявки</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- ======================= Header Top End ========================= -->
+
+    <!-- ======================= Middle Header Two Start ========================= -->
+<header class="header-middle style-two bg-color-neutral">
+    <div class="container container-lg">
+        <nav class="header-inner flex-between">
+            <!-- Logo Start -->
+            <div class="logo">
+                <a th:href="@{/}" class="link">
+                    <img th:src="@{/assets/images/logo/logo-two.png}" src="assets/images/logo/logo-two.png" alt="Logo">
+                </a>
+            </div>
+            <!-- Logo End  -->
+
+            <!-- form Category Start -->
+            <div class="flex-align gap-16">
+                <form action="#" class="flex-align flex-wrap form-location-wrapper">
+                    <div class="search-category style-two d-flex h-48 search-form d-sm-flex d-none">
+                        <div class="search-form__wrapper position-relative">
+                            <input type="text" class="search-form__input common-input py-13 ps-16 pe-18 rounded-0 border-0" placeholder="Поиск майнеров...">
+                        </div>
+                        <button type="submit" class="bg-main-two-600 flex-center text-xl text-white flex-shrink-0 w-48 hover-bg-main-two-700 d-lg-flex d-none"><i class="ph ph-magnifying-glass"></i></button>
+                    </div>
+                </form>
+            </div>
+            <!-- form Category End -->
+             
+            <!-- Header Middle Right start -->
+            <div class="header-right flex-align d-lg-block d-none">
+                <div class="header-two-activities flex-align flex-wrap gap-32">
+                    <button type="button" class="flex-align search-icon d-lg-none d-flex gap-4 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-magnifying-glass"></i>
+                        </span>
+                    </button>
+                    <a th:href="@{/messages}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-chat-dots"></i>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Сообщения</span>
+                    </a>
+                    <a th:href="@{/products}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-box"></i>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Товары</span>
+                    </a>
+                    <a th:href="@{/requests}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-list-checks"></i>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Заявки</span>
+                    </a>
+                </div>
+            </div>
+            <!-- Header Middle Right End  -->
+        </nav>
+    </div>
+</header>
+<!-- ======================= Middle Header Two End ========================= -->
+
+    <!-- ==================== Header Start ==================== -->
+<header class="header bg-white border-bottom border-gray-100">
+    <div class="container container-lg">
+        <nav class="header-inner d-flex justify-content-between gap-8">
+            <!-- Menu Start  -->
+            <div class="header-menu d-lg-block d-none flex-grow-1">
+                <!-- Nav Menu Start -->
+<ul class="nav-menu flex-align">
+    <li class="nav-menu__item">
+        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/messages}" class="nav-menu__link">Сообщения</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/requests}" class="nav-menu__link">Заявки</a>
+    </li>
+</ul>
+<!-- Nav Menu End -->
+            </div>
+        </nav>
+    </div>
+</header>
+<!-- ==================== Header End ==================== -->
+
+<!-- ============================ Breadcrumb Start =============================== -->
+<section class="breadcrumb py-16 bg-color-neutral">
+    <div class="container container-lg">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a th:href="@{/}" class="text-gray-600 hover-text-main-two-600">Главная</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/requests}" class="text-gray-600 hover-text-main-two-600">Заявки</a></li>
+                <li class="breadcrumb-item active text-gray-900" aria-current="page" th:text="'Заявка #' + ${request.id}">Заявка</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+<!-- ============================ Breadcrumb End =============================== -->
+
+<!-- ============================ Request Details Section Start =============================== -->
+<section class="pt-80 pb-80">
+    <div class="container container-lg">
+        <div class="mb-24">
+            <a th:href="@{/requests}" class="btn btn-outline-secondary">
+                <i class="ph ph-arrow-left"></i> Назад к списку заявок
+            </a>
+        </div>
+        
+        <!-- Информация о заявке -->
+        <div class="info-card">
+            <div class="info-card__header">
+                <i class="ph ph-note-pencil"></i> Информация о заявке
+            </div>
+            <div class="info-row">
+                <span class="info-label">ID заявки:</span>
+                <span class="info-value" th:text="${request.id}">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Имя клиента:</span>
+                <span class="info-value fw-semibold" th:text="${request.clientName}">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Телефон клиента:</span>
+                <span class="info-value">
+                    <a th:href="'tel:' + ${request.clientPhone}" class="text-main-two-600 hover-text-main-two-700" th:text="${request.clientPhone}">-</a>
+                </span>
+            </div>
+            <div class="info-row" th:if="${request.message != null && !#strings.isEmpty(request.message)}">
+                <span class="info-label">Сообщение от клиента:</span>
+                <span class="info-value">
+                    <div class="message-box mt-2" th:utext="${request.message}">-</div>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Статус:</span>
+                <span class="info-value">
+                    <span th:switch="${request.status.name()}">
+                        <span th:case="'NEW'" class="status-badge status-new">Новая</span>
+                        <span th:case="'PROCESSED'" class="status-badge status-processed">В обработке</span>
+                        <span th:case="'CLOSED'" class="status-badge status-closed">Закрыта</span>
+                        <span th:case="'CANCELLED'" class="status-badge status-cancelled">Отменена</span>
+                    </span>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Дата создания:</span>
+                <span class="info-value" th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}">-</span>
+            </div>
+            <div class="info-row" th:if="${request.updatedAt != null}">
+                <span class="info-label">Последнее обновление:</span>
+                <span class="info-value" th:text="${#temporals.format(request.updatedAt, 'dd.MM.yyyy HH:mm')}">-</span>
+            </div>
+        </div>
+        
+        <!-- Информация о предложении -->
+        <div class="info-card" th:if="${request.offer != null}">
+            <div class="info-card__header">
+                <i class="ph ph-box"></i> Информация о предложении
+            </div>
+            <div class="info-row">
+                <span class="info-label">ID предложения:</span>
+                <span class="info-value" th:text="${request.offer.id}">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Товар:</span>
+                <span class="info-value">
+                    <a th:href="@{'/products/' + ${request.offer.product.id}}" 
+                       class="text-main-two-600 hover-text-main-two-700 fw-semibold"
+                       th:text="${request.offer.product.model}">-</a>
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Тип операции:</span>
+                <span class="info-value">
+                    <span th:if="${request.offer.operationType != null && request.offer.operationType.name() == 'SELL'}" 
+                          class="badge bg-success">Продажа</span>
+                    <span th:if="${request.offer.operationType != null && request.offer.operationType.name() == 'BUY'}" 
+                          class="badge bg-info">Покупка</span>
+                </span>
+            </div>
+            <div class="info-row" th:if="${request.offer.price != null}">
+                <span class="info-label">Цена:</span>
+                <span class="info-value fw-semibold text-success" 
+                      th:text="${request.offer.price} + ' ' + ${request.offer.currency}">-</span>
+            </div>
+            <div class="info-row" th:if="${request.offer.quantity != null}">
+                <span class="info-label">Количество:</span>
+                <span class="info-value" th:text="${request.offer.quantity} + ' шт.'">-</span>
+            </div>
+            <div class="info-row" th:if="${request.offer.hashrate != null && !#strings.isEmpty(request.offer.hashrate)}">
+                <span class="info-label">Хэшрейт:</span>
+                <span class="info-value" th:utext="${request.offer.hashrate}">-</span>
+            </div>
+            <div class="info-row" th:if="${request.offer.condition != null && !#strings.isEmpty(request.offer.condition)}">
+                <span class="info-label">Состояние:</span>
+                <span class="info-value" th:utext="${request.offer.condition}">-</span>
+            </div>
+            <div class="info-row" th:if="${request.offer.location != null && !#strings.isEmpty(request.offer.location)}">
+                <span class="info-label">Локация:</span>
+                <span class="info-value" th:utext="${request.offer.location}">-</span>
+            </div>
+            <div class="info-row" th:if="${request.offer.notes != null && !#strings.isEmpty(request.offer.notes)}">
+                <span class="info-label">Примечания:</span>
+                <span class="info-value">
+                    <div class="message-box mt-2" th:utext="${request.offer.notes}">-</div>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Контактные данные продавца -->
+        <div class="info-card" th:if="${request.offer != null && request.offer.seller != null}">
+            <div class="info-card__header">
+                <i class="ph ph-user"></i> Контактные данные продавца
+            </div>
+            <div class="info-row">
+                <span class="info-label">Имя продавца:</span>
+                <span class="info-value fw-semibold" th:text="${request.offer.seller.name}">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Телефон продавца:</span>
+                <span class="info-value">
+                    <a th:href="'tel:' + ${request.offer.seller.phone}" 
+                       class="text-main-two-600 hover-text-main-two-700" 
+                       th:text="${request.offer.seller.phone}">-</a>
+                </span>
+            </div>
+            <div class="info-row" th:if="${request.offer.seller.whatsappId != null && !#strings.isEmpty(request.offer.seller.whatsappId)}">
+                <span class="info-label">WhatsApp ID:</span>
+                <span class="info-value text-muted small" th:text="${request.offer.seller.whatsappId}">-</span>
+            </div>
+            <div class="info-row" th:if="${request.offer.seller.contactInfo != null && !#strings.isEmpty(request.offer.seller.contactInfo)}">
+                <span class="info-label">Дополнительная информация:</span>
+                <span class="info-value">
+                    <div class="message-box mt-2" th:utext="${request.offer.seller.contactInfo}">-</div>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Исходное сообщение WhatsApp -->
+        <div class="info-card" th:if="${request.whatsAppMessage != null}">
+            <div class="info-card__header">
+                <i class="ph ph-chat-dots"></i> Исходное сообщение WhatsApp
+            </div>
+            <div class="info-row">
+                <span class="info-label">ID сообщения:</span>
+                <span class="info-value" th:text="${request.whatsAppMessage.id}">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Чат:</span>
+                <span class="info-value" th:text="${request.whatsAppMessage.chatName}">-</span>
+                <span class="badge bg-secondary ms-2" th:text="${request.whatsAppMessage.chatType}">type</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Отправитель:</span>
+                <span class="info-value" th:text="${request.whatsAppMessage.senderName}">-</span>
+                <span class="text-muted ms-2" th:text="${request.whatsAppMessage.senderPhoneNumber}">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Время отправки:</span>
+                <span class="info-value" th:text="${#temporals.format(request.whatsAppMessage.timestamp, 'dd.MM.yyyy HH:mm')}">-</span>
+            </div>
+            <div class="info-row" th:if="${request.whatsAppMessage.content != null && !#strings.isEmpty(request.whatsAppMessage.content)}">
+                <span class="info-label">Текст сообщения:</span>
+                <span class="info-value">
+                    <div class="message-box mt-2" th:utext="${request.whatsAppMessage.content}">-</div>
+                </span>
+            </div>
+            <div class="info-row" th:if="${request.whatsAppMessage.id != null}">
+                <span class="info-label">Ссылка на сообщение:</span>
+                <span class="info-value">
+                    <a th:href="@{'/messages/' + ${request.whatsAppMessage.id}}" 
+                       class="btn btn-sm btn-outline-main-two"
+                       target="_blank">
+                        <i class="ph ph-eye"></i> Просмотр сообщения
+                    </a>
+                </span>
+            </div>
+        </div>
+        
+        <!-- Административные комментарии -->
+        <div class="info-card" th:if="${request.adminComment != null && !#strings.isEmpty(request.adminComment)}">
+            <div class="info-card__header">
+                <i class="ph ph-note"></i> Комментарий администратора
+            </div>
+            <div class="message-box" th:utext="${request.adminComment}">-</div>
+        </div>
+    </div>
+</section>
+<!-- ============================ Request Details Section End =============================== -->
+
+<!-- ==================== Footer Start ==================== -->
+<footer class="footer bg-color-one pt-80 pb-40">
+    <div class="container container-lg">
+        <div class="footer__inner">
+            <div class="row gy-4">
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <div class="footer__logo mb-24">
+                            <a th:href="@{/}">
+                                <img th:src="@{/assets/images/logo/logo.png}" src="assets/images/logo/logo.png" alt="Logo">
+                            </a>
+                        </div>
+                        <p class="text-gray-600">Интернет-магазин майнеров с автоматическим обновлением ассортимента из WhatsApp</p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Быстрые ссылки</h6>
+                        <ul class="footer__list">
+                            <li><a th:href="@{/}" class="text-gray-600 hover-text-main-two-600">Главная</a></li>
+                            <li><a th:href="@{/products}" class="text-gray-600 hover-text-main-two-600">Товары</a></li>
+                            <li><a th:href="@{/messages}" class="text-gray-600 hover-text-main-two-600">Сообщения</a></li>
+                            <li><a th:href="@{/requests}" class="text-gray-600 hover-text-main-two-600">Заявки</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Информация</h6>
+                        <ul class="footer__list">
+                            <li><a href="#" class="text-gray-600 hover-text-main-two-600">О нас</a></li>
+                            <li><a href="#" class="text-gray-600 hover-text-main-two-600">Доставка</a></li>
+                            <li><a href="#" class="text-gray-600 hover-text-main-two-600">Возврат</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Контакты</h6>
+                        <ul class="footer__list">
+                            <li class="text-gray-600">Email: info@minersshop.ru</li>
+                            <li class="text-gray-600">Телефон: +7 (XXX) XXX-XX-XX</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- ==================== Footer End ==================== -->
+
+    <!-- jQuery js -->
+    <script th:src="@{/assets/js/jquery-3.7.1.min.js}" src="assets/js/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap Bundle Js -->
+    <script th:src="@{/assets/js/boostrap.bundle.min.js}" src="assets/js/boostrap.bundle.min.js"></script>
+    <!-- Phosphor Icons -->
+    <script th:src="@{/assets/js/phosphor-icon.js}" src="assets/js/phosphor-icon.js"></script>
+    <!-- Select 2 -->
+    <script th:src="@{/assets/js/select2.min.js}" src="assets/js/select2.min.js"></script>
+    <!-- Slick js -->
+    <script th:src="@{/assets/js/slick.min.js}" src="assets/js/slick.min.js"></script>
+    <!-- jQuery UI -->
+    <script th:src="@{/assets/js/jquery-ui.js}" src="assets/js/jquery-ui.js"></script>
+    <!-- Main js -->
+    <script th:src="@{/assets/js/main.js}" src="assets/js/main.js"></script>
+
+</body>
+</html>
+
