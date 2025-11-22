@@ -833,7 +833,18 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         // Глобальные переменные для состояния таблицы
-        const productId = /*[[${product.id}]]*/ null;
+        // Используем ID MinerDetail (не Product!), так как API ожидает ID MinerDetail
+        const productIdRaw = /*[[${minerDetail != null ? minerDetail.id : null}]]*/ null;
+        // Убеждаемся, что productId является числом
+        const productId = productIdRaw != null && productIdRaw !== 0 ? Number(productIdRaw) : null;
+        
+        // Логируем productId для отладки
+        console.log('Инициализация productId:', {
+            productIdRaw: productIdRaw,
+            productId: productId,
+            minerDetailId: /*[[${minerDetail != null ? minerDetail.id : 'null'}]]*/ null
+        });
+        
         let currentDateFilter = /*[[${dateFilter != null ? dateFilter : ''}]]*/ '';
         let currentOperationType = null; // SELL, BUY или null для всех
         let currentHasPrice = null; // true для фильтра "Без пустых цен", null для всех
@@ -915,9 +926,20 @@
             params.append('page', currentPage);
             params.append('size', currentPageSize);
             
+            // Проверяем, что productId валиден
+            if (!productId || productId === 0 || productId === null) {
+                console.error('Неверный productId:', productId);
+                const tableBody = document.getElementById('offersTableBody');
+                if (tableBody) {
+                    tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-32 text-danger">Ошибка: Майнер не найден (ID не указан)</td></tr>';
+                }
+                return;
+            }
+            
             const url = `/api/products/${productId}/offers?${params.toString()}`;
             
             console.log('Загрузка предложений:', {
+                productId: productId,
                 dateFilter: currentDateFilter,
                 operationType: currentOperationType,
                 hasPrice: currentHasPrice,
@@ -933,7 +955,18 @@
             tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-32"><div class="spinner-border text-main-two-600" role="status"><span class="visually-hidden">Загрузка...</span></div></td></tr>';
             
             fetch(url)
-                .then(response => response.json())
+                .then(response => {
+                    // Проверяем статус ответа
+                    if (!response.ok) {
+                        // Если статус не OK (например, 404), пытаемся прочитать JSON, если это возможно
+                        return response.json().then(data => {
+                            throw new Error(data.error || `Ошибка HTTP ${response.status}: ${response.statusText}`);
+                        }).catch(() => {
+                            throw new Error(`Ошибка HTTP ${response.status}: ${response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.error) {
                         tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-32 text-danger">Ошибка: ${data.error}</td></tr>`;
@@ -957,7 +990,8 @@
                 })
                 .catch(error => {
                     console.error('Ошибка при загрузке предложений:', error);
-                    tableBody.innerHTML = '<tr><td colspan="9" class="text-center py-32 text-danger">Ошибка при загрузке данных</td></tr>';
+                    const errorMessage = error.message || 'Ошибка при загрузке данных';
+                    tableBody.innerHTML = `<tr><td colspan="9" class="text-center py-32 text-danger">Ошибка: ${errorMessage}</td></tr>`;
                 });
         }
         

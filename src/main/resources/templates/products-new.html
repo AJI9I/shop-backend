@@ -21,16 +21,44 @@
     <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
     <!-- Custom styles для переопределения стилей темы -->
     <style>
-        /* Переопределяем max-width для изображений в карточках товаров */
+        /* Стили для контейнера изображения в карточках товаров */
+        .product-card__thumb {
+            height: 250px !important;
+            max-height: 250px !important;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        /* Стили для изображений в карточках товаров */
         .product-card__thumb img {
             max-width: 100% !important;
-            width: 100% !important;
+            max-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            display: block !important;
         }
         
         @media screen and (max-width: 1199px) {
-            .product-card__thumb img {
-                max-width: 100% !important;
+            .product-card__thumb {
+                height: 220px !important;
+                max-height: 220px !important;
             }
+        }
+        
+        /* Стили для grid-контейнера карточек товаров */
+        .list-grid-wrapper {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+            gap: 24px !important;
+        }
+        
+        /* Ограничиваем ширину карточек товаров */
+        .product-card {
+            max-width: 100% !important;
+            width: 100% !important;
         }
         
         /* Стили для sidebar */
@@ -43,6 +71,11 @@
         }
         
         @media screen and (max-width: 991px) {
+            .list-grid-wrapper {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+                gap: 16px !important;
+            }
+            
             .shop-sidebar {
                 position: fixed;
                 top: 0;
@@ -62,6 +95,13 @@
             
             .shop-sidebar__close {
                 display: flex;
+            }
+        }
+        
+        @media screen and (max-width: 576px) {
+            .list-grid-wrapper {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
             }
         }
     </style>
@@ -276,37 +316,61 @@
                     <button type="button" class="shop-sidebar__close d-lg-none d-flex w-32 h-32 flex-center border border-gray-100 rounded-circle hover-bg-main-two-600 position-absolute inset-inline-end-0 me-10 mt-8 hover-text-white hover-border-main-two-600">
                         <i class="ph ph-x"></i>
                     </button>
+                    <!-- Блок 1: Фильтр по производителям -->
                     <div class="shop-sidebar__box border border-gray-100 rounded-8 p-32 mb-32">
-                        <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Статистика</h6>
-                        <ul class="max-h-540 overflow-y-auto scroll-sm">
-                            <li class="mb-24">
-                                <div class="text-gray-900">
-                                    <span class="fw-semibold">Всего товаров:</span>
-                                    <span class="text-main-two-600 ms-8" th:text="${totalProducts}">0</span>
-                                </div>
-                            </li>
-                            <li class="mb-24">
-                                <div class="text-gray-900">
-                                    <span class="fw-semibold">Всего предложений:</span>
-                                    <span class="text-main-two-600 ms-8" th:text="${totalOffers}">0</span>
-                                </div>
-                            </li>
-                            <li class="mb-0">
-                                <div class="text-gray-900">
-                                    <span class="fw-semibold">На странице:</span>
-                                    <span class="text-main-two-600 ms-8" th:text="${products.totalElements}">0</span>
-                                </div>
-                            </li>
-                        </ul>
+                        <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Производитель</h6>
+                        <div class="flex-wrap gap-8" id="manufacturerFilters">
+                            <button type="button" 
+                                    class="btn manufacturer-filter-btn mb-8"
+                                    data-manufacturer=""
+                                    th:classappend="${selectedManufacturers == null || selectedManufacturers.isEmpty()} ? 'btn-main-two' : 'btn-outline-main-two'"
+                                    style="font-size: 0.875rem; padding: 6px 12px;">
+                                Все
+                            </button>
+                            <button type="button" 
+                                    th:each="manufacturer : ${allManufacturers}"
+                                    class="btn manufacturer-filter-btn mb-8"
+                                    th:data-manufacturer="${manufacturer}"
+                                    th:text="${manufacturer}"
+                                    th:classappend="${selectedManufacturers != null && selectedManufacturers.contains(manufacturer)} ? 'btn-main-two' : 'btn-outline-main-two'"
+                                    style="font-size: 0.875rem; padding: 6px 12px; white-space: nowrap;">
+                                Bitmain
+                            </button>
+                        </div>
                     </div>
+                    
+                    <!-- Блок 2: Фильтр по сериям/моделям -->
                     <div class="shop-sidebar__box border border-gray-100 rounded-8 p-32 mb-32">
-                        <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Информация</h6>
-                        <p class="text-sm text-gray-600 mb-16">
-                            Товары обновляются автоматически на основе сообщений из WhatsApp групп.
-                        </p>
-                        <p class="text-sm text-gray-600 mb-0">
-                            Каждый товар может иметь несколько предложений от разных продавцов.
-                        </p>
+                        <h6 class="text-xl border-bottom border-gray-100 pb-24 mb-24">Серия/Модель</h6>
+                        <div class="max-h-540 overflow-y-auto scroll-sm" id="seriesFilters">
+                            <div class="form-check mb-12" th:each="seriesItem : ${allSeries}">
+                                <input class="form-check-input series-filter-checkbox" 
+                                       type="checkbox" 
+                                       th:id="'series_' + ${seriesItem}"
+                                       th:value="${seriesItem}"
+                                       th:checked="${selectedSeries != null && selectedSeries.contains(seriesItem)}"
+                                       style="cursor: pointer;">
+                                <label class="form-check-label text-sm text-gray-700" 
+                                       th:for="'series_' + ${seriesItem}"
+                                       th:utext="${seriesItem}"
+                                       style="cursor: pointer;">
+                                    S19j
+                                </label>
+                            </div>
+                            <div th:if="${allSeries == null || allSeries.isEmpty()}" class="text-sm text-gray-500">
+                                Серии не найдены
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Кнопка сброса фильтров -->
+                    <div class="shop-sidebar__box">
+                        <button type="button" 
+                                id="resetFiltersBtn"
+                                class="btn btn-outline-main-two w-100 py-12 px-24 rounded-8 fw-medium flex-center gap-8 hover-bg-main-two-600 hover-text-white hover-border-main-two-600">
+                            <i class="ph ph-arrow-counter-clockwise"></i>
+                            Сбросить фильтры
+                        </button>
                     </div>
                 </div>
             </div>
@@ -316,10 +380,43 @@
             <div class="col-lg-9">
                 <!-- Top Start -->
                 <div class="flex-between gap-16 flex-wrap mb-40">
-                    <span class="text-gray-900" th:text="'Показано ' + ${products.number * products.size + 1} + '-' + ${products.number * products.size + products.numberOfElements} + ' из ' + ${products.totalElements} + ' результатов'">
-                        Показано 0-0 из 0 результатов
+                    <span class="text-gray-900" th:if="${minerDetailsPage != null && minerDetailsPage.totalElements > 0}">
+                        <span th:if="${minerDetailsPage.totalElements == 1}">
+                            Показан 1 результат
+                        </span>
+                        <span th:if="${minerDetailsPage.totalElements > 1}">
+                            Показано 
+                            <span th:text="${minerDetailsPage.number * minerDetailsPage.size + 1}">1</span>-<span th:text="${minerDetailsPage.number * minerDetailsPage.size + minerDetailsPage.numberOfElements}">12</span> 
+                            из <span th:text="${minerDetailsPage.totalElements}">100</span> результатов
+                        </span>
+                    </span>
+                    <span class="text-gray-900" th:if="${minerDetailsPage == null || minerDetailsPage.totalElements == 0}">
+                        Товаров не найдено
                     </span>
                     <div class="position-relative flex-align gap-16 flex-wrap">
+                        <!-- Сортировка -->
+                        <div class="flex-align gap-8">
+                            <label for="sortSelect" class="text-sm text-gray-600 mb-0">Сортировка:</label>
+                            <select id="sortSelect" class="form-select form-select-sm" style="width: auto; min-width: 220px;">
+                                <option value="latestOffer" 
+                                        th:selected="${currentSortBy == 'latestOffer' or currentSortBy == null}"
+                                        th:text="'По последнему обновлению'">По последнему обновлению</option>
+                                <option value="name" 
+                                        th:selected="${currentSortBy == 'name'}"
+                                        th:text="'По алфавиту'">По алфавиту</option>
+                                <option value="manufacturer" 
+                                        th:selected="${currentSortBy == 'manufacturer'}"
+                                        th:text="'По производителю'">По производителю</option>
+                            </select>
+                        </div>
+                        <!-- Кнопка сброса фильтров (в верхней части для мобильных) -->
+                        <button type="button" 
+                                id="resetFiltersBtnTop"
+                                class="btn btn-outline-main-two py-8 px-16 rounded-8 fw-medium flex-center gap-6 hover-bg-main-two-600 hover-text-white hover-border-main-two-600 d-lg-none d-flex"
+                                style="font-size: 0.875rem;">
+                            <i class="ph ph-arrow-counter-clockwise"></i>
+                            Сбросить
+                        </button>
                         <div class="list-grid-btns flex-align gap-16">
                             <button type="button" class="w-44 h-44 flex-center border border-gray-100 rounded-6 text-2xl grid-btn" style="background: var(--main-two-600); color: white;">
                                 <i class="ph ph-squares-four"></i>
@@ -331,56 +428,58 @@
                 <!-- Top End -->
 
                 <!-- Пустое состояние -->
-                <div th:if="${products.totalElements == 0}" class="text-center py-80">
+                <div th:if="${minerDetailsPage.totalElements == 0}" class="text-center py-80">
                     <div class="w-120 h-120 bg-gray-100 rounded-circle flex-center mx-auto mb-24" style="width: 120px; height: 120px;">
                         <i class="ph ph-box text-gray-400" style="font-size: 3rem;"></i>
                     </div>
-                    <h5 class="text-gray-600 mb-8">Товаров пока нет</h5>
-                    <p class="text-gray-500">Товары появятся автоматически после обработки сообщений из WhatsApp</p>
+                    <h5 class="text-gray-600 mb-8">Майнеров пока нет</h5>
+                    <p class="text-gray-500">Майнеры появятся автоматически после обработки сообщений из WhatsApp</p>
                     <a th:href="@{/}" class="btn btn-main-two-600 mt-24">
                         <i class="ph ph-arrow-left"></i> Вернуться на главную
                     </a>
                 </div>
 
-                <!-- Grid товаров -->
-                <div class="list-grid-wrapper" th:if="${products.totalElements > 0}">
+                <!-- Grid майнеров -->
+                <div class="list-grid-wrapper" th:if="${minerDetailsPage.totalElements > 0}">
                     <div class="product-card h-100 p-16 border border-gray-100 hover-border-main-two-600 rounded-16 position-relative transition-2" 
-                         th:each="product : ${products.content}" 
-                         th:with="productInfo=${productOperationInfo[product.id]}">
-                        <a th:href="@{'/products/' + ${product.id}}" class="product-card__thumb flex-center rounded-8 bg-gray-50 position-relative">
-                            <img th:if="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}" 
-                                 th:src="@{${product.imageUrl}}" 
-                                 th:alt="${product.model}"
+                         th:each="minerDetail : ${minerDetails}" 
+                         th:with="minerInfo=${minerDetailOperationInfo != null ? minerDetailOperationInfo.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}">
+                        <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__thumb flex-center rounded-8 bg-gray-50 position-relative">
+                            <img th:if="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
+                                 th:src="@{${imageUrl}}" 
+                                 th:alt="${minerDetail.standardName}"
                                  alt="Майнер"
-                                 class="w-auto max-w-unset"
                                  onerror="this.onerror=null; this.src='/assets/images/thumbs/product-img1.png';">
-                            <img th:unless="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}" 
+                            <img th:unless="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
                                  th:src="@{/assets/images/thumbs/product-img1.png}" 
                                  src="/assets/images/thumbs/product-img1.png" 
-                                 th:alt="${product.model}"
-                                 alt="Майнер"
-                                 class="w-auto max-w-unset">
+                                 th:alt="${minerDetail.standardName}"
+                                 alt="Майнер">
                         </a>
                         <div class="product-card__content mt-16">
                             <h6 class="title text-lg fw-semibold mt-12 mb-8">
-                                <a th:href="@{'/products/' + ${product.id}}" class="link text-line-2" tabindex="0" th:utext="${product.model}">
-                                    Модель майнера
+                                <a th:href="@{'/products/' + ${minerDetail.id}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
+                                    Название майнера
                                 </a>
                             </h6>
                             <div class="flex-align mb-20 mt-16 gap-6">
-                                <span class="text-xs fw-medium text-gray-500" th:text="'Предложений: ' + ${#lists.size(product.offers)}">0</span>
+                                <span class="text-xs fw-medium text-gray-500" 
+                                      th:if="${minerInfo != null}"
+                                      th:text="'Предложений: ' + (${minerInfo.sellCount} + ${minerInfo.buyCount})">0</span>
+                                <span class="text-xs fw-medium text-gray-500" th:if="${minerInfo == null}">Предложений: 0</span>
+                                <span class="text-xs fw-medium text-gray-500" th:if="${minerDetail.manufacturer != null}" th:utext="${' • ' + minerDetail.manufacturer}">Производитель</span>
                             </div>
                             <div class="product-card__price my-20">
                                 <span class="text-heading text-md fw-semibold" 
-                                      th:if="${productInfo != null && productInfo.minPrice != null}"
-                                      th:text="'от ' + ${#numbers.formatDecimal(productInfo.minPrice, 0, 'COMMA', 0, 'POINT')} + ' ' + (${productInfo.currency != null ? productInfo.currency : 'RUB'})">
+                                      th:if="${minerInfo != null && minerInfo.minPrice != null}"
+                                      th:text="'от ' + ${#numbers.formatDecimal(minerInfo.minPrice, 0, 'COMMA', 0, 'POINT')} + ' ' + (${minerInfo.currency != null ? minerInfo.currency : 'RUB'})">
                                     от 0 RUB
                                 </span>
-                                <span class="text-gray-400 text-md" th:if="${productInfo == null || productInfo.minPrice == null}">
+                                <span class="text-gray-400 text-md" th:if="${minerInfo == null || minerInfo.minPrice == null}">
                                     Цена не указана
                                 </span>
                             </div>
-                            <a th:href="@{'/products/' + ${product.id}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
+                            <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
                                 Подробнее <i class="ph ph-arrow-right"></i>
                             </a>
                         </div>
@@ -388,37 +487,48 @@
                 </div>
                 <!-- Grid End -->
 
-                <!-- Pagination Start -->
-                <ul class="pagination flex-center flex-wrap gap-16 mt-40" th:if="${products.totalPages > 1}">
-                    <li class="page-item" th:classappend="${products.first} ? 'disabled'">
-                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-600 border border-gray-100 hover-bg-main-two-600 hover-text-white hover-border-main-two-600" 
-                           th:href="@{/products(page=${products.number - 1})}"
-                           th:if="${!products.first}">
+                <!-- Pagination Start (скрыта, используется бесконечная прокрутка) -->
+                <ul class="pagination flex-center flex-wrap gap-16 mt-40" style="display: none;" th:if="${minerDetailsPage.totalPages > 1}">
+                    <li class="page-item" th:classappend="${minerDetailsPage.first} ? 'disabled'">
+                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-600 border border-gray-100 hover-bg-main-two-600 hover-text-white hover-border-main-two-600 pagination-link" 
+                           th:attr="data-page=${minerDetailsPage.number - 1}"
+                           th:if="${!minerDetailsPage.first}">
                             <i class="ph-bold ph-arrow-left"></i>
                         </a>
-                        <span class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-400 border border-gray-100" th:if="${products.first}">
+                        <span class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-400 border border-gray-100" th:if="${minerDetailsPage.first}">
                             <i class="ph-bold ph-arrow-left"></i>
                         </span>
                     </li>
-                    <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, products.totalPages - 1)}"
-                        th:classappend="${pageNum == products.number} ? 'active'">
-                        <a class="page-link h-64 w-64 flex-center text-md rounded-8 fw-medium border border-gray-100 hover-bg-main-two-600 hover-text-white hover-border-main-two-600"
-                           th:class="${pageNum == products.number} ? 'bg-main-two-600 text-white border-main-two-600' : 'text-neutral-600'"
-                           th:href="@{/products(page=${pageNum})}"
+                    <li class="page-item" th:each="pageNum : ${#numbers.sequence(0, minerDetailsPage.totalPages - 1)}"
+                        th:classappend="${pageNum == minerDetailsPage.number} ? 'active'">
+                        <a class="page-link h-64 w-64 flex-center text-md rounded-8 fw-medium border border-gray-100 hover-bg-main-two-600 hover-text-white hover-border-main-two-600 pagination-link"
+                           th:class="${pageNum == minerDetailsPage.number} ? 'bg-main-two-600 text-white border-main-two-600' : 'text-neutral-600'"
+                           th:attr="data-page=${pageNum}"
                            th:text="${pageNum + 1}">1</a>
                     </li>
-                    <li class="page-item" th:classappend="${products.last} ? 'disabled'">
-                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-600 border border-gray-100 hover-bg-main-two-600 hover-text-white hover-border-main-two-600"
-                           th:href="@{/products(page=${products.number + 1})}"
-                           th:if="${!products.last}">
+                    <li class="page-item" th:classappend="${minerDetailsPage.last} ? 'disabled'">
+                        <a class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-600 border border-gray-100 hover-bg-main-two-600 hover-text-white hover-border-main-two-600 pagination-link"
+                           th:attr="data-page=${minerDetailsPage.number + 1}"
+                           th:if="${!minerDetailsPage.last}">
                             <i class="ph-bold ph-arrow-right"></i>
                         </a>
-                        <span class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-400 border border-gray-100" th:if="${products.last}">
+                        <span class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-400 border border-gray-100" th:if="${minerDetailsPage.last}">
                             <i class="ph-bold ph-arrow-right"></i>
                         </span>
                     </li>
                 </ul>
                 <!-- Pagination End -->
+                
+                <!-- Индикатор загрузки для бесконечной прокрутки -->
+                <div id="infiniteScrollLoader" class="text-center py-40" style="display: none;">
+                    <div class="spinner-border text-main-two-600" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                    <p class="text-gray-600 mt-16">Загрузка товаров...</p>
+                </div>
+                
+                <!-- Триггер для бесконечной прокрутки -->
+                <div id="infiniteScrollTrigger" style="height: 1px; visibility: hidden;"></div>
             </div>
             <!-- Content End -->
         </div>
@@ -503,8 +613,9 @@
     <!-- Main js -->
     <script th:src="@{/assets/js/main.js}" src="assets/js/main.js"></script>
     
-    <!-- Sidebar toggle для мобильных -->
-    <script>
+    <!-- Sidebar toggle для мобильных и обработка сортировки -->
+    <script th:inline="javascript">
+        /*<![CDATA[*/
         document.addEventListener('DOMContentLoaded', function() {
             const sidebarBtn = document.querySelector('.sidebar-btn');
             const sidebar = document.querySelector('.shop-sidebar');
@@ -531,7 +642,427 @@
                     overlay.classList.remove('active');
                 });
             }
+            
+            // Получаем маппинг серий к производителям из шаблона
+            const seriesToManufacturersRaw = /*[[${seriesToManufacturersJson}]]*/ '{}';
+            // Парсим JSON, если это строка
+            const seriesToManufacturers = typeof seriesToManufacturersRaw === 'string' 
+                ? JSON.parse(seriesToManufacturersRaw) 
+                : seriesToManufacturersRaw;
+            
+            // Функция фильтрации чекбоксов серий на основе выбранных производителей
+            function filterSeriesByManufacturers() {
+                const selectedManufacturers = Array.from(document.querySelectorAll('.manufacturer-filter-btn.btn-main-two'))
+                    .map(btn => btn.getAttribute('data-manufacturer'))
+                    .filter(manufacturer => manufacturer !== '' && manufacturer !== null);
+                
+                document.querySelectorAll('.series-filter-checkbox').forEach(checkbox => {
+                    const seriesValue = checkbox.value;
+                    const manufacturersForSeries = seriesToManufacturers[seriesValue] || [];
+                    
+                    if (selectedManufacturers.length === 0) {
+                        // Если производители не выбраны, показываем все серии
+                        checkbox.closest('.form-check').style.display = '';
+                    } else {
+                        // Проверяем, есть ли пересечение между выбранными производителями и производителями серии
+                        const hasIntersection = manufacturersForSeries.some(manufacturer => 
+                            selectedManufacturers.includes(manufacturer)
+                        );
+                        checkbox.closest('.form-check').style.display = hasIntersection ? '' : 'none';
+                    }
+                });
+            }
+            
+            // Обработка выбора сортировки
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function() {
+                    applyFilters();
+                });
+            }
+            
+            // Обработка фильтров по производителям
+            document.querySelectorAll('.manufacturer-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const manufacturer = this.getAttribute('data-manufacturer');
+                    
+                    // Если нажали "Все", снимаем все фильтры производителей
+                    if (manufacturer === '' || manufacturer === null) {
+                        document.querySelectorAll('.manufacturer-filter-btn').forEach(b => {
+                            b.classList.remove('btn-main-two');
+                            b.classList.add('btn-outline-main-two');
+                        });
+                        this.classList.remove('btn-outline-main-two');
+                        this.classList.add('btn-main-two');
+                    } else {
+                        if (this.classList.contains('btn-main-two')) {
+                            this.classList.remove('btn-main-two');
+                            this.classList.add('btn-outline-main-two');
+                        } else {
+                            this.classList.remove('btn-outline-main-two');
+                            this.classList.add('btn-main-two');
+                            const allBtn = document.querySelector('.manufacturer-filter-btn[data-manufacturer=""]');
+                            if (allBtn) {
+                                allBtn.classList.remove('btn-main-two');
+                                allBtn.classList.add('btn-outline-main-two');
+                            }
+                        }
+                    }
+                    
+                    // Фильтруем серии на основе выбранных производителей
+                    filterSeriesByManufacturers();
+                    
+                    applyFilters();
+                });
+            });
+            
+            // Обработка фильтров по сериям/моделям (чекбоксы)
+            document.querySelectorAll('.series-filter-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    applyFilters();
+                });
+            });
+            
+            // Переменные для бесконечной прокрутки
+            let currentPage = 0;
+            let isLoading = false;
+            let hasMorePages = true;
+            let totalLoaded = 0;
+            let totalElements = 0;
+            
+            // Функция для создания HTML карточки товара
+            function createProductCardHTML(minerDetail, imageUrls, operationInfo) {
+                const imageUrl = imageUrls[minerDetail.id] || '/assets/images/thumbs/product-img1.png';
+                const info = operationInfo[minerDetail.id.toString()] || {};
+                const totalOffers = (info.sellCount || 0) + (info.buyCount || 0);
+                const minPrice = info.minPrice || null;
+                const currency = info.currency || 'RUB';
+                const standardName = (minerDetail.standardName || 'Название майнера').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const manufacturer = minerDetail.manufacturer ? (minerDetail.manufacturer.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')) : '';
+                
+                let html = '<div class="product-card h-100 p-16 border border-gray-100 hover-border-main-two-600 rounded-16 position-relative transition-2">';
+                html += '<a href="/products/' + minerDetail.id + '" class="product-card__thumb flex-center rounded-8 bg-gray-50 position-relative">';
+                html += '<img src="' + imageUrl + '" alt="' + standardName + '" onerror="this.onerror=null; this.src=\'/assets/images/thumbs/product-img1.png\';">';
+                html += '</a>';
+                html += '<div class="product-card__content mt-16">';
+                html += '<h6 class="title text-lg fw-semibold mt-12 mb-8">';
+                html += '<a href="/products/' + minerDetail.id + '" class="link text-line-2">' + standardName + '</a>';
+                html += '</h6>';
+                html += '<div class="flex-align mb-20 mt-16 gap-6">';
+                html += '<span class="text-xs fw-medium text-gray-500">Предложений: ' + totalOffers + '</span>';
+                if (manufacturer) {
+                    html += '<span class="text-xs fw-medium text-gray-500"> • ' + manufacturer + '</span>';
+                }
+                html += '</div>';
+                html += '<div class="product-card__price my-20">';
+                if (minPrice) {
+                    html += '<span class="text-heading text-md fw-semibold">от ' + minPrice.toLocaleString('ru-RU') + ' ' + currency + '</span>';
+                } else {
+                    html += '<span class="text-gray-400 text-md">Цена не указана</span>';
+                }
+                html += '</div>';
+                html += '<a href="/products/' + minerDetail.id + '" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium">';
+                html += 'Подробнее <i class="ph ph-arrow-right"></i>';
+                html += '</a>';
+                html += '</div>';
+                html += '</div>';
+                
+                return html;
+            }
+            
+            // Функция загрузки товаров через AJAX (с поддержкой бесконечной прокрутки)
+            function loadProducts(page = 0, append = false) {
+                if (isLoading || (!append && hasMorePages === false && page > 0)) {
+                    return;
+                }
+                
+                isLoading = true;
+                
+                const sortSelect = document.getElementById('sortSelect');
+                const sortBy = sortSelect ? sortSelect.value : 'latestOffer';
+                
+                const selectedManufacturers = Array.from(document.querySelectorAll('.manufacturer-filter-btn.btn-main-two'))
+                    .map(btn => btn.getAttribute('data-manufacturer'))
+                    .filter(manufacturer => manufacturer !== '' && manufacturer !== null);
+                
+                const selectedSeries = Array.from(document.querySelectorAll('.series-filter-checkbox:checked'))
+                    .map(checkbox => checkbox.value);
+                
+                // Для первой страницы загружаем 12 товаров, для остальных - 6
+                const size = page === 0 ? 12 : 6;
+                
+                const params = new URLSearchParams();
+                params.append('page', page);
+                params.append('size', size);
+                params.append('sortBy', sortBy);
+                selectedManufacturers.forEach(manufacturer => params.append('manufacturer', manufacturer));
+                selectedSeries.forEach(series => params.append('series', series));
+                
+                const productsContainer = document.querySelector('.list-grid-wrapper');
+                const emptyState = document.querySelector('.col-lg-9 .text-center.py-80');
+                const resultsCounter = document.querySelector('.flex-between.gap-16.flex-wrap.mb-40 > span');
+                const loader = document.getElementById('infiniteScrollLoader');
+                
+                // Показываем индикатор загрузки
+                if (append && loader) {
+                    loader.style.display = 'block';
+                } else if (productsContainer) {
+                    productsContainer.style.opacity = '0.5';
+                }
+                
+                fetch('/api/products?' + params.toString())
+                    .then(response => response.json())
+                    .then(data => {
+                        isLoading = false;
+                        
+                        if (data.error) {
+                            console.error('Ошибка загрузки товаров:', data.error);
+                            if (loader) loader.style.display = 'none';
+                            if (productsContainer) productsContainer.style.opacity = '1';
+                            return;
+                        }
+                        
+                        totalElements = data.totalElements || 0;
+                        hasMorePages = !data.last && data.currentPage < data.totalPages - 1;
+                        
+                        // Обновляем счетчик результатов
+                        if (resultsCounter) {
+                            if (append) {
+                                // Добавляем количество новых товаров к уже загруженным
+                                totalLoaded += (data.content ? data.content.length : 0);
+                            } else {
+                                // Сбрасываем счетчик при первой загрузке или сбросе фильтров
+                                totalLoaded = (data.content ? data.content.length : 0);
+                            }
+                            
+                            if (totalElements === 0) {
+                                resultsCounter.innerHTML = '<span class="text-gray-900">Товаров не найдено</span>';
+                            } else {
+                                const end = Math.min(totalLoaded, totalElements);
+                                const start = append ? (totalLoaded - (data.content ? data.content.length : 0) + 1) : 1;
+                                
+                                if (totalElements === 1) {
+                                    resultsCounter.innerHTML = '<span class="text-gray-900">Показан 1 результат</span>';
+                                } else {
+                                    resultsCounter.innerHTML = `<span class="text-gray-900">Показано ${start}-${end} из ${totalElements} результатов</span>`;
+                                }
+                            }
+                        }
+                        
+                        // Обновляем контейнер товаров
+                        if (productsContainer) {
+                            const imageUrls = data.imageUrls || {};
+                            const operationInfo = data.operationInfo || {};
+                            
+                            if (data.content && data.content.length > 0) {
+                                const html = data.content.map(minerDetail => createProductCardHTML(minerDetail, imageUrls, operationInfo)).join('');
+                                
+                                if (append) {
+                                    // Добавляем товары к существующим
+                                    productsContainer.insertAdjacentHTML('beforeend', html);
+                                } else {
+                                    // Заменяем все товары (первая загрузка или сброс фильтров)
+                                    productsContainer.innerHTML = html;
+                                    totalLoaded = data.content.length;
+                                }
+                                
+                                // Обновляем пустое состояние
+                                if (emptyState) {
+                                    emptyState.style.display = 'none';
+                                }
+                            } else {
+                                if (!append) {
+                                    productsContainer.innerHTML = '';
+                                    if (emptyState) {
+                                        emptyState.style.display = 'block';
+                                    }
+                                }
+                            }
+                            
+                            productsContainer.style.opacity = '1';
+                        }
+                        
+                        // Скрываем индикатор загрузки
+                        if (loader) {
+                            loader.style.display = 'none';
+                        }
+                        
+                        // Обновляем текущую страницу
+                        currentPage = data.currentPage;
+                        
+                        // Скрываем триггер, если больше нет страниц
+                        const trigger = document.getElementById('infiniteScrollTrigger');
+                        if (trigger) {
+                            trigger.style.display = hasMorePages ? 'block' : 'none';
+                        }
+                        
+                        // Обновляем URL без перезагрузки страницы
+                        const newUrl = new URL(window.location.href);
+                        if (!append) {
+                            newUrl.searchParams.set('page', 0);
+                        }
+                        newUrl.searchParams.set('sortBy', sortBy);
+                        newUrl.searchParams.delete('manufacturer');
+                        newUrl.searchParams.delete('series');
+                        selectedManufacturers.forEach(manufacturer => newUrl.searchParams.append('manufacturer', manufacturer));
+                        selectedSeries.forEach(series => newUrl.searchParams.append('series', series));
+                        window.history.pushState({}, '', newUrl);
+                    })
+                    .catch(error => {
+                        isLoading = false;
+                        console.error('Ошибка AJAX запроса:', error);
+                        if (loader) loader.style.display = 'none';
+                        if (productsContainer) {
+                            productsContainer.style.opacity = '1';
+                        }
+                    });
+            }
+            
+            // Функция применения фильтров
+            function applyFilters() {
+                // Сбрасываем состояние бесконечной прокрутки
+                currentPage = 0;
+                isLoading = false;
+                hasMorePages = true;
+                totalLoaded = 0;
+                totalElements = 0;
+                
+                // Загружаем первую страницу (12 товаров)
+                loadProducts(0, false);
+            }
+            
+            // Функция сброса всех фильтров
+            function resetFilters() {
+                // Сбрасываем производителей - оставляем только "Все"
+                document.querySelectorAll('.manufacturer-filter-btn').forEach(btn => {
+                    btn.classList.remove('btn-main-two');
+                    btn.classList.add('btn-outline-main-two');
+                });
+                const allManufacturerBtn = document.querySelector('.manufacturer-filter-btn[data-manufacturer=""]');
+                if (allManufacturerBtn) {
+                    allManufacturerBtn.classList.remove('btn-outline-main-two');
+                    allManufacturerBtn.classList.add('btn-main-two');
+                }
+                
+                // Сбрасываем серии - снимаем все чекбоксы
+                document.querySelectorAll('.series-filter-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Сбрасываем сортировку на значение по умолчанию
+                const sortSelect = document.getElementById('sortSelect');
+                if (sortSelect) {
+                    sortSelect.value = 'latestOffer';
+                }
+                
+                // Показываем все серии (так как фильтр производителей сброшен)
+                filterSeriesByManufacturers();
+                
+                // Сбрасываем состояние бесконечной прокрутки
+                currentPage = 0;
+                isLoading = false;
+                hasMorePages = true;
+                totalLoaded = 0;
+                totalElements = 0;
+                
+                // Загружаем товары без фильтров
+                loadProducts(0, false);
+            }
+            
+            // Настройка Intersection Observer для бесконечной прокрутки
+            function setupInfiniteScroll() {
+                const trigger = document.getElementById('infiniteScrollTrigger');
+                if (!trigger) return;
+                
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && hasMorePages && !isLoading) {
+                            // Загружаем следующую страницу (6 товаров)
+                            loadProducts(currentPage + 1, true);
+                        }
+                    });
+                }, {
+                    root: null,
+                    rootMargin: '100px', // Начинаем загрузку за 100px до появления триггера
+                    threshold: 0.1
+                });
+                
+                observer.observe(trigger);
+            }
+            
+            // Обработчик кнопки сброса фильтров (в сайдбаре)
+            const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+            if (resetFiltersBtn) {
+                resetFiltersBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    resetFilters();
+                });
+            }
+            
+            // Обработчик кнопки сброса фильтров (в верхней части для мобильных)
+            const resetFiltersBtnTop = document.getElementById('resetFiltersBtnTop');
+            if (resetFiltersBtnTop) {
+                resetFiltersBtnTop.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    resetFilters();
+                });
+            }
+            
+            // Инициализация фильтрации серий при загрузке страницы
+            filterSeriesByManufacturers();
+            
+            // Настройка бесконечной прокрутки
+            setupInfiniteScroll();
+            
+            // Проверяем, есть ли параметры фильтров в URL, если да - загружаем товары через AJAX
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasFilters = urlParams.has('manufacturer') || urlParams.has('series') || 
+                               (urlParams.has('sortBy') && urlParams.get('sortBy') !== 'latestOffer');
+            
+            // Если есть фильтры в URL или пользователь изменил сортировку, загружаем через AJAX
+            // В противном случае оставляем серверную отрисовку, но все равно настраиваем бесконечную прокрутку
+            if (hasFilters) {
+                currentPage = 0;
+                totalLoaded = 0;
+                totalElements = 0;
+                loadProducts(0, false);
+            } else {
+                // Если нет фильтров, проверяем, есть ли товары на странице (серверная отрисовка)
+                const productsContainer = document.querySelector('.list-grid-wrapper');
+                if (productsContainer && productsContainer.children.length > 0) {
+                    // Подсчитываем уже загруженные товары с сервера
+                    totalLoaded = productsContainer.children.length;
+                    // Проверяем, есть ли еще страницы (смотрим на пагинацию)
+                    const pagination = document.querySelector('.pagination');
+                    if (pagination && pagination.children.length > 0) {
+                        // Если есть пагинация, значит есть еще страницы
+                        hasMorePages = true;
+                        // Предполагаем, что мы на странице 0 (первая загрузка была с сервера)
+                        currentPage = 0;
+                        // Получаем общее количество элементов из счетчика результатов или из пагинации
+                        const resultsCounter = document.querySelector('.flex-between.gap-16.flex-wrap.mb-40 > span');
+                        if (resultsCounter) {
+                            const counterText = resultsCounter.textContent || '';
+                            const totalMatch = counterText.match(/из (\d+) результатов/);
+                            if (totalMatch) {
+                                totalElements = parseInt(totalMatch[1]) || 0;
+                            }
+                        }
+                    } else {
+                        // Если нет пагинации, значит больше нет страниц
+                        hasMorePages = false;
+                        totalElements = totalLoaded;
+                    }
+                } else {
+                    // Если нет товаров на странице, загружаем через AJAX
+                    currentPage = 0;
+                    totalLoaded = 0;
+                    totalElements = 0;
+                    loadProducts(0, false);
+                }
+            }
         });
+        /*]]>*/
     </script>
 
     </body>

@@ -1,0 +1,1072 @@
+{
+  "totalMiners": 85,
+  "totalNonMiners": 5,
+  "miners": [
+    {
+      "productId": 1,
+      "model": "T21",
+      "manufacturer": "Bitmain",
+      "series": "T21",
+      "standardName": "Antminer T21",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер Bitmain T21"
+    },
+    {
+      "productId": 2,
+      "model": "s19k pro",
+      "manufacturer": "Bitmain",
+      "series": "S19K",
+      "standardName": "Antminer S19k PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19k_PRO",
+      "notes": "Группа: S19k PRO (объединить с ID=20, 41, 43, 64)"
+    },
+    {
+      "productId": 3,
+      "model": "m30s+",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S+",
+      "notes": "Группа: M30S+ (объединить с ID=33, 65)"
+    },
+    {
+      "productId": 4,
+      "model": "m30s++",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S++",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S++",
+      "notes": "Группа: M30S++ (объединить с ID=8, 35, 47, 48)"
+    },
+    {
+      "productId": 5,
+      "model": "s19 pro+",
+      "manufacturer": null,
+      "correctedManufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19 PRO+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19_PRO",
+      "notes": "Группа: S19 PRO (объединить с ID=15, 78). Нужно исправить manufacturer на Bitmain"
+    },
+    {
+      "productId": 6,
+      "model": "z15 pro",
+      "manufacturer": null,
+      "correctedManufacturer": "MicroBT",
+      "series": "Z15",
+      "standardName": "Whatsminer Z15 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "Z15_PRO",
+      "notes": "Группа: Z15 PRO (объединить с ID=31, 75, 77, 80, 88). Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 7,
+      "model": "S19",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Базовая модель S19"
+    },
+    {
+      "productId": 8,
+      "model": "M30S++",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S++",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S++",
+      "notes": "Группа: M30S++"
+    },
+    {
+      "productId": 9,
+      "model": "S19j",
+      "manufacturer": "Bitmain",
+      "series": "S19J",
+      "standardName": "Antminer S19j",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Базовая модель S19j"
+    },
+    {
+      "productId": 10,
+      "model": "AvalonMiner 1246",
+      "manufacturer": "Canaan",
+      "series": "AvalonMiner",
+      "standardName": "AvalonMiner 1246",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер Canaan"
+    },
+    {
+      "productId": 11,
+      "model": "M50",
+      "manufacturer": "MicroBT",
+      "series": "M50",
+      "standardName": "Whatsminer M50",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M50",
+      "notes": "Группа: M50 (объединить с ID=12, 34, 46, 51, 52, 84)"
+    },
+    {
+      "productId": 12,
+      "model": "M50S",
+      "manufacturer": "MicroBT",
+      "series": "M50",
+      "standardName": "Whatsminer M50S",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M50",
+      "notes": "Группа: M50"
+    },
+    {
+      "productId": 13,
+      "model": "S19xp",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19 XP",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19_XP",
+      "notes": "Группа: S19 XP (объединить с ID=40)"
+    },
+    {
+      "productId": 14,
+      "model": "S19a",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19a",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Модификация S19a"
+    },
+    {
+      "productId": 15,
+      "model": "S19 Pro",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19_PRO",
+      "notes": "Группа: S19 PRO"
+    },
+    {
+      "productId": 16,
+      "model": "S19j pro",
+      "manufacturer": "Bitmain",
+      "series": "S19J",
+      "standardName": "Antminer S19j PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19j_PRO",
+      "notes": "Группа: S19j PRO (объединить с ID=32, 39, 42, 44, 76)"
+    },
+    {
+      "productId": 17,
+      "model": "S19 90 126",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19 90/126",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Специфичная модель S19"
+    },
+    {
+      "productId": 18,
+      "model": "S21",
+      "manufacturer": "Bitmain",
+      "series": "S21",
+      "standardName": "Antminer S21",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S21",
+      "notes": "Группа: S21 (объединить с ID=23, 24, 25, 90)"
+    },
+    {
+      "productId": 19,
+      "model": "L7",
+      "manufacturer": "Bitmain",
+      "series": "L7",
+      "standardName": "Antminer L7",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер для Scrypt"
+    },
+    {
+      "productId": 20,
+      "model": "S19k pro",
+      "manufacturer": "Bitmain",
+      "series": "S19K",
+      "standardName": "Antminer S19k PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19k_PRO",
+      "notes": "Группа: S19k PRO"
+    },
+    {
+      "productId": 21,
+      "model": "S19/S19j Pro",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19/S19j PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Комбинированное название, возможно объединить с S19j PRO"
+    },
+    {
+      "productId": 22,
+      "model": "S19K Pro",
+      "manufacturer": "Bitmain",
+      "series": "S19K",
+      "standardName": "Antminer S19k PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19k_PRO",
+      "notes": "Группа: S19k PRO"
+    },
+    {
+      "productId": 23,
+      "model": "S21 HYD",
+      "manufacturer": "Bitmain",
+      "series": "S21",
+      "standardName": "Antminer S21 HYD",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S21",
+      "notes": "Группа: S21 (гидро версия)"
+    },
+    {
+      "productId": 24,
+      "model": "S21+",
+      "manufacturer": "Bitmain",
+      "series": "S21",
+      "standardName": "Antminer S21+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S21",
+      "notes": "Группа: S21"
+    },
+    {
+      "productId": 25,
+      "model": "S21XP",
+      "manufacturer": "Bitmain",
+      "series": "S21",
+      "standardName": "Antminer S21 XP",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Отдельная модель S21 XP (не объединять с обычным S21)"
+    },
+    {
+      "productId": 26,
+      "model": "L1 PRO",
+      "manufacturer": "MicroBT",
+      "series": "L1",
+      "standardName": "Whatsminer L1 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер для Scrypt"
+    },
+    {
+      "productId": 27,
+      "model": "DG1+",
+      "manufacturer": "MicroBT",
+      "correctedManufacturer": "ElphapeX",
+      "series": "DG1",
+      "standardName": "ElphapeX DG1+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "DG1",
+      "notes": "Группа: DG1 (объединить с ID=29, 30, 61). Нужно исправить manufacturer на ElphapeX"
+    },
+    {
+      "productId": 28,
+      "model": "L9",
+      "manufacturer": "Bitmain",
+      "series": "L9",
+      "standardName": "Antminer L9",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер для Scrypt"
+    },
+    {
+      "productId": 29,
+      "model": "Dg1",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "ElphapeX",
+      "series": "DG1",
+      "standardName": "ElphapeX DG1",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "DG1",
+      "notes": "Группа: DG1. Нужно исправить manufacturer на ElphapeX"
+    },
+    {
+      "productId": 30,
+      "model": "Dg1+",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "ElphapeX",
+      "series": "DG1",
+      "standardName": "ElphapeX DG1+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "DG1",
+      "notes": "Группа: DG1. Нужно исправить manufacturer на ElphapeX"
+    },
+    {
+      "productId": 31,
+      "model": "Z15",
+      "manufacturer": "MicroBT",
+      "series": "Z15",
+      "standardName": "Whatsminer Z15",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "Z15_PRO",
+      "notes": "Группа: Z15 PRO (базовая модель)"
+    },
+    {
+      "productId": 32,
+      "model": "S19j pro+",
+      "manufacturer": "Bitmain",
+      "series": "S19J",
+      "standardName": "Antminer S19j PRO+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19j_PRO",
+      "notes": "Группа: S19j PRO"
+    },
+    {
+      "productId": 33,
+      "model": "M30s+",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S+",
+      "notes": "Группа: M30S+"
+    },
+    {
+      "productId": 34,
+      "model": "M50s",
+      "manufacturer": "MicroBT",
+      "series": "M50",
+      "standardName": "Whatsminer M50S",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M50",
+      "notes": "Группа: M50"
+    },
+    {
+      "productId": 35,
+      "model": "M30s++",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S++",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S++",
+      "notes": "Группа: M30S++"
+    },
+    {
+      "productId": 36,
+      "model": "JPRO",
+      "manufacturer": "MicroBT",
+      "series": "JPRO",
+      "standardName": "Whatsminer JPRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "JPRO",
+      "notes": "Группа: JPRO (объединить с ID=37)"
+    },
+    {
+      "productId": 37,
+      "model": "jpro 104",
+      "manufacturer": null,
+      "correctedManufacturer": "MicroBT",
+      "series": "JPRO",
+      "standardName": "Whatsminer JPRO 104",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "JPRO",
+      "notes": "Группа: JPRO. Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 38,
+      "model": "S19 k pro",
+      "manufacturer": "Bitmain",
+      "series": "S19K",
+      "standardName": "Antminer S19k PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19k_PRO",
+      "notes": "Группа: S19k PRO (с пробелом в названии)"
+    },
+    {
+      "productId": 39,
+      "model": "S19j PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19J",
+      "standardName": "Antminer S19j PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19j_PRO",
+      "notes": "Группа: S19j PRO (основная запись для объединения)"
+    },
+    {
+      "productId": 40,
+      "model": "S19 XP",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19 XP",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19_XP",
+      "notes": "Группа: S19 XP"
+    },
+    {
+      "productId": 41,
+      "model": "S19K PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19K",
+      "standardName": "Antminer S19k PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19k_PRO",
+      "notes": "Группа: S19k PRO"
+    },
+    {
+      "productId": 42,
+      "model": "S19j PRO+",
+      "manufacturer": "Bitmain",
+      "series": "S19J",
+      "standardName": "Antminer S19j PRO+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19j_PRO",
+      "notes": "Группа: S19j PRO"
+    },
+    {
+      "productId": 43,
+      "model": "S19k PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19K",
+      "standardName": "Antminer S19k PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19k_PRO",
+      "notes": "Группа: S19k PRO"
+    },
+    {
+      "productId": 44,
+      "model": "S19J PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19J",
+      "standardName": "Antminer S19j PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19j_PRO",
+      "notes": "Группа: S19j PRO"
+    },
+    {
+      "productId": 45,
+      "model": "E9",
+      "manufacturer": "Bitmain",
+      "series": "E9",
+      "standardName": "Antminer E9",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер для Ethereum Classic"
+    },
+    {
+      "productId": 46,
+      "model": "M50-120th",
+      "manufacturer": "MicroBT",
+      "series": "M50",
+      "standardName": "Whatsminer M50 120TH",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M50",
+      "notes": "Группа: M50 (с указанием хэшрейта)"
+    },
+    {
+      "productId": 47,
+      "model": "M30S++-108th",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S++ 108TH",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S++",
+      "notes": "Группа: M30S++ (с указанием хэшрейта)"
+    },
+    {
+      "productId": 48,
+      "model": "M30S++-110th",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S++ 110TH",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S++",
+      "notes": "Группа: M30S++ (с указанием хэшрейта)"
+    },
+    {
+      "productId": 49,
+      "model": "M30S-85th",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S 85TH",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S",
+      "notes": "Группа: M30S (объединить с ID=66, 87)"
+    },
+    {
+      "productId": 50,
+      "model": "S21 XP",
+      "manufacturer": "Bitmain",
+      "series": "S21",
+      "standardName": "Antminer S21 XP",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Отдельная модель S21 XP (не объединять с обычным S21)"
+    },
+    {
+      "productId": 51,
+      "model": "M50S+",
+      "manufacturer": "MicroBT",
+      "series": "M50",
+      "standardName": "Whatsminer M50S+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M50",
+      "notes": "Группа: M50"
+    },
+    {
+      "productId": 52,
+      "model": "M50S++",
+      "manufacturer": "MicroBT",
+      "series": "M50",
+      "standardName": "Whatsminer M50S++",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M50",
+      "notes": "Группа: M50"
+    },
+    {
+      "productId": 53,
+      "model": "M60",
+      "manufacturer": "MicroBT",
+      "series": "M60",
+      "standardName": "Whatsminer M60",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Базовая модель M60"
+    },
+    {
+      "productId": 54,
+      "model": "M61",
+      "manufacturer": "MicroBT",
+      "series": "M61",
+      "standardName": "Whatsminer M61",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Базовая модель M61"
+    },
+    {
+      "productId": 55,
+      "model": "M63s+",
+      "manufacturer": "MicroBT",
+      "series": "M63",
+      "standardName": "Whatsminer M63S+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Модификация M63"
+    },
+    {
+      "productId": 56,
+      "model": "M63s",
+      "manufacturer": "MicroBT",
+      "series": "M63",
+      "standardName": "Whatsminer M63S",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Базовая модель M63"
+    },
+    {
+      "productId": 57,
+      "model": "KS5P",
+      "manufacturer": "Bitmain",
+      "series": "KS5",
+      "standardName": "Antminer KS5P",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер для Kadena"
+    },
+    {
+      "productId": 58,
+      "model": "X16-Q",
+      "manufacturer": "Jasminer",
+      "series": "X16",
+      "standardName": "Jasminer X16-Q",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Модификация X16"
+    },
+    {
+      "productId": 59,
+      "model": "X16-Pro",
+      "manufacturer": "Jasminer",
+      "series": "X16",
+      "standardName": "Jasminer X16-Pro",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Модификация X16 Pro"
+    },
+    {
+      "productId": 60,
+      "model": "DGHOME1",
+      "manufacturer": "ElphapeX",
+      "series": "DG",
+      "standardName": "ElphapeX DGHOME1",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Домашний майнер ElphapeX"
+    },
+    {
+      "productId": 61,
+      "model": "DG1",
+      "manufacturer": "ElphapeX",
+      "series": "DG1",
+      "standardName": "ElphapeX DG1",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "DG1",
+      "notes": "Группа: DG1"
+    },
+    {
+      "productId": 62,
+      "model": "MiniDoge",
+      "manufacturer": "Goldshell",
+      "series": "MiniDoge",
+      "standardName": "Goldshell MiniDoge",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер для Dogecoin"
+    },
+    {
+      "productId": 63,
+      "model": "DG",
+      "manufacturer": "Goldshell",
+      "series": "DG",
+      "standardName": "Goldshell DG",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Базовая модель DG"
+    },
+    {
+      "productId": 64,
+      "model": "S19K pro",
+      "manufacturer": "Bitmain",
+      "series": "S19K",
+      "standardName": "Antminer S19k PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19k_PRO",
+      "notes": "Группа: S19k PRO"
+    },
+    {
+      "productId": 65,
+      "model": "M30S+",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S+",
+      "notes": "Группа: M30S+"
+    },
+    {
+      "productId": 66,
+      "model": "M30S",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S",
+      "notes": "Группа: M30S"
+    },
+    {
+      "productId": 67,
+      "model": "М33S++",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "MicroBT",
+      "series": "M33S",
+      "standardName": "Whatsminer M33S++",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 68,
+      "model": "KS3M",
+      "manufacturer": "MicroBT",
+      "series": "KS3",
+      "standardName": "Whatsminer KS3M",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Майнер для Kadena"
+    },
+    {
+      "productId": 69,
+      "model": "Шумбокс",
+      "manufacturer": "Б/У",
+      "isMiner": false,
+      "needsInitialization": false,
+      "notes": "НЕ МАЙНЕР - аксессуар (корпус для майнера)"
+    },
+    {
+      "productId": 70,
+      "model": "APW12",
+      "manufacturer": "Bitmain",
+      "isMiner": false,
+      "needsInitialization": false,
+      "notes": "НЕ МАЙНЕР - блок питания"
+    },
+    {
+      "productId": 71,
+      "model": "APW17",
+      "manufacturer": "Bitmain",
+      "isMiner": false,
+      "needsInitialization": false,
+      "notes": "НЕ МАЙНЕР - блок питания"
+    },
+    {
+      "productId": 72,
+      "model": "P221B",
+      "manufacturer": "Bitmain",
+      "series": "P221",
+      "standardName": "Antminer P221B",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Отдельная модель P221B"
+    },
+    {
+      "productId": 73,
+      "model": "P221C",
+      "manufacturer": "Bitmain",
+      "series": "P221",
+      "standardName": "Antminer P221C",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Отдельная модель P221C"
+    },
+    {
+      "productId": 74,
+      "model": "Avalon",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "Canaan",
+      "series": "Avalon",
+      "standardName": "AvalonMiner",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Нужно исправить manufacturer на Canaan"
+    },
+    {
+      "productId": 75,
+      "model": "Z15 PRO",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "MicroBT",
+      "series": "Z15",
+      "standardName": "Whatsminer Z15 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "Z15_PRO",
+      "notes": "Группа: Z15 PRO. Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 76,
+      "model": "S19J PRO+",
+      "manufacturer": null,
+      "correctedManufacturer": "Bitmain",
+      "series": "S19J",
+      "standardName": "Antminer S19j PRO+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19j_PRO",
+      "notes": "Группа: S19j PRO. Нужно исправить manufacturer на Bitmain"
+    },
+    {
+      "productId": 77,
+      "model": "Z15Pro",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "MicroBT",
+      "series": "Z15",
+      "standardName": "Whatsminer Z15 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "Z15_PRO",
+      "notes": "Группа: Z15 PRO. Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 78,
+      "model": "S19 PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S19_PRO",
+      "notes": "Группа: S19 PRO"
+    },
+    {
+      "productId": 79,
+      "model": "S19i",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "standardName": "Antminer S19i",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Модификация S19i"
+    },
+    {
+      "productId": 80,
+      "model": "Z15 Pro",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "MicroBT",
+      "series": "Z15",
+      "standardName": "Whatsminer Z15 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "Z15_PRO",
+      "notes": "Группа: Z15 PRO. Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 81,
+      "model": "M33s+",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "MicroBT",
+      "series": "M33S",
+      "standardName": "Whatsminer M33S+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 82,
+      "model": "M60s+",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "MicroBT",
+      "series": "M60",
+      "standardName": "Whatsminer M60S+",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 83,
+      "model": "X4-Q",
+      "manufacturer": "MicroBT",
+      "series": "X4",
+      "standardName": "Whatsminer X4-Q",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Модификация X4"
+    },
+    {
+      "productId": 84,
+      "model": "М50",
+      "manufacturer": "Bitmain",
+      "correctedManufacturer": "MicroBT",
+      "series": "M50",
+      "standardName": "Whatsminer M50",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M50",
+      "notes": "Группа: M50. Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 85,
+      "model": "apw9/9+",
+      "manufacturer": null,
+      "isMiner": false,
+      "needsInitialization": false,
+      "notes": "НЕ МАЙНЕР - блок питания"
+    },
+    {
+      "productId": 86,
+      "model": "D9",
+      "manufacturer": null,
+      "correctedManufacturer": "Goldshell",
+      "series": "D9",
+      "standardName": "Goldshell D9",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Возможно майнер Goldshell. Нужно уточнить manufacturer"
+    },
+    {
+      "productId": 87,
+      "model": "M30S-",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "standardName": "Whatsminer M30S",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "M30S",
+      "notes": "Группа: M30S"
+    },
+    {
+      "productId": 88,
+      "model": "Z15 pro",
+      "manufacturer": null,
+      "correctedManufacturer": "MicroBT",
+      "series": "Z15",
+      "standardName": "Whatsminer Z15 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "Z15_PRO",
+      "notes": "Группа: Z15 PRO. Нужно исправить manufacturer на MicroBT"
+    },
+    {
+      "productId": 89,
+      "model": "M61s",
+      "manufacturer": "MicroBT",
+      "series": "M61",
+      "standardName": "Whatsminer M61S",
+      "isMiner": true,
+      "needsInitialization": true,
+      "notes": "Модификация M61"
+    },
+    {
+      "productId": 90,
+      "model": "S21 PRO",
+      "manufacturer": "Bitmain",
+      "series": "S21",
+      "standardName": "Antminer S21 PRO",
+      "isMiner": true,
+      "needsInitialization": true,
+      "groupForMerge": "S21",
+      "notes": "Группа: S21 (PRO версия)"
+    }
+  ],
+  "nonMiners": [
+    {
+      "productId": 69,
+      "model": "Шумбокс",
+      "manufacturer": "Б/У",
+      "isMiner": false,
+      "notes": "Аксессуар (корпус для майнера)"
+    },
+    {
+      "productId": 70,
+      "model": "APW12",
+      "manufacturer": "Bitmain",
+      "isMiner": false,
+      "notes": "Блок питания"
+    },
+    {
+      "productId": 71,
+      "model": "APW17",
+      "manufacturer": "Bitmain",
+      "isMiner": false,
+      "notes": "Блок питания"
+    },
+    {
+      "productId": 85,
+      "model": "apw9/9+",
+      "manufacturer": null,
+      "isMiner": false,
+      "notes": "Блок питания"
+    }
+  ],
+  "groupsForMerge": {
+    "S19j_PRO": {
+      "standardName": "Antminer S19j PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19j",
+      "productIds": [16, 32, 39, 42, 44, 76]
+    },
+    "S19k_PRO": {
+      "standardName": "Antminer S19k PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19k",
+      "productIds": [2, 20, 22, 38, 41, 43, 64]
+    },
+    "S19_PRO": {
+      "standardName": "Antminer S19 PRO",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "productIds": [5, 15, 78]
+    },
+    "M30S++": {
+      "standardName": "Whatsminer M30S++",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "productIds": [4, 8, 35, 47, 48]
+    },
+    "M30S+": {
+      "standardName": "Whatsminer M30S+",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "productIds": [3, 33, 65]
+    },
+    "M30S": {
+      "standardName": "Whatsminer M30S",
+      "manufacturer": "MicroBT",
+      "series": "M30S",
+      "productIds": [49, 66, 87]
+    },
+    "M50": {
+      "standardName": "Whatsminer M50S++",
+      "manufacturer": "MicroBT",
+      "series": "M50",
+      "productIds": [11, 12, 34, 46, 51, 52, 84]
+    },
+    "Z15_PRO": {
+      "standardName": "Whatsminer Z15 PRO",
+      "manufacturer": "MicroBT",
+      "series": "Z15",
+      "productIds": [6, 31, 75, 77, 80, 88]
+    },
+    "DG1": {
+      "standardName": "ElphapeX DG1+",
+      "manufacturer": "ElphapeX",
+      "series": "DG1",
+      "productIds": [27, 29, 30, 61]
+    },
+    "S19_XP": {
+      "standardName": "Antminer S19 XP",
+      "manufacturer": "Bitmain",
+      "series": "S19",
+      "productIds": [13, 40]
+    },
+    "S21": {
+      "standardName": "Antminer S21",
+      "manufacturer": "Bitmain",
+      "series": "S21",
+      "productIds": [18, 23, 24, 90]
+    },
+    "JPRO": {
+      "standardName": "Whatsminer JPRO",
+      "manufacturer": "MicroBT",
+      "series": "JPRO",
+      "productIds": [36, 37]
+    }
+  }
+}
+

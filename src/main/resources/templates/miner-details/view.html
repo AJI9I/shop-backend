@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="color-two">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title -->
+    <title th:text="${minerDetail.standardName} + ' - Детали'">Детали майнера - Miners Shop</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
+    <!-- select 2 -->
+    <link rel="stylesheet" th:href="@{/assets/css/select2.min.css}" href="assets/css/select2.min.css">
+    <!-- Slick -->
+    <link rel="stylesheet" th:href="@{/assets/css/slick.css}" href="assets/css/slick.css">
+    <!-- jQuery UI -->
+    <link rel="stylesheet" th:href="@{/assets/css/jquery-ui.css}" href="assets/css/jquery-ui.css">
+    <!-- Main css -->
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
+</head> 
+<body>
+    
+<!--==================== Preloader Start ====================-->
+  <div class="preloader">
+    <img th:src="@{/assets/images/icon/preloader.gif}" src="assets/images/icon/preloader.gif" alt="">
+  </div>
+<!--==================== Preloader End ====================-->
+
+<!--==================== Overlay Start ====================-->
+<div class="overlay"></div>
+<!--==================== Overlay End ====================-->
+
+<!-- ==================== Header Start ==================== -->
+<header class="header bg-white border-bottom border-gray-100">
+    <div class="container container-lg">
+        <nav class="header-inner d-flex justify-content-between gap-8">
+            <!-- Menu Start  -->
+            <div class="header-menu d-lg-block d-none flex-grow-1">
+                <!-- Nav Menu Start -->
+<ul class="nav-menu flex-align">
+    <li class="nav-menu__item">
+        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products/table}" class="nav-menu__link">Таблица продуктов</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/miner-details}" class="nav-menu__link">Детали майнеров</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/messages}" class="nav-menu__link">Сообщения</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/requests}" class="nav-menu__link">Заявки</a>
+    </li>
+</ul>
+<!-- Nav Menu End -->
+            </div>
+        </nav>
+    </div>
+</header>
+<!-- ==================== Header End ==================== -->
+
+<!-- ==================== Main Content Start ==================== -->
+<div class="container container-lg mt-40 mb-80">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb" class="mb-24">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a th:href="@{/}">Главная</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a th:href="@{/miner-details}">Детали майнеров</a>
+            </li>
+            <li class="breadcrumb-item active" th:utext="${minerDetail.standardName}">Название</li>
+        </ol>
+    </nav>
+    
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-40">
+        <h1 th:utext="${minerDetail.standardName}">Название майнера</h1>
+        <div class="d-flex gap-8">
+            <a th:href="@{/miner-details/{id}/edit(id=${minerDetail.id})}" 
+               class="btn btn-primary">Редактировать</a>
+            <a th:href="@{/miner-details}" 
+               class="btn btn-secondary">Назад к списку</a>
+        </div>
+    </div>
+    
+    <!-- Основной контент -->
+    <div class="row">
+        <!-- Левая колонка - основная информация -->
+        <div class="col-md-8">
+            <!-- Описание -->
+            <div class="card mb-24" th:if="${minerDetail.description != null and !#strings.isEmpty(minerDetail.description)}">
+                <div class="card-header bg-main-two-600 text-white">
+                    <h5 class="mb-0">Описание</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" th:utext="${minerDetail.description}">Описание майнера</p>
+                </div>
+            </div>
+            
+            <!-- Технические характеристики -->
+            <div class="card mb-24">
+                <div class="card-header bg-main-two-600 text-white">
+                    <h5 class="mb-0">Технические характеристики</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered mb-0">
+                        <tbody>
+                            <!-- Хэшрейт -->
+                            <tr th:if="${minerDetail.hashrate != null and !#strings.isEmpty(minerDetail.hashrate)}">
+                                <td class="fw-bold" style="width: 30%;">Хэшрейт</td>
+                                <td th:utext="${minerDetail.hashrate}">860 TH/s</td>
+                            </tr>
+                            
+                            <!-- Алгоритм -->
+                            <tr th:if="${minerDetail.algorithm != null and !#strings.isEmpty(minerDetail.algorithm)}">
+                                <td class="fw-bold">Алгоритм</td>
+                                <td th:utext="${minerDetail.algorithm}">SHA-256</td>
+                            </tr>
+                            
+                            <!-- Потребление -->
+                            <tr th:if="${minerDetail.powerConsumption != null and !#strings.isEmpty(minerDetail.powerConsumption)}">
+                                <td class="fw-bold">Потребление энергии</td>
+                                <td th:utext="${minerDetail.powerConsumption}">11180 Вт/ч</td>
+                            </tr>
+                            
+                            <!-- Добываемые монеты -->
+                            <tr th:if="${minerDetail.coins != null and !#strings.isEmpty(minerDetail.coins)}">
+                                <td class="fw-bold">Добываемые монеты</td>
+                                <td th:utext="${minerDetail.coins}">BTC/BCH/BCV</td>
+                            </tr>
+                            
+                            <!-- Источник питания -->
+                            <tr th:if="${minerDetail.powerSource != null and !#strings.isEmpty(minerDetail.powerSource)}">
+                                <td class="fw-bold">Источник питания</td>
+                                <td th:utext="${minerDetail.powerSource}">Интегрированный</td>
+                            </tr>
+                            
+                            <!-- Охлаждение -->
+                            <tr th:if="${minerDetail.cooling != null and !#strings.isEmpty(minerDetail.cooling)}">
+                                <td class="fw-bold">Охлаждение</td>
+                                <td th:utext="${minerDetail.cooling}">Водяное</td>
+                            </tr>
+                            
+                            <!-- Рабочая температура -->
+                            <tr th:if="${minerDetail.operatingTemperature != null and !#strings.isEmpty(minerDetail.operatingTemperature)}">
+                                <td class="fw-bold">Рабочая температура</td>
+                                <td th:utext="${minerDetail.operatingTemperature}">от 0 до 40 °С</td>
+                            </tr>
+                            
+                            <!-- Размеры -->
+                            <tr th:if="${minerDetail.dimensions != null and !#strings.isEmpty(minerDetail.dimensions)}">
+                                <td class="fw-bold">Размеры</td>
+                                <td th:utext="${minerDetail.dimensions}">900 x 486.2 x 132 мм</td>
+                            </tr>
+                            
+                            <!-- Уровень шума -->
+                            <tr th:if="${minerDetail.noiseLevel != null and !#strings.isEmpty(minerDetail.noiseLevel)}">
+                                <td class="fw-bold">Уровень шума</td>
+                                <td th:utext="${minerDetail.noiseLevel}">40 дБ</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Особенности оборудования -->
+            <div class="card mb-24" th:if="${minerDetail.features != null and !#strings.isEmpty(minerDetail.features)}">
+                <div class="card-header bg-main-two-600 text-white">
+                    <h5 class="mb-0">Особенности оборудования</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" th:utext="${minerDetail.features}">Особенности</p>
+                </div>
+            </div>
+            
+            <!-- Рекомендации по размещению -->
+            <div class="card mb-24" th:if="${minerDetail.placementInfo != null and !#strings.isEmpty(minerDetail.placementInfo)}">
+                <div class="card-header bg-main-two-600 text-white">
+                    <h5 class="mb-0">Где лучше разместить</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" th:utext="${minerDetail.placementInfo}">Рекомендации по размещению</p>
+                </div>
+            </div>
+            
+            <!-- Информация о производителе -->
+            <div class="card mb-24" th:if="${minerDetail.producerInfo != null and !#strings.isEmpty(minerDetail.producerInfo)}">
+                <div class="card-header bg-main-two-600 text-white">
+                    <h5 class="mb-0">О производителе</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" th:utext="${minerDetail.producerInfo}">Информация о производителе</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая колонка - боковая панель -->
+        <div class="col-md-4">
+            <!-- Основная информация -->
+            <div class="card mb-24">
+                <div class="card-header bg-main-two-600 text-white">
+                    <h5 class="mb-0">Основная информация</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="mb-0">
+                        <dt>Производитель</dt>
+                        <dd th:text="${minerDetail.manufacturer} ?: 'Не указан'">Bitmain</dd>
+                        
+                        <dt>Серия</dt>
+                        <dd th:text="${minerDetail.series} ?: 'Не указана'">S21</dd>
+                        
+                        <dt>Связанных товаров</dt>
+                        <dd th:text="${linkedProductsCount}">0</dd>
+                    </dl>
+                </div>
+            </div>
+            
+            <!-- Связанные товары (Product) -->
+            <div class="card" th:if="${linkedProducts != null and !linkedProducts.isEmpty()}">
+                <div class="card-header bg-main-two-600 text-white">
+                    <h5 class="mb-0">Связанные товары</h5>
+                    <small class="text-white-50" th:text="'Всего: ' + ${linkedProductsCount}">Всего: 0</small>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush mb-0">
+                        <li class="list-group-item px-0" th:each="product : ${linkedProducts}">
+                            <a th:href="@{/products/{id}(id=${product.id})}" 
+                               class="text-main-two-600 hover-text-main-two-700"
+                               th:utext="${product.model}">
+                                Модель товара
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ==================== Main Content End ==================== -->
+
+<!-- ==================== Footer Start ==================== -->
+<footer class="footer bg-color-one pt-80 pb-40">
+    <div class="container container-lg">
+        <div class="footer__inner">
+            <div class="row gy-4">
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <div class="footer__logo mb-24">
+                            <a th:href="@{/}">
+                                <img th:src="@{/assets/images/logo/logo.png}" src="assets/images/logo/logo.png" alt="Logo">
+                            </a>
+                        </div>
+                        <p class="text-gray-600">Интернет-магазин майнеров с автоматическим обновлением ассортимента из WhatsApp</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- ==================== Footer End ==================== -->
+
+<!-- jQuery js -->
+<script th:src="@{/assets/js/jquery-3.7.1.min.js}" src="assets/js/jquery-3.7.1.min.js"></script>
+<!-- Bootstrap Bundle Js -->
+<script th:src="@{/assets/js/boostrap.bundle.min.js}" src="assets/js/boostrap.bundle.min.js"></script>
+<!-- Phosphor Icons -->
+<script th:src="@{/assets/js/phosphor-icon.js}" src="assets/js/phosphor-icon.js"></script>
+<!-- Main js -->
+<script th:src="@{/assets/js/main.js}" src="assets/js/main.js"></script>
+
+</body>
+</html>
+

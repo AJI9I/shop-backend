@@ -1,5 +1,6 @@
 package com.miners.shop.repository;
 
+import com.miners.shop.entity.MinerDetail;
 import com.miners.shop.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,5 +48,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT DISTINCT p.manufacturer FROM Product p WHERE p.manufacturer IS NOT NULL AND p.manufacturer != '' ORDER BY p.manufacturer")
     List<String> findDistinctManufacturers();
+    
+    /**
+     * Находит все товары, связанные с MinerDetail
+     */
+    List<Product> findByMinerDetail(MinerDetail minerDetail);
+    
+    /**
+     * Находит все товары, связанные с MinerDetail по ID
+     */
+    @Query("SELECT p FROM Product p WHERE p.minerDetail.id = :minerDetailId")
+    List<Product> findByMinerDetailId(@Param("minerDetailId") Long minerDetailId);
 }
 

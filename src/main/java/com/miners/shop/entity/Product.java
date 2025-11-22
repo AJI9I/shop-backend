@@ -40,9 +40,19 @@ public class Product {
     /**
      * Производитель майнера (Bitmain, MicroBT, Canaan, Avalon, Innosilicon и т.д.)
      * Заполняется из Ollama при первом предложении, если еще не заполнено
+     * Исходные данные от нейросети - не редактируются напрямую
+     * Для редактирования используйте MinerDetail.manufacturer
      */
     @Column(length = 100)
     private String manufacturer;
+    
+    /**
+     * Связь с детальной информацией о майнере (редактируемые данные)
+     * ManyToOne: несколько товаров могут ссылаться на одну детальную запись (объединение)
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "miner_detail_id", nullable = true)
+    private MinerDetail minerDetail;
     
     /**
      * Список предложений для этого товара

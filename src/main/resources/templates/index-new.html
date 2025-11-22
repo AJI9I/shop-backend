@@ -244,57 +244,6 @@
 </div>
 <!-- ============================ Banner Section End =============================== -->
 
-    <!-- ============================ Statistics Section Start =============================== -->
-<div class="feature pt-80" id="featureSection">
-    <div class="container container-lg">
-        <div class="section-heading text-center mb-40">
-            <h5 class="mb-0">Статистика</h5>
-        </div>
-        <div class="row gy-4">
-            <div class="col-md-4 col-sm-6">
-                <div class="feature-item text-center">
-                    <div class="feature-item__thumb rounded-circle mx-auto w-80 h-80">
-                        <div class="w-100 h-100 flex-center bg-main-two-50 rounded-circle">
-                            <i class="ph ph-chat-dots text-main-two-600 text-3xl"></i>
-                        </div>
-                    </div>
-                    <div class="feature-item__content mt-16">
-                        <h6 class="text-lg mb-8">Всего сообщений</h6>
-                        <span class="text-2xl fw-bold text-heading" th:text="${totalMessages}">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="feature-item text-center">
-                    <div class="feature-item__thumb rounded-circle mx-auto w-80 h-80">
-                        <div class="w-100 h-100 flex-center bg-main-two-50 rounded-circle">
-                            <i class="ph ph-users text-main-two-600 text-3xl"></i>
-                        </div>
-                    </div>
-                    <div class="feature-item__content mt-16">
-                        <h6 class="text-lg mb-8">Группы</h6>
-                        <span class="text-2xl fw-bold text-heading" th:text="${groupMessages}">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="feature-item text-center">
-                    <div class="feature-item__thumb rounded-circle mx-auto w-80 h-80">
-                        <div class="w-100 h-100 flex-center bg-main-two-50 rounded-circle">
-                            <i class="ph ph-box text-main-two-600 text-3xl"></i>
-                        </div>
-                    </div>
-                    <div class="feature-item__content mt-16">
-                        <h6 class="text-lg mb-8">Товаров в каталоге</h6>
-                        <span class="text-2xl fw-bold text-heading" th:text="${products != null ? #lists.size(products) : 0}">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ============================ Statistics Section End =============================== -->
-
     <!-- ========================= Products Section Start ================================ -->
     <div class="product mt-80">
     <div class="container container-lg">

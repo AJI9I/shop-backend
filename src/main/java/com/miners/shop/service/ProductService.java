@@ -1,5 +1,6 @@
 package com.miners.shop.service;
 
+import com.miners.shop.entity.MinerDetail;
 import com.miners.shop.entity.Offer;
 import com.miners.shop.entity.OperationType;
 import com.miners.shop.entity.Product;
@@ -40,6 +41,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final OfferRepository offerRepository;
     private final SellerService sellerService;
+    private final com.miners.shop.service.MinerDetailService minerDetailService;
     
     /**
      * Обрабатывает распарсенные данные от Ollama и сохраняет товары с предложениями
@@ -173,8 +175,25 @@ public class ProductService {
                     } else {
                         log.debug("⚠️  Производитель не указан в данных Ollama для нового товара: {}", model);
                     }
-                    log.info("➕ Создан новый товар: {} (ID: {})", model, newProduct.getId());
-                    return productRepository.save(newProduct);
+                    Product savedProduct = productRepository.save(newProduct);
+                    log.info("➕ Создан новый товар: {} (ID: {})", model, savedProduct.getId());
+                    
+                    // Автоматически создаем детальную запись для нового товара
+                    try {
+                        if (savedProduct.getMinerDetail() == null) {
+                            MinerDetail minerDetail = minerDetailService.createMinerDetailForProduct(savedProduct);
+                            savedProduct.setMinerDetail(minerDetail);
+                            productRepository.save(savedProduct);
+                            log.info("✅ Создана детальная запись для нового товара {}: MinerDetail ID={}", 
+                                    model, minerDetail.getId());
+                        }
+                    } catch (Exception e) {
+                        log.error("❌ Ошибка при создании детальной записи для товара {}: {}", 
+                                model, e.getMessage(), e);
+                        // Не прерываем выполнение, если ошибка в создании детальной записи
+                    }
+                    
+                    return savedProduct;
                 });
         
         // Обновляем производителя в существующем товаре, если он еще не заполнен
@@ -512,6 +531,148 @@ public class ProductService {
         });
         
         return page;
+    }
+    
+    /**
+     * Получает все предложения для всех товаров, связанных с MinerDetail
+     * @param minerDetailId ID MinerDetail
+     * @return Список предложений
+     */
+    @Transactional(readOnly = true)
+    public List<Offer> getOffersByMinerDetailId(Long minerDetailId) {
+        // Получаем все товары, связанные с MinerDetail
+        List<Product> linkedProducts = productRepository.findByMinerDetailId(minerDetailId);
+        
+        if (linkedProducts.isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+        
+        // Собираем все ID связанных товаров
+        List<Long> productIds = linkedProducts.stream()
+                .map(Product::getId)
+                .toList();
+        
+        // Получаем все предложения для всех связанных товаров
+        List<Offer> allOffers = offerRepository.findByProductIdIn(productIds);
+        
+        // Инициализируем продавцов и товары для избежания LazyInitializationException
+        allOffers.forEach(offer -> {
+            if (offer.getSeller() != null) {
+                offer.getSeller().getName();
+            }
+            if (offer.getProduct() != null) {
+                offer.getProduct().getModel();
+            }
+        });
+        
+        return allOffers;
+    }
+    
+    /**
+     * Получает предложения для всех товаров, связанных с MinerDetail, с пагинацией и фильтрацией
+     * @param minerDetailId ID MinerDetail
+     * @param dateFrom Дата начала периода (может быть null)
+     * @param operationType Тип операции: SELL или BUY (может быть null)
+     * @param hasPrice Только с ценой (true) или все (false, если null)
+     * @param pageable Пагинация и сортировка
+     * @return Страница предложений
+     */
+    @Transactional(readOnly = true)
+    public Page<Offer> getOffersByMinerDetailIdWithFilters(Long minerDetailId, LocalDateTime dateFrom, OperationType operationType, Boolean hasPrice, Pageable pageable) {
+        // Получаем все товары, связанные с MinerDetail
+        List<Product> linkedProducts = productRepository.findByMinerDetailId(minerDetailId);
+        
+        if (linkedProducts.isEmpty()) {
+            return new PageImpl<>(new java.util.ArrayList<>(), pageable, 0);
+        }
+        
+        // Собираем все ID связанных товаров
+        List<Long> productIds = linkedProducts.stream()
+                .map(Product::getId)
+                .toList();
+        
+        // Вычисляем LIMIT и OFFSET из Pageable
+        int limitCount = pageable.getPageSize();
+        int offsetCount = (int) pageable.getOffset();
+        
+        // Преобразуем OperationType в строку для SQL запроса (null если не указан)
+        String operationTypeStr = operationType != null ? operationType.name() : null;
+        
+        // Получаем параметры сортировки из Pageable
+        String sortBy = "updated_at"; // По умолчанию
+        String sortDir = "DESC"; // По умолчанию
+        
+        if (pageable.getSort().isSorted()) {
+            org.springframework.data.domain.Sort.Order order = pageable.getSort().get().findFirst().orElse(null);
+            if (order != null) {
+                // Преобразуем camelCase в snake_case для SQL
+                sortBy = convertCamelCaseToSnakeCase(order.getProperty());
+                sortDir = order.getDirection().name();
+                
+                // Валидация: разрешаем только определенные колонки для безопасности
+                if (!isValidSortColumn(sortBy)) {
+                    sortBy = "updated_at";
+                    log.warn("Недопустимая колонка для сортировки, используем updated_at по умолчанию");
+                }
+            }
+        }
+        
+        // Валидация направления сортировки
+        if (!"ASC".equalsIgnoreCase(sortDir) && !"DESC".equalsIgnoreCase(sortDir)) {
+            sortDir = "DESC";
+        }
+        
+        // Строим динамический SQL запрос для данных с поддержкой нескольких product_id
+        StringBuilder sqlBuilder = new StringBuilder();
+        sqlBuilder.append("SELECT * FROM offers WHERE product_id IN (:productIds) ");
+        sqlBuilder.append("AND updated_at >= COALESCE(:dateFrom, '1900-01-01'::timestamp) ");
+        sqlBuilder.append("AND (CAST(:operationType AS varchar) IS NULL OR operation_type = CAST(:operationType AS varchar)) ");
+        // Фильтр "Без пустых цен": если hasPrice = true, показываем только записи с ценой (price IS NOT NULL)
+        if (hasPrice != null && hasPrice) {
+            sqlBuilder.append("AND price IS NOT NULL ");
+        }
+        sqlBuilder.append("ORDER BY ").append(sortBy).append(" ").append(sortDir).append(" ");
+        sqlBuilder.append("LIMIT :limitCount OFFSET :offsetCount");
+        
+        // Создаем запрос для получения данных
+        Query query = entityManager.createNativeQuery(sqlBuilder.toString(), Offer.class);
+        query.setParameter("productIds", productIds);
+        query.setParameter("dateFrom", dateFrom);
+        query.setParameter("operationType", operationTypeStr);
+        query.setParameter("limitCount", limitCount);
+        query.setParameter("offsetCount", offsetCount);
+        
+        @SuppressWarnings("unchecked")
+        List<Offer> offers = query.getResultList();
+        
+        // Получаем общее количество для пагинации
+        StringBuilder countSqlBuilder = new StringBuilder();
+        countSqlBuilder.append("SELECT COUNT(*) FROM offers WHERE product_id IN (:productIds) ");
+        countSqlBuilder.append("AND updated_at >= COALESCE(:dateFrom, '1900-01-01'::timestamp) ");
+        countSqlBuilder.append("AND (CAST(:operationType AS varchar) IS NULL OR operation_type = CAST(:operationType AS varchar)) ");
+        if (hasPrice != null && hasPrice) {
+            countSqlBuilder.append("AND price IS NOT NULL");
+        }
+        
+        Query countQuery = entityManager.createNativeQuery(countSqlBuilder.toString());
+        countQuery.setParameter("productIds", productIds);
+        countQuery.setParameter("dateFrom", dateFrom);
+        countQuery.setParameter("operationType", operationTypeStr);
+        
+        long totalCount = ((Number) countQuery.getSingleResult()).longValue();
+        
+        // Принудительно инициализируем продавцов для избежания LazyInitializationException
+        offers.forEach(offer -> {
+            if (offer.getSeller() != null) {
+                offer.getSeller().getName();
+            }
+            if (offer.getProduct() != null) {
+                offer.getProduct().getModel();
+            }
+        });
+        
+        // Создаем Page объект вручную
+        return new PageImpl<>(offers, pageable, totalCount);
     }
     
     /**

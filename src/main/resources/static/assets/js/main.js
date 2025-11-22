@@ -44,35 +44,47 @@
   // ============== Mobile Nav Menu Dropdown Js End =======================
     
   // ===================== Scroll Back to Top Js Start ======================
-  var progressPath = document.querySelector('.progress-wrap path');
-  var pathLength = progressPath.getTotalLength();
-  progressPath.style.transition = progressPath.style.WebkitTransition = 'none';
-  progressPath.style.strokeDasharray = pathLength + ' ' + pathLength;
-  progressPath.style.strokeDashoffset = pathLength;
-  progressPath.getBoundingClientRect();
-  progressPath.style.transition = progressPath.style.WebkitTransition = 'stroke-dashoffset 10ms linear';
-  var updateProgress = function () {
-    var scroll = $(window).scrollTop();
-    var height = $(document).height() - $(window).height();
-    var progress = pathLength - (scroll * pathLength / height);
-    progressPath.style.strokeDashoffset = progress;
+  try {
+    var progressPath = document.querySelector('.progress-wrap path');
+    if (progressPath && progressPath.getTotalLength) {
+      var pathLength = progressPath.getTotalLength();
+      progressPath.style.transition = progressPath.style.WebkitTransition = 'none';
+      progressPath.style.strokeDasharray = pathLength + ' ' + pathLength;
+      progressPath.style.strokeDashoffset = pathLength;
+      progressPath.getBoundingClientRect();
+      progressPath.style.transition = progressPath.style.WebkitTransition = 'stroke-dashoffset 10ms linear';
+      var updateProgress = function () {
+        if (progressPath && pathLength) {
+          var scroll = $(window).scrollTop();
+          var height = $(document).height() - $(window).height();
+          var progress = pathLength - (scroll * pathLength / height);
+          progressPath.style.strokeDashoffset = progress;
+        }
+      }
+      updateProgress();
+      $(window).scroll(updateProgress);
+    }
+  } catch (e) {
+    // Элемент .progress-wrap path не найден, продолжаем работу без анимации
+    console.debug('Progress circle element not found:', e);
   }
-  updateProgress();
-  $(window).scroll(updateProgress);
   var offset = 50;
   var duration = 550;
   jQuery(window).on('scroll', function() {
-    if (jQuery(this).scrollTop() > offset) {
-      jQuery('.progress-wrap').addClass('active-progress');
-    } else {
-      jQuery('.progress-wrap').removeClass('active-progress');
+    var progressWrap = jQuery('.progress-wrap');
+    if (progressWrap.length > 0) {
+      if (jQuery(this).scrollTop() > offset) {
+        progressWrap.addClass('active-progress');
+      } else {
+        progressWrap.removeClass('active-progress');
+      }
     }
   });
-  jQuery('.progress-wrap').on('click', function(event) {
+  jQuery(document).on('click', '.progress-wrap', function(event) {
     event.preventDefault();
     jQuery('html, body').animate({scrollTop: 0}, duration);
     return false;
-  })
+  });
   // ===================== Scroll Back to Top Js End ======================
 
   // ========================== add active class to ul>li top Active current page Js Start =====================
@@ -104,8 +116,10 @@
   
   // ========================== Select2 Js Start =================================
   $(document).ready(function() {
-    $('.js-example-basic-single').select2();
-});
+    if (typeof $.fn.select2 !== 'undefined') {
+      $('.js-example-basic-single').select2();
+    }
+  });
   // ========================== Select2 Js End =================================
 
   
@@ -165,7 +179,8 @@
 
   
   // ========================= Banner Slider Js Start ==============
-  $('.banner-slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.banner-slider').length > 0) {
+    $('.banner-slider').slick({
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: false,
@@ -188,12 +203,14 @@
         }
       }
     ]
-  });  
+    });  
+  }
   // ========================= Banner Slider Js End ===================
 
 
    // ========================= hot deals Slider Js Start ==============
-   $('.feature-item-wrapper').slick({
+   if (typeof $.fn.slick !== 'undefined' && $('.feature-item-wrapper').length > 0) {
+     $('.feature-item-wrapper').slick({
     slidesToShow: 10,
     slidesToScroll: 1,
     autoplay: true,
@@ -258,12 +275,14 @@
         }
       },
     ]
-  });  
+    });  
+   }
   // ========================= hot deals Slider Js End ===================
 
   
   // ========================= Banner Slider Js Start ==============
-  $('.banner-item-two__slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.banner-item-two__slider').length > 0) {
+    $('.banner-item-two__slider').slick({
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: false,
@@ -286,12 +305,14 @@
         }
       }
     ]
-  });  
+    });  
+  }
   // ========================= Banner Slider Js End ===================
 
   
   // ========================= flash Sale Four Slider Js Start ==============
-  $('.flash-sales__slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.flash-sales__slider').length > 0) {
+    $('.flash-sales__slider').slick({
     slidesToShow: 2,
     slidesToScroll: 1,
     autoplay: true,
@@ -315,11 +336,13 @@
         }
       }
     ]
-  });  
+    });  
+  }
   // ========================= flash Sale Four Slider Js End ==================
     
   // ========================= hot deals Slider Js Start ==============
-  $('.hot-deals-slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.hot-deals-slider').length > 0) {
+    $('.hot-deals-slider').slick({
     slidesToShow: 4,
     slidesToScroll: 1,
     autoplay: true,
@@ -357,12 +380,14 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
     
     
   // ========================= hot deals Slider Js Start ==============
-  $('.deals-week-slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.deals-week-slider').length > 0) {
+    $('.deals-week-slider').slick({
     slidesToShow: 6,
     slidesToScroll: 1,
     autoplay: true,
@@ -407,12 +432,14 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
     
 
   // ========================= hot deals Slider Js Start ==============
-  $('.top-selling-product-slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.top-selling-product-slider').length > 0) {
+    $('.top-selling-product-slider').slick({
     slidesToShow: 4,
     slidesToScroll: 1,
     autoplay: true,
@@ -450,12 +477,14 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
 
   
   // ========================= hot deals Slider Js Start ==============
-  $('.organic-food__slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.organic-food__slider').length > 0) {
+    $('.organic-food__slider').slick({
     slidesToShow: 6,
     slidesToScroll: 1,
     autoplay: true,
@@ -507,12 +536,14 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
 
   
   // ========================= New arrival Slider Js Start ==============
-  $('.new-arrival__slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.new-arrival__slider').length > 0) {
+    $('.new-arrival__slider').slick({
     slidesToShow: 6,
     slidesToScroll: 1,
     autoplay: false,
@@ -564,12 +595,14 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= New arrival Slider Js End ===================
 
   
   // ========================= hot deals Slider Js Start ==============
-  $('.short-product-list').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.short-product-list').length > 0) {
+    $('.short-product-list').slick({
     slidesToShow: 1,
     slidesToScroll: 1,
     autoplay: true,
@@ -585,12 +618,13 @@
     prevArrow: '<button type="button" class="slick-prev border border-gray-100 w-30 h-30 bg-transparent rounded-pill position-absolute hover-bg-main-600 hover-text-white hover-border-main-600 transition-1"><i class="ph ph-caret-left"></i></button>',
     nextArrow: '<button type="button" class="slick-next border border-gray-100 w-30 h-30 bg-transparent rounded-pill position-absolute hover-bg-main-600 hover-text-white hover-border-main-600 transition-1"><i class="ph ph-caret-right"></i></button>',
   });  
-  
+  }
 // ========================= hot deals Slider Js End ===================
 
   
   // ========================= hot deals Slider Js Start ==============
-  $('.brand-slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.brand-slider').length > 0) {
+    $('.brand-slider').slick({
     slidesToShow: 8,
     slidesToScroll: 1,
     autoplay: true,
@@ -649,7 +683,8 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
 
   
@@ -662,7 +697,8 @@
   
   
   // ========================= Featured Products Slider Js Start ==============
-  $('.featured-product-slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.featured-product-slider').length > 0) {
+    $('.featured-product-slider').slick({
     slidesToShow: 2,
     slidesToScroll: 1,
     autoplay: true,
@@ -686,12 +722,14 @@
         }
       }
     ]
-  });  
+    });  
+  }
   // ========================= Featured Products Slider Js End ==================
 
   
   // ========================= hot deals Slider Js Start ==============
-  $('.recommended-slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.recommended-slider').length > 0) {
+    $('.recommended-slider').slick({
     slidesToShow: 4,
     slidesToScroll: 1,
     autoplay: true,
@@ -729,11 +767,13 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
   
   // ========================= hot deals Slider Js Start ==============
-  $('.vendor-card__list.style-two').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.vendor-card__list.style-two').length > 0) {
+    $('.vendor-card__list.style-two').slick({
     slidesToShow: 4,
     slidesToScroll: 1,
     autoplay: true,
@@ -748,12 +788,14 @@
     infinite: true,
     nextArrow: '#vendor-next',
     prevArrow: '#vendor-prev',
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
   
   
   // ========================= hot deals Slider Js Start ==============
-  $('.top-brand__slider').slick({
+  if (typeof $.fn.slick !== 'undefined' && $('.top-brand__slider').length > 0) {
+    $('.top-brand__slider').slick({
     slidesToShow: 8,
     slidesToScroll: 1,
     autoplay: true,
@@ -812,27 +854,30 @@
         }
       },
     ]
-  });  
+    });  
+  }
   // ========================= hot deals Slider Js End ===================
 
   
   // ========================= Product Details Thumbs Slider Js Start ===================
-  $('.product-details__thumb-slider').slick({
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: false,
-    fade: true,
-    asNavFor: '.product-details__images-slider'
-  });
+  if (typeof $.fn.slick !== 'undefined' && $('.product-details__thumb-slider').length > 0 && $('.product-details__images-slider').length > 0) {
+    $('.product-details__thumb-slider').slick({
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      arrows: false,
+      fade: true,
+      asNavFor: '.product-details__images-slider'
+    });
 
-  $('.product-details__images-slider').slick({
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    asNavFor: '.product-details__thumb-slider',
-    dots: false,
-    arrows: false,
-    focusOnSelect: true
-  });
+    $('.product-details__images-slider').slick({
+      slidesToShow: 4,
+      slidesToScroll: 1,
+      asNavFor: '.product-details__thumb-slider',
+      dots: false,
+      arrows: false,
+      focusOnSelect: true
+    });
+  }
   // ========================= Product Details Thumbs Slider Js End ===================
 
   
@@ -873,19 +918,21 @@
   // ========================= Color List Js End ===================
 
   // ========================== Range Slider Js Start =====================
-  $(function() {
-    $( "#slider-range" ).slider({
-        range: true,
-        min: 0,
-        max: 25,
-        values: [ 0, 25 ],
-        slide: function( event, ui ) {
-            $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
-        }
+  if (typeof $.fn.slider !== 'undefined' && $("#slider-range").length > 0) {
+    $(function() {
+      $( "#slider-range" ).slider({
+          range: true,
+          min: 0,
+          max: 25,
+          values: [ 0, 25 ],
+          slide: function( event, ui ) {
+              $( "#amount" ).val( "$" + ui.values[ 0 ] + " - $" + ui.values[ 1 ] );
+          }
+      });
+      $( "#amount" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
+      " - $" + $( "#slider-range" ).slider( "values", 1 ) );
     });
-    $( "#amount" ).val( "$" + $( "#slider-range" ).slider( "values", 0 ) +
-    " - $" + $( "#slider-range" ).slider( "values", 1 ) );
-  });
+  }
   // ========================== Range Slider Js End =====================
 
   
