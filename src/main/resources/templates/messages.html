@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сообщения WhatsApp - Miners Shop</title>
+    <title>Сообщения - MinerHive</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .message-card {
@@ -43,7 +43,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">Miners Shop</a>
+            <a class="navbar-brand" href="/">MinerHive</a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/products">Товары</a>
@@ -98,14 +98,14 @@
             <nav aria-label="Навигация по страницам">
                 <ul class="pagination justify-content-center">
                     <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                        <a class="page-link" th:href="@{/messages(page=${currentPage - 1})}">Предыдущая</a>
+                        <a class="page-link" th:href="@{/private/messages(page=${currentPage - 1})}">Предыдущая</a>
                     </li>
                     <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                         th:classappend="${i == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/messages(page=${i})}" th:text="${i + 1}">1</a>
+                        <a class="page-link" th:href="@{/private/messages(page=${i})}" th:text="${i + 1}">1</a>
                     </li>
                     <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/messages(page=${currentPage + 1})}">Следующая</a>
+                        <a class="page-link" th:href="@{/private/messages(page=${currentPage + 1})}">Следующая</a>
                     </li>
                 </ul>
             </nav>
@@ -115,4 +115,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 

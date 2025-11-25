@@ -23,7 +23,7 @@ import java.util.Map;
  * Контроллер для работы с заявками
  */
 @Controller
-@RequestMapping("/requests")
+@RequestMapping("/private/requests")
 @RequiredArgsConstructor
 @Slf4j
 public class RequestController {
@@ -122,17 +122,22 @@ public class RequestController {
     
     /**
      * Страница просмотра детальной информации о заявке
+     * При открытии заявки автоматически меняется статус на "просмотрено" (PROCESSED)
      */
     @GetMapping("/{id}")
     public String requestDetails(@PathVariable Long id, Model model) {
         try {
+            // Помечаем заявку как просмотренную (меняем статус с NEW на PROCESSED)
+            requestService.markAsViewed(id);
+            
+            // Получаем заявку с полной информацией
             Request request = requestService.getRequestById(id);
             model.addAttribute("request", request);
             model.addAttribute("requestDTO", RequestDTO.fromEntity(request));
             return "request-details";
         } catch (IllegalArgumentException e) {
             log.error("Заявка с ID={} не найдена", id);
-            return "redirect:/requests?error=not_found";
+            return "redirect:/private/requests?error=not_found";
         }
     }
     

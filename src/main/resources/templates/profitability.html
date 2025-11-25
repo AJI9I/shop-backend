@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ru" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-menu-styles="light" data-toggled="close">
+
+<head>
+    <!-- Meta Data -->
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Расчет доходности ASIC - MinerHive</title>
+    <meta name="Description" content="Калькулятор доходности ASIC майнеров">
+    
+    <!-- Favicon -->
+    <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}" href="../assets/images/brand-logos/favicon.ico" type="image/x-icon">
+    
+    <!-- Choices JS -->
+    <script th:src="@{/bootstrap-theme/assets/libs/choices.js/public/assets/scripts/choices.min.js}" src="../assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
+    
+    <!-- Bootstrap Css -->
+    <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" href="../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Style Css -->
+    <link th:href="@{/bootstrap-theme/assets/css/styles.min.css}" href="../assets/css/styles.min.css" rel="stylesheet">
+
+    <!-- Icons Css -->
+    <link th:href="@{/bootstrap-theme/assets/css/icons.css}" href="../assets/css/icons.css" rel="stylesheet">
+
+    <!-- Node Waves Css -->
+    <link th:href="@{/bootstrap-theme/assets/libs/node-waves/waves.min.css}" href="../assets/libs/node-waves/waves.min.css" rel="stylesheet"> 
+    
+    <!-- Simplebar Css -->
+    <link th:href="@{/bootstrap-theme/assets/libs/simplebar/simplebar.min.css}" href="../assets/libs/simplebar/simplebar.min.css" rel="stylesheet">
+    
+    <!-- Color Picker Css -->
+    <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/flatpickr/flatpickr.min.css}" href="../assets/libs/flatpickr/flatpickr.min.css">
+    <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/@simonwep/pickr/themes/nano.min.css}" href="../assets/libs/@simonwep/pickr/themes/nano.min.css">
+
+    <!-- Choices Css -->
+    <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/choices.js/public/assets/styles/choices.min.css}" href="../assets/libs/choices.js/public/assets/styles/choices.min.css">
+    
+    <!-- Custom styles для калькулятора -->
+    <style>
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+        .calc-tab.active {
+            border-bottom: 3px solid #2563eb !important;
+            color: #2563eb !important;
+        }
+        .currency-btn.active {
+            background: rgba(255,255,255,0.3) !important;
+            border-color: rgba(255,255,255,0.5) !important;
+        }
+        .result-value.positive {
+            color: #10b981;
+        }
+        .result-value.negative {
+            color: #ef4444;
+        }
+        .profitability-calculator {
+            min-height: calc(100vh - 200px);
+        }
+        @media (max-width: 992px) {
+            .profitability-calculator .row > div {
+                padding: 24px !important;
+            }
+        }
+    </style>
+    
+    <!-- Fix for missing DOM elements - MUST be before other scripts -->
+    <script>
+        // Ensure all required DOM elements exist before scripts execute
+        (function() {
+            function ensureElements() {
+                // Ensure horizontal menu exists in the correct location
+                let horizontalMenu = document.querySelector('.horizontal-menu');
+                if (!horizontalMenu) {
+                    let headerCenter = document.querySelector('.main-header-center');
+                    if (!headerCenter) {
+                        // Find header-element or create it
+                        const headerContentLeft = document.querySelector('.header-content-left');
+                        if (headerContentLeft) {
+                            headerCenter = document.createElement('div');
+                            headerCenter.className = 'main-header-center d-none d-lg-block';
+                            headerCenter.style.display = 'none';
+                            const headerElement = headerContentLeft.querySelector('.header-element');
+                            if (headerElement) {
+                                headerElement.appendChild(headerCenter);
+                            } else {
+                                headerContentLeft.appendChild(headerCenter);
+                            }
+                        }
+                    }
+                    if (headerCenter) {
+                        horizontalMenu = document.createElement('nav');
+                        horizontalMenu.className = 'horizontal-menu';
+                        horizontalMenu.style.display = 'none';
+                        headerCenter.appendChild(horizontalMenu);
+                    }
+                }
+                
+                // Ensure loader element exists
+                let loader = document.getElementById('loader');
+                if (!loader) {
+                    loader = document.createElement('div');
+                    loader.id = 'loader';
+                    loader.style.display = 'none';
+                    if (document.body) {
+                        document.body.insertBefore(loader, document.body.firstChild);
+                    }
+                }
+                
+                // Ensure switcher-canvas exists
+                let switcherCanvas = document.getElementById('switcher-canvas');
+                if (!switcherCanvas) {
+                    switcherCanvas = document.createElement('div');
+                    switcherCanvas.className = 'offcanvas offcanvas-end';
+                    switcherCanvas.id = 'switcher-canvas';
+                    switcherCanvas.setAttribute('tabindex', '-1');
+                    switcherCanvas.setAttribute('aria-labelledby', 'offcanvasRightLabel');
+                    switcherCanvas.style.display = 'none';
+                    if (document.body) {
+                        document.body.appendChild(switcherCanvas);
+                    }
+                }
+                
+                // Ensure header-sidebar exists
+                let headerSidebar = document.getElementById('header-sidebar');
+                if (!headerSidebar) {
+                    headerSidebar = document.createElement('div');
+                    headerSidebar.className = 'offcanvas offcanvas-end';
+                    headerSidebar.id = 'header-sidebar';
+                    headerSidebar.setAttribute('tabindex', '-1');
+                    headerSidebar.setAttribute('aria-labelledby', 'sidebarLabel');
+                    headerSidebar.style.display = 'none';
+                    if (document.body) {
+                        document.body.appendChild(headerSidebar);
+                    }
+                }
+            }
+            
+            // Run when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', ensureElements);
+            } else {
+                // DOM already loaded
+                ensureElements();
+            }
+            
+            // Also run immediately to catch early script execution
+            if (document.body) {
+                ensureElements();
+            }
+        })();
+    </script>
+</head> 
+
+<body>
+    <!-- Page Loader -->
+    <div id="loader">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <!-- Page Loader -->
+
+    <!-- Start Switcher -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="switcher-canvas" aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title text-default" id="offcanvasRightLabel">Switcher</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <nav class="border-bottom border-block-end-dashed">
+                <div class="nav nav-tabs nav-justified" id="switcher-main-tab" role="tablist">
+                    <button class="nav-link active" id="switcher-home-tab" data-bs-toggle="tab" data-bs-target="#switcher-home"
+                        type="button" role="tab" aria-controls="switcher-home" aria-selected="true">Theme Styles</button>
+                    <button class="nav-link" id="switcher-profile-tab" data-bs-toggle="tab" data-bs-target="#switcher-profile"
+                        type="button" role="tab" aria-controls="switcher-profile" aria-selected="false">Theme Colors</button>
+                </div>
+            </nav>
+            <div class="tab-content" id="nav-tabContent">
+                <div class="tab-pane fade show active border-0" id="switcher-home" role="tabpanel" aria-labelledby="switcher-home-tab" tabindex="0">
+                    <div class="">
+                        <p class="switcher-style-head">Theme Color Mode:</p>
+                        <div class="row switcher-style gx-0">
+                            <div class="col-4">
+                                <div class="form-check switch-select">
+                                    <label class="form-check-label" for="switcher-light-theme">Light</label>
+                                    <input class="form-check-input" type="radio" name="theme-style" id="switcher-light-theme" checked>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="form-check switch-select">
+                                    <label class="form-check-label" for="switcher-dark-theme">Dark</label>
+                                    <input class="form-check-input" type="radio" name="theme-style" id="switcher-dark-theme">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade border-0" id="switcher-profile" role="tabpanel" aria-labelledby="switcher-profile-tab" tabindex="0">
+                        <div class="">
+                            <p class="switcher-style-head">Menu Colors:</p>
+                            <div class="d-flex switcher-style pb-2">
+                                <div class="form-check switch-select me-2">
+                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-light" checked>
+                                    <label class="form-check-label" for="switcher-menu-light">Light</label>
+                                </div>
+                                <div class="form-check switch-select me-2">
+                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-dark">
+                                    <label class="form-check-label" for="switcher-menu-dark">Dark</label>
+                                </div>
+                                <div class="form-check switch-select">
+                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-primary">
+                                    <label class="form-check-label" for="switcher-menu-primary">Primary</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <p class="switcher-style-head">Header Colors:</p>
+                            <div class="d-flex switcher-style pb-2">
+                                <div class="form-check switch-select me-2">
+                                    <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-light" checked>
+                                    <label class="form-check-label" for="switcher-header-light">Light</label>
+                                </div>
+                                <div class="form-check switch-select me-2">
+                                    <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-dark">
+                                    <label class="form-check-label" for="switcher-header-dark">Dark</label>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Switcher -->
+
+    <!-- Start::Off-canvas sidebar-->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="header-sidebar" aria-labelledby="sidebarLabel">
+        <div class="offcanvas-header rounded-0">
+            <h5 class="fs-14 text-uppercase mb-0 fw-semibold" id="sidebarLabel">Меню</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body rounded-0 p-0">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><a th:href="@{/private}" class="text-dark">Панель управления</a></li>
+                <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/messages}" class="text-dark">Сообщения</a></li>
+                <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/products/table}" class="text-dark">Таблица товаров</a></li>
+                <li class="list-group-item"><a th:href="@{/private/requests}" class="text-dark">Заявки</a></li>
+                <li class="list-group-item"><a th:href="@{/private/miner-details}" class="text-dark">Детали майнеров</a></li>
+                <li class="list-group-item"><a th:href="@{/private/profitability}" class="text-dark">Калькулятор доходности</a></li>
+                <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/users}" class="text-dark">Пользователи</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- End::Off-canvas sidebar-->
+
+    <div class="page">
+        <!-- app-header -->
+        <header class="app-header">
+            <!-- Start::main-header-container -->
+            <div class="main-header-container container-fluid">
+                <!-- Start::header-content-left -->
+                <div class="header-content-left">
+                    <!-- Start::header-element -->
+                    <div class="header-element">
+                        <div class="horizontal-logo">
+                            <a th:href="@{/}" class="header-logo">
+                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-logo.png}" src="../assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
+                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-logo.png}" src="../assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
+                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-white.png}" src="../assets/images/brand-logos/desktop-white.png" alt="logo" class="desktop-white">
+                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-white.png}" src="../assets/images/brand-logos/toggle-white.png" alt="logo" class="toggle-white">
+                            </a>
+                        </div>
+                    </div>
+                    <!-- End::header-element -->
+
+                    <!-- Start::header-element -->
+                    <div class="header-element">
+                        <!-- Start::header-link -->
+                        <a aria-label="Hide Sidebar" class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle" data-bs-toggle="sidebar" href="javascript:void(0);">
+                            <i class="header-icon fe fe-align-left"></i>
+                        </a>
+                        <!-- End::header-link -->
+                        <!-- Horizontal Menu Container (hidden, but needed for scripts) -->
+                        <div class="main-header-center d-none d-lg-block" style="display: none !important;">
+                            <nav class="horizontal-menu"></nav>
+                        </div>
+                    </div>
+                    <!-- End::header-element -->
+                </div>
+                <!-- End::header-content-left -->
+
+                <!-- Start::header-content-right -->
+                <div class="header-content-right">
+                    <!-- Start::header-element -->
+                    <div class="header-element header-sidebar">
+                        <!-- Start::header-link-->
+                        <a href="javascript:void(0);" class="header-link" data-bs-toggle="offcanvas" data-bs-target="#header-sidebar">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                        </a>
+                        <!-- End::header-link-->
+                    </div>
+                    <!-- End::header-element -->
+
+                    <!-- Start::header-element -->
+                    <div class="header-element">
+                        <!-- Start::header-link|switcher-icon -->
+                        <a href="javascript:void(0);" class="header-link switcher-icon" data-bs-toggle="offcanvas" data-bs-target="#switcher-canvas">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" width="24" height="24" viewBox="0 0 24 24"><path d="M12 16c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm0-6c1.084 0 2 .916 2 2s-.916 2-2 2-2-.916-2-2 .916-2 2-2z"></path><path d="m2.845 16.136 1 1.73c.531.917 1.809 1.261 2.73.73l.529-.306A8.1 8.1 0 0 0 9 19.402V20c0 1.103.897 2 2 2h2c1.103 0 2-.897 2-2v-.598a8.132 8.132 0 0 0 1.896-1.111l.529.306c.923.53 2.198.188 2.731-.731l.999-1.729a2.001 2.001 0 0 0-.731-2.732l-.505-.292a7.718 7.718 0 0 0 0-2.224l.505-.292a2.002 2.002 0 0 0 .731-2.732l-.999-1.729c-.531-.92-1.808-1.265-2.731-.732l-.529.306A8.1 8.1 0 0 0 15 4.598V4c0-1.103-.897-2-2-2h-2c-1.103 0-2 .897-2 2v.598a8.132 8.132 0 0 0-1.896 1.111l-.529-.306c-.924-.531-2.2-.187-2.731.732l-.999 1.729a2.001 2.001 0 0 0 .731 2.732l.505.292a7.683 7.683 0 0 0 0 2.223l-.505.292a2.003 2.003 0 0 0-.731 2.733zm3.326-2.758A5.703 5.703 0 0 1 6 12c0-.462.058-.926.17-1.378a.999.999 0 0 0-.47-1.108l-1.123-.65.998-1.729 1.145.662a.997.997 0 0 0 1.188-.142 6.071 6.071 0 0 1 2.384-1.399A1 1 0 0 0 11 5.3V4h2v1.3a1 1 0 0 0 .708.956 6.083 6.083 0 0 1 2.384 1.399.999.999 0 0 0 1.188.142l1.144-.661 1 1.729-1.124.649a1 1 0 0 0-.47 1.108c.112.452.17.916.17 1.378 0 .461-.058.925-.171 1.378a1 1 0 0 0 .471 1.108l1.123.649-.998 1.729-1.145-.661a.996.996 0 0 0-1.188.142 6.071 6.071 0 0 1-2.384 1.399A1 1 0 0 0 13 18.7l.002 1.3H11v-1.3a1 1 0 0 0-.708-.956 6.083 6.083 0 0 1-2.384-1.399.992.992 0 0 0-1.188-.141l-1.144.662-1-1.729 1.124-.651a1 1 0 0 0 .471-1.108z"></path></svg>
+                        </a>
+                        <!-- End::header-link|switcher-icon -->
+                    </div>
+                    <!-- End::header-element -->
+
+                    <!-- Start::header-element -->
+                    <div class="header-element headerProfile-dropdown">
+                        <!-- Start::header-link|dropdown-toggle -->
+                        <a href="javascript:void(0);" class="header-link dropdown-toggle" id="mainHeaderProfile" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            <i class="fe fe-user fs-20"></i>
+                        </a>
+                        <!-- End::header-link|dropdown-toggle -->
+                        <ul class="main-header-dropdown dropdown-menu pt-0 header-profile-dropdown dropdown-menu-end main-profile-menu" aria-labelledby="mainHeaderProfile">
+                            <li>
+                                <div class="main-header-profile bg-primary menu-header-content text-fixed-white">
+                                    <div class="my-auto">
+                                        <h6 class="mb-0 lh-1 text-fixed-white">
+                                            <span sec:authorize="hasRole('ADMIN')">Администратор</span>
+                                            <span sec:authorize="hasRole('MANAGER') and !hasRole('ADMIN')">Менеджер</span>
+                                        </h6>
+                                        <span class="fs-11 op-7 lh-1">MinerHive</span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li><a class="dropdown-item d-flex" th:href="@{/}"><i class="bx bx-home fs-18 me-2 op-7"></i>Главная</a></li>
+                            <li><a class="dropdown-item d-flex border-block-end" th:href="@{/logout}"><i class="bx bx-log-out fs-18 me-2 op-7"></i>Выход</a></li>
+                        </ul>
+                    </div>  
+                    <!-- End::header-element -->
+                </div>
+                <!-- End::header-content-right -->
+            </div>
+            <!-- End::main-header-container -->
+        </header>
+        <!-- /app-header -->
+
+        <!-- Start::app-sidebar -->
+        <aside class="app-sidebar sticky" id="sidebar">
+            <!-- Start::main-sidebar-header -->
+            <div class="main-sidebar-header">
+                <a th:href="@{/}" class="header-logo">
+                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-logo.png}" src="../assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
+                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-logo.png}" src="../assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
+                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-white.png}" src="../assets/images/brand-logos/desktop-white.png" alt="logo" class="desktop-white">
+                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-white.png}" src="../assets/images/brand-logos/toggle-white.png" alt="logo" class="toggle-white">
+                </a>
+            </div>
+            <!-- End::main-sidebar-header -->
+
+            <!-- Start::main-sidebar -->
+            <div class="main-sidebar" id="sidebar-scroll">
+                <!-- Start::nav -->
+                <nav class="main-menu-container nav nav-pills flex-column sub-open">
+                    <div class="slide-left" id="slide-left">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path> </svg>
+                    </div>
+                    <ul class="main-menu">
+                        <!-- Start::slide__category -->
+                        <li class="slide__category"><span class="category-name">Главное</span></li>
+                        <!-- End::slide__category -->
+
+                        <!-- Start::slide -->
+                        <li class="slide">
+                            <a th:href="@{/private}" class="side-menu__item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5 5h4v6H5zm10 8h4v6h-4zM5 17h4v2H5zM15 5h4v2h-4z" opacity=".3"/><path d="M3 13h8V3H3v10zm2-8h4v6H5V5zm8 16h8V11h-8v10zm2-8h4v6h-4v-6zM13 3v6h8V3h-8zm6 4h-4V5h4v2zM3 21h8v-6H3v6zm2-4h4v2H5v-2z"/></svg>
+                                <span class="side-menu__label">Панель управления</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide__category -->
+                        <li class="slide__category"><span class="category-name">Управление</span></li>
+                        <!-- End::slide__category -->
+
+                        <!-- Start::slide -->
+                        <li class="slide" sec:authorize="hasRole('ADMIN')">
+                            <a th:href="@{/private/messages}" class="side-menu__item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                <span class="side-menu__label">Сообщения</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide -->
+                        <li class="slide" sec:authorize="hasRole('ADMIN')">
+                            <a th:href="@{/private/products/table}" class="side-menu__item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 5H5v14h14V5zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" opacity=".3"/><path d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm2 0h14v14H5V5zm2 5h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+                                <span class="side-menu__label">Таблица товаров</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide -->
+                        <li class="slide">
+                            <a th:href="@{/private/requests}" class="side-menu__item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                                <span class="side-menu__label">Заявки</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide -->
+                        <li class="slide">
+                            <a th:href="@{/private/miner-details}" class="side-menu__item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                                <span class="side-menu__label">Детали майнеров</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide -->
+                        <li class="slide">
+                            <a th:href="@{/private/profitability}" class="side-menu__item active">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                                <span class="side-menu__label">Калькулятор доходности</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide__category -->
+                        <li class="slide__category" sec:authorize="hasRole('ADMIN')"><span class="category-name">Администрирование</span></li>
+                        <!-- End::slide__category -->
+
+                        <!-- Start::slide -->
+                        <li class="slide" sec:authorize="hasRole('ADMIN')">
+                            <a th:href="@{/private/users}" class="side-menu__item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-3.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                                <span class="side-menu__label">Пользователи</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+                    </ul>
+                    <div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path> </svg></div>
+                </nav>
+                <!-- End::nav -->
+            </div>
+            <!-- End::main-sidebar -->
+        </aside>
+        <!-- End::app-sidebar -->
+
+        <!-- Start::app-content -->
+        <div class="main-content app-content">
+            <div class="container-fluid">
+                <!-- Page Header -->
+                <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
+                    <div class="my-auto">
+                        <h5 class="page-title fs-21 mb-1">Калькулятор доходности</h5>
+                        <nav>
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
+                                <li class="breadcrumb-item"><a th:href="@{/private}">Панель управления</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Калькулятор доходности</li>
+                            </ol>
+                        </nav>
+                    </div>
+                </div>
+                <!-- Page Header Close -->
+
+                <!-- Start::row-1 -->
+                <div class="row profitability-calculator">
+                    <!-- Левая панель - Параметры -->
+                    <div class="col-lg-6">
+                        <div class="card custom-card">
+                            <div class="card-header">
+                                <div class="card-title">Параметры расчета</div>
+                            </div>
+                            <div class="card-body">
+                                <form id="profitabilityForm">
+                                    <!-- Выбор майнера -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Выберите майнер</label>
+                                        <select class="form-select" id="minerSelect">
+                                            <option value="">-- Выберите майнер --</option>
+                                            <option th:each="miner : ${miners != null ? miners : {}}" 
+                                                    th:value="${miner.id}"
+                                                    th:attr="'data-hashrate'=${miner.hashrate != null ? miner.hashrate : 0},'data-power'=${miner.power != null ? miner.power : 0},'data-price'=${miner.minPrice != null ? miner.minPrice : 0},'data-image'=${miner.imageUrl != null ? miner.imageUrl : ''}"
+                                                    th:text="${miner.standardName != null ? miner.standardName : (miner.model != null ? miner.model : 'Майнер')}">
+                                            </option>
+                                        </select>
+                                        <div id="selectedMinerInfo" class="mt-3" style="display: none;">
+                                            <div class="d-flex align-items-center gap-3 p-3 bg-light rounded">
+                                                <img id="minerImage" src="" alt="" class="rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                                                <div>
+                                                    <div id="minerName" class="fw-semibold"></div>
+                                                    <div id="minerSpecs" class="text-muted small"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Криптовалюта -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Добываемая криптовалюта:</label>
+                                        <div class="d-flex gap-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="crypto" id="cryptoBTC" value="BTC" checked>
+                                                <label class="form-check-label" for="cryptoBTC">Bitcoin (BTC)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="crypto" id="cryptoLTC" value="LTC">
+                                                <label class="form-check-label" for="cryptoLTC">Litecoin (LTC)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="crypto" id="cryptoDOGE" value="DOGE">
+                                                <label class="form-check-label" for="cryptoDOGE">Dogecoin (DOGE)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Стоимость и потребление -->
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <label class="form-label fw-semibold">Стоимость (₽)</label>
+                                            <input type="number" class="form-control" id="minerPrice" placeholder="0" step="1" min="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label fw-semibold">Потребление (Вт)</label>
+                                            <div class="d-flex gap-2">
+                                                <input type="number" class="form-control" id="power" placeholder="0" step="1" min="0">
+                                                <button type="button" id="refreshPower" class="btn btn-outline-secondary" title="Восстановить из выбранного майнера">
+                                                    <i class="fe fe-refresh-cw"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Количество -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Количество</label>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button type="button" id="decreaseQty" class="btn btn-outline-secondary">-</button>
+                                            <input type="number" class="form-control text-center" id="quantity" value="1" min="1" step="1">
+                                            <button type="button" id="increaseQty" class="btn btn-outline-secondary">+</button>
+                                        </div>
+                                        <div id="totalPrice" class="mt-2 fw-semibold">Итого: 0 ₽</div>
+                                    </div>
+                                    
+                                    <!-- Цена электроэнергии -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Цена электроэнергии</label>
+                                        <div class="d-flex align-items-center gap-3 mb-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="electricityMode" id="electricityBasic" value="basic" checked>
+                                                <label class="form-check-label" for="electricityBasic">Базовое размещение</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="electricityMode" id="electricityCustom" value="custom">
+                                                <label class="form-check-label" for="electricityCustom">Задать свою стоимость</label>
+                                            </div>
+                                        </div>
+                                        <input type="number" class="form-control" id="electricityPrice" placeholder="5.0" step="0.01" min="0" style="display: none;">
+                                        <small class="text-muted">Базовое размещение: 5.0 ₽/кВт·ч</small>
+                                    </div>
+                                    
+                                    <!-- Метод расчета -->
+                                    <div class="mb-3">
+                                        <div class="d-flex gap-2 border-bottom mb-3">
+                                            <button type="button" class="calc-tab active btn btn-sm" data-tab="historical" style="border: none; background: none; border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 600;">Исторические данные</button>
+                                            <button type="button" class="calc-tab btn btn-sm" data-tab="forecast" style="border: none; background: none; color: #6b7280; font-weight: 600;">Прогнозируемые данные</button>
+                                        </div>
+                                        <div id="historicalOptions">
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" name="period" id="periodToday" value="today" checked>
+                                                <label class="form-check-label" for="periodToday">На сегодня</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" name="period" id="periodMonth" value="month">
+                                                <label class="form-check-label" for="periodMonth">За последний месяц</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" name="period" id="period3Months" value="3months">
+                                                <label class="form-check-label" for="period3Months">За последние 3 месяца</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" name="period" id="period6Months" value="6months">
+                                                <label class="form-check-label" for="period6Months">За последние 6 месяцев</label>
+                                            </div>
+                                            <div class="form-check mb-2">
+                                                <input class="form-check-input" type="radio" name="period" id="period12Months" value="12months">
+                                                <label class="form-check-label" for="period12Months">За последние 12 месяцев</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="period" id="period24Months" value="24months">
+                                                <label class="form-check-label" for="period24Months">За последние 24 месяца</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Скрытые поля для автоматических данных -->
+                                    <input type="hidden" id="crypto" value="BTC">
+                                    <input type="hidden" id="hashrate" value="">
+                                    <input type="hidden" id="difficulty" value="">
+                                    <input type="hidden" id="poolFee" value="1.0">
+                                    <input type="hidden" id="cryptoPrice" value="">
+                                    
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        Рассчитать доходность
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Правая панель - Результаты -->
+                    <div class="col-lg-6">
+                        <div class="card custom-card" style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%); border: none;">
+                            <div class="card-header border-0" style="background: transparent;">
+                                <div class="card-title text-white">Результаты расчётов</div>
+                            </div>
+                            <div class="card-body text-white">
+                                <!-- Выбор валюты -->
+                                <div class="d-flex gap-2 mb-4">
+                                    <button type="button" class="currency-btn btn btn-sm" data-currency="BTC" style="width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white;">B</button>
+                                    <button type="button" class="currency-btn btn btn-sm active" data-currency="RUB" style="width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.2); color: white;">₽</button>
+                                    <button type="button" class="currency-btn btn btn-sm" data-currency="USD" style="width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: white;">$</button>
+                                </div>
+                                
+                                <div id="resultsCard" style="display: none;">
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Чистая прибыль</div>
+                                        <div class="result-value h4 fw-bold" id="monthlyProfit" style="color: white;">0 ₽ /мес.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Окупаемость</div>
+                                        <div class="result-value h4 fw-bold" id="paybackPeriod" style="color: white;">0 мес.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Доходность в деньгах/мес*</div>
+                                        <div class="result-value h4 fw-bold" id="monthlyRevenue" style="color: white;">0 ₽ /мес.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Доходность % в месяц*</div>
+                                        <div class="result-value h4 fw-bold" id="monthlyROI" style="color: white;">0%</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Доходность % годовых*</div>
+                                        <div class="result-value h4 fw-bold" id="yearlyROI" style="color: white;">0%</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Стоимость размещения</div>
+                                        <div class="result-value h4 fw-bold" id="hostingCost" style="color: white;">0 ₽ /мес.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Потребление</div>
+                                        <div class="result-value h4 fw-bold" id="totalPower" style="color: white;">0 Вт/ч</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                                        <div class="small mb-2" style="color: rgba(255,255,255,0.7);">Хэшрейт</div>
+                                        <div class="result-value h4 fw-bold" id="totalHashrate" style="color: white;">0 TH/s</div>
+                                        <div class="small mt-2" style="color: rgba(255,255,255,0.6);" id="hashrateNote"></div>
+                                    </div>
+                                    
+                                    <button type="button" class="btn btn-light w-100 mb-3">
+                                        Получить КП
+                                    </button>
+                                    
+                                    <div class="small" style="color: rgba(255,255,255,0.7); line-height: 1.6;">
+                                        <p class="mb-2">* Расчеты не являются гарантией получения указанной доходности</p>
+                                        <p class="mb-0">Обратите внимание, что расчеты основаны на средних значениях, поэтому ваши окончательные результаты могут отличаться.</p>
+                                    </div>
+                                </div>
+                                
+                                <div id="noResults" class="text-center py-5" style="color: rgba(255,255,255,0.7);">
+                                    <i class="fe fe-calculator" style="font-size: 64px; display: block; margin-bottom: 16px;"></i>
+                                    <p class="h5">Заполните параметры и нажмите "Рассчитать доходность"</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- row closed -->
+            </div>
+        </div>
+        <!-- End::app-content -->
+
+        <!-- Footer Start -->
+        <footer class="footer mt-auto py-3 bg-white text-center">
+            <div class="container">
+                <span class="text-muted">© 2025 <a href="javascript:void(0);" class="text-dark fw-semibold">MinerHive</a>. Все права защищены.</span>
+            </div>
+        </footer>
+        <!-- Footer End -->
+    </div>
+
+    <!-- Scroll To Top -->
+    <div class="scrollToTop">
+        <span class="arrow"><i class="las la-angle-double-up"></i></span>
+    </div>
+    <div id="responsive-overlay"></div>
+    <!-- Scroll To Top -->
+
+    <!-- Popper JS -->
+    <script th:src="@{/bootstrap-theme/assets/libs/@popperjs/core/umd/popper.min.js}" src="../assets/libs/@popperjs/core/umd/popper.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script th:src="@{/bootstrap-theme/assets/libs/bootstrap/js/bootstrap.bundle.min.js}" src="../assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Defaultmenu JS -->
+    <script th:src="@{/bootstrap-theme/assets/js/defaultmenu.min.js}" src="../assets/js/defaultmenu.min.js"></script>
+
+    <!-- Node Waves JS-->
+    <script th:src="@{/bootstrap-theme/assets/libs/node-waves/waves.min.js}" src="../assets/libs/node-waves/waves.min.js"></script>
+
+    <!-- Sticky JS -->
+    <script th:src="@{/bootstrap-theme/assets/js/sticky.js}" src="../assets/js/sticky.js"></script>
+
+    <!-- Simplebar JS -->
+    <script th:src="@{/bootstrap-theme/assets/libs/simplebar/simplebar.min.js}" src="../assets/libs/simplebar/simplebar.min.js"></script>
+    <script th:src="@{/bootstrap-theme/assets/js/simplebar.js}" src="../assets/js/simplebar.js"></script>
+
+    <!-- Color Picker JS -->
+    <script th:src="@{/bootstrap-theme/assets/libs/@simonwep/pickr/pickr.es5.min.js}" src="../assets/libs/@simonwep/pickr/pickr.es5.min.js"></script>
+    
+    <!-- Custom-Switcher JS -->
+    <script th:src="@{/bootstrap-theme/assets/js/custom-switcher.min.js}" src="../assets/js/custom-switcher.min.js"></script>
+
+    <!-- Custom JS -->
+    <script th:src="@{/bootstrap-theme/assets/js/custom.js}" src="../assets/js/custom.js"></script>
+    
+    <!-- Main Theme Js - Loaded at the end to ensure DOM elements are ready -->
+    <script th:src="@{/bootstrap-theme/assets/js/main.js}" src="../assets/js/main.js"></script>
+
+    <!-- Калькулятор доходности -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Данные по криптовалютам (примерные значения, в реальном приложении можно получать через API)
+        const cryptoData = {
+            BTC: {
+                name: 'Bitcoin',
+                blockReward: 3.125, // BTC за блок (после халвинга 2024)
+                blockTime: 600, // секунд (10 минут)
+                defaultDifficulty: 95.0, // T (примерное значение, обновляется автоматически)
+                defaultPrice: 6500000 // ₽ (примерное значение, обновляется автоматически)
+            },
+            LTC: {
+                name: 'Litecoin',
+                blockReward: 6.25, // LTC за блок
+                blockTime: 150, // секунд (2.5 минуты)
+                defaultDifficulty: 25.0, // T (примерное значение, обновляется автоматически)
+                defaultPrice: 8500 // ₽ (примерное значение, обновляется автоматически)
+            },
+            DOGE: {
+                name: 'Dogecoin',
+                blockReward: 10000, // DOGE за блок
+                blockTime: 60, // секунд (1 минута)
+                defaultDifficulty: 500.0, // T (примерное значение, обновляется автоматически)
+                defaultPrice: 8.5 // ₽ (примерное значение, обновляется автоматически)
+            }
+        };
+        
+        // Функция для получения данных из API
+        async function fetchCryptoData(crypto) {
+            // Получаем ссылки на скрытые поля
+            const priceInput = document.getElementById('cryptoPrice');
+            const difficultyInput = document.getElementById('difficulty');
+            const poolFeeInput = document.getElementById('poolFee');
+            
+            try {
+                const response = await fetch(`/api/crypto/calculator-data?crypto=${crypto}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Обновляем скрытые поля автоматически
+                    priceInput.value = data.price.toFixed(2);
+                    difficultyInput.value = data.difficulty.toFixed(2);
+                    poolFeeInput.value = data.poolFee.toFixed(1);
+                    
+                    console.log(`Данные для ${crypto} обновлены: цена=${data.price}, сложность=${data.difficulty}, комиссия=${data.poolFee}`);
+                } else {
+                    console.warn('Не удалось получить данные из API, используем значения по умолчанию');
+                    // Используем значения по умолчанию
+                    const defaultCrypto = cryptoData[crypto];
+                    priceInput.value = defaultCrypto.defaultPrice;
+                    difficultyInput.value = defaultCrypto.defaultDifficulty;
+                    poolFeeInput.value = '1.0';
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных:', error);
+                // Используем значения по умолчанию при ошибке
+                const defaultCrypto = cryptoData[crypto];
+                priceInput.value = defaultCrypto.defaultPrice;
+                difficultyInput.value = defaultCrypto.defaultDifficulty;
+                poolFeeInput.value = '1.0';
+            }
+        }
+        
+        // Форматирование чисел
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+        
+        function formatNumber(value, decimals = 2) {
+            return new Intl.NumberFormat('ru-RU', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }).format(value);
+        }
+        
+        // Обработка выбора майнера
+        document.getElementById('minerSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const hashrate = parseFloat(selectedOption.dataset.hashrate) || 0;
+                const power = parseInt(selectedOption.dataset.power) || 0;
+                const price = parseFloat(selectedOption.dataset.price) || 0;
+                const imageUrl = selectedOption.dataset.image || '';
+                const minerName = selectedOption.text;
+                
+                // Заполняем поля автоматически
+                document.getElementById('hashrate').value = hashrate;
+                document.getElementById('power').value = power;
+                if (price > 0) {
+                    document.getElementById('minerPrice').value = Math.round(price);
+                }
+                
+                // Показываем информацию о майнере
+                const infoDiv = document.getElementById('selectedMinerInfo');
+                const image = document.getElementById('minerImage');
+                const name = document.getElementById('minerName');
+                const specs = document.getElementById('minerSpecs');
+                
+                if (imageUrl) {
+                    image.src = imageUrl;
+                    image.style.display = 'block';
+                } else {
+                    image.style.display = 'none';
+                }
+                
+                name.textContent = minerName;
+                specs.textContent = `${hashrate} TH/s, ${power} Вт`;
+                infoDiv.style.display = 'block';
+                
+                // Обновляем итоговую стоимость
+                updateTotalPrice();
+            } else {
+                document.getElementById('selectedMinerInfo').style.display = 'none';
+            }
+        });
+        
+        // Обработка кнопки refreshPower - восстановление значения power из выбранного майнера
+        document.getElementById('refreshPower').addEventListener('click', function() {
+            const minerSelect = document.getElementById('minerSelect');
+            const selectedOption = minerSelect.options[minerSelect.selectedIndex];
+            if (selectedOption.value) {
+                const power = parseInt(selectedOption.dataset.power) || 0;
+                if (power > 0) {
+                    document.getElementById('power').value = power;
+                }
+            }
+        });
+        
+        // Обработка количества
+        document.getElementById('increaseQty').addEventListener('click', function() {
+            const qty = parseInt(document.getElementById('quantity').value) || 1;
+            document.getElementById('quantity').value = qty + 1;
+            updateTotalPrice();
+        });
+        
+        document.getElementById('decreaseQty').addEventListener('click', function() {
+            const qty = parseInt(document.getElementById('quantity').value) || 1;
+            if (qty > 1) {
+                document.getElementById('quantity').value = qty - 1;
+                updateTotalPrice();
+            }
+        });
+        
+        document.getElementById('quantity').addEventListener('change', function() {
+            updateTotalPrice();
+        });
+        
+        document.getElementById('minerPrice').addEventListener('input', function() {
+            updateTotalPrice();
+        });
+        
+        function updateTotalPrice() {
+            const price = parseFloat(document.getElementById('minerPrice').value) || 0;
+            const qty = parseInt(document.getElementById('quantity').value) || 1;
+            const total = price * qty;
+            document.getElementById('totalPrice').textContent = `Итого: ${total.toLocaleString('ru-RU')} ₽`;
+        }
+        
+        // Обработка переключателя электроэнергии
+        document.querySelectorAll('input[name="electricityMode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const priceInput = document.getElementById('electricityPrice');
+                if (this.value === 'custom') {
+                    priceInput.style.display = 'block';
+                    priceInput.value = '5.0';
+                } else {
+                    priceInput.style.display = 'none';
+                    priceInput.value = '5.0'; // Базовое размещение
+                }
+            });
+        });
+        
+        // Обработка вкладок
+        document.querySelectorAll('.calc-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.calc-tab').forEach(t => {
+                    t.classList.remove('active');
+                    t.style.color = '#6b7280';
+                    t.style.borderBottom = 'none';
+                });
+                this.classList.add('active');
+                this.style.color = '#2563eb';
+                this.style.borderBottom = '3px solid #2563eb';
+            });
+        });
+        
+        // Обработка выбора криптовалюты
+        document.querySelectorAll('input[name="crypto"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('crypto').value = this.value;
+                fetchCryptoData(this.value);
+            });
+        });
+        
+        // Обработка выбора валюты для отображения
+        document.querySelectorAll('.currency-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.currency-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = 'rgba(255,255,255,0.1)';
+                });
+                this.classList.add('active');
+                this.style.background = 'rgba(255,255,255,0.2)';
+                // TODO: Обновить отображение результатов в выбранной валюте
+            });
+        });
+        
+        // Обновленная функция расчета с учетом количества
+        function calculateProfitability() {
+            const crypto = document.getElementById('crypto').value;
+            const hashrate = parseFloat(document.getElementById('hashrate').value) || 0; // TH/s
+            const power = parseFloat(document.getElementById('power').value) || 0; // Вт
+            const quantity = parseInt(document.getElementById('quantity').value) || 1;
+            const minerPrice = parseFloat(document.getElementById('minerPrice').value) || 0;
+            
+            // Определяем цену электроэнергии
+            const electricityMode = document.querySelector('input[name="electricityMode"]:checked').value;
+            const electricityPrice = electricityMode === 'custom' 
+                ? parseFloat(document.getElementById('electricityPrice').value) || 5.0
+                : 5.0; // Базовое размещение
+            
+            const difficulty = parseFloat(document.getElementById('difficulty').value) || cryptoData[crypto].defaultDifficulty;
+            const poolFee = parseFloat(document.getElementById('poolFee').value) || 1.0;
+            const cryptoPrice = parseFloat(document.getElementById('cryptoPrice').value) || cryptoData[crypto].defaultPrice;
+            
+            if (hashrate <= 0 || power <= 0) {
+                alert('Пожалуйста, выберите майнер или заполните хешрейт и энергопотребление');
+                return;
+            }
+            
+            const cryptoInfo = cryptoData[crypto];
+            const totalHashrate = hashrate * quantity;
+            const totalPower = power * quantity;
+            
+            // Расчет добычи
+            const difficultyAbsolute = difficulty * 1e12;
+            const networkHashrate = (difficultyAbsolute * 4294967296) / cryptoInfo.blockTime;
+            const hashrateInHash = totalHashrate * 1e12;
+            const blocksPerDay = 86400 / cryptoInfo.blockTime;
+            const dailyMining = (hashrateInHash / networkHashrate) * blocksPerDay * cryptoInfo.blockReward;
+            const dailyMiningAfterFee = dailyMining * (1 - poolFee / 100);
+            const dailyRevenue = dailyMiningAfterFee * cryptoPrice;
+            
+            // Расходы
+            const dailyPowerConsumption = (totalPower / 1000) * 24;
+            const dailyCost = dailyPowerConsumption * electricityPrice;
+            const dailyProfit = dailyRevenue - dailyCost;
+            
+            // Месячные расчеты
+            const monthlyRevenue = dailyRevenue * 30;
+            const monthlyCost = dailyCost * 30;
+            const monthlyProfit = dailyProfit * 30;
+            const totalMinerCost = minerPrice * quantity;
+            
+            // Окупаемость в месяцах
+            const paybackMonths = totalMinerCost > 0 && monthlyProfit > 0 
+                ? totalMinerCost / monthlyProfit 
+                : 0;
+            
+            // ROI
+            const monthlyROI = totalMinerCost > 0 ? (monthlyProfit / totalMinerCost) * 100 : 0;
+            const yearlyROI = monthlyROI * 12;
+            
+            // Отображение результатов
+            document.getElementById('monthlyProfit').textContent = formatCurrency(monthlyProfit) + ' /мес.';
+            document.getElementById('monthlyProfit').className = 'result-value h4 fw-bold ' + (monthlyProfit >= 0 ? 'positive' : 'negative');
+            
+            document.getElementById('paybackPeriod').textContent = paybackMonths > 0 
+                ? formatNumber(paybackMonths, 1) + ' мес.' 
+                : 'N/A';
+            
+            document.getElementById('monthlyRevenue').textContent = formatCurrency(monthlyRevenue) + ' /мес.';
+            document.getElementById('monthlyROI').textContent = formatNumber(monthlyROI, 2) + '%';
+            document.getElementById('yearlyROI').textContent = formatNumber(yearlyROI, 2) + '%';
+            document.getElementById('hostingCost').textContent = formatCurrency(monthlyCost) + ' /мес.';
+            document.getElementById('totalPower').textContent = totalPower.toLocaleString('ru-RU') + ' Вт/ч';
+            document.getElementById('totalHashrate').textContent = totalHashrate.toLocaleString('ru-RU') + ' TH/s';
+            
+            // Примечание о хешрейте
+            const btcPerDay = dailyMiningAfterFee;
+            if (crypto === 'BTC' && btcPerDay > 0) {
+                document.getElementById('hashrateNote').textContent = `1 TH/s в сутки = ${(btcPerDay / totalHashrate).toFixed(8)} BTC`;
+            } else {
+                document.getElementById('hashrateNote').textContent = '';
+            }
+            
+            // Показываем результаты
+            document.getElementById('resultsCard').style.display = 'block';
+            document.getElementById('noResults').style.display = 'none';
+        }
+        
+        // Обработка формы
+        document.getElementById('profitabilityForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateProfitability();
+        });
+        
+        // Инициализация: загружаем данные для BTC при загрузке страницы
+        (async function init() {
+            console.log('Инициализация калькулятора доходности ASIC...');
+            await fetchCryptoData('BTC');
+            console.log('Калькулятор доходности ASIC загружен');
+        })();
+        
+        // Автоматическое обновление данных каждые 5 минут
+        setInterval(async () => {
+            const currentCrypto = document.getElementById('crypto').value;
+            console.log('Автоматическое обновление данных для', currentCrypto);
+            await fetchCryptoData(currentCrypto);
+        }, 5 * 60 * 1000); // 5 минут
+    })();
+    </script>
+
+</body>
+</html>

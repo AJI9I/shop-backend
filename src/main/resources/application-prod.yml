@@ -1,0 +1,65 @@
+spring:
+  # Thymeleaf - кэширование включено для production
+  thymeleaf:
+    cache: true
+  
+  # JPA/Hibernate - оптимизация для production
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        # Оптимизация для production
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        jdbc.batch_versioned_data: true
+        # Кэш второго уровня отключен (можно включить при необходимости)
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+  
+  # HikariCP Connection Pool - оптимизация для production
+  datasource:
+    hikari:
+      # Размер пула соединений
+      minimum-idle: 5
+      maximum-pool-size: 20
+      # Таймауты
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      # Тестирование соединений
+      connection-test-query: SELECT 1
+      # Оптимизация
+      auto-commit: false
+      # Логирование утечек соединений
+      leak-detection-threshold: 60000
+
+# Настройки сервера для production
+server:
+  # Сжатие ответов (gzip)
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,application/xml
+    min-response-size: 1024
+  # Таймауты
+  connection-timeout: 20000
+  # HTTP/2 (если поддерживается)
+  http2:
+    enabled: true
+
+# Логирование для production
+logging:
+  level:
+    root: INFO
+    com.miners: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+  file:
+    max-size: 50MB
+    max-history: 30
+

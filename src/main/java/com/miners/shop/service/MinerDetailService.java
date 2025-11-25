@@ -8,6 +8,8 @@ import com.miners.shop.repository.OfferRepository;
 import com.miners.shop.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ public class MinerDetailService {
      * @return Созданная детальная запись
      */
     @Transactional
+    @CacheEvict(value = "minerDetails", allEntries = true)
     public MinerDetail createMinerDetailForProduct(Product product) {
         log.info("Создание детальной записи для товара: {} (ID: {})", product.getModel(), product.getId());
         
@@ -121,6 +123,7 @@ public class MinerDetailService {
      * Обновляет детальную запись
      */
     @Transactional
+    @CacheEvict(value = "minerDetails", allEntries = true)
     public MinerDetail updateMinerDetail(MinerDetail minerDetail) {
         log.info("Обновление детальной записи: ID={}, стандартное название={}", 
                 minerDetail.getId(), minerDetail.getStandardName());
@@ -361,9 +364,94 @@ public class MinerDetailService {
     }
     
     /**
+     * Сортирует список MinerDetail по последнему обновлению предложений
+     * Принимает уже отфильтрованный список и сортирует его
+     * @param minerDetails Список MinerDetail для сортировки
+     * @return Отсортированный список MinerDetail
+     */
+    @Transactional(readOnly = true)
+    public List<MinerDetail> sortByLatestOfferUpdate(List<MinerDetail> minerDetails) {
+        if (minerDetails == null || minerDetails.isEmpty()) {
+            return minerDetails != null ? minerDetails : List.of();
+        }
+        
+        // Получаем все Product, связанные с этими MinerDetail
+        List<Long> minerDetailIds = minerDetails.stream()
+                .map(MinerDetail::getId)
+                .collect(Collectors.toList());
+        
+        List<Product> allProducts = minerDetailIds.stream()
+                .flatMap(id -> productRepository.findByMinerDetailId(id).stream())
+                .collect(Collectors.toList());
+        
+        List<Long> productIds = allProducts.stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+        
+        // Получаем все offers для этих продуктов
+        List<Offer> allOffers = offerRepository.findByProductIdIn(productIds);
+        
+        // Группируем offers по MinerDetail ID
+        Map<Long, List<Offer>> offersByMinerDetailId = new HashMap<>();
+        for (Product product : allProducts) {
+            if (product.getMinerDetail() != null) {
+                Long minerDetailId = product.getMinerDetail().getId();
+                List<Offer> productOffers = allOffers.stream()
+                        .filter(o -> o.getProduct().getId().equals(product.getId()))
+                        .collect(Collectors.toList());
+                
+                offersByMinerDetailId.computeIfAbsent(minerDetailId, k -> new java.util.ArrayList<>())
+                        .addAll(productOffers);
+            }
+        }
+        
+        // Вычисляем максимальную дату обновления для каждого MinerDetail
+        Map<Long, LocalDateTime> maxUpdateDateByMinerDetailId = new HashMap<>();
+        for (Map.Entry<Long, List<Offer>> entry : offersByMinerDetailId.entrySet()) {
+            Optional<LocalDateTime> maxDate = entry.getValue().stream()
+                    .map(Offer::getUpdatedAt)
+                    .filter(date -> date != null)
+                    .max(LocalDateTime::compareTo);
+            
+            maxUpdateDateByMinerDetailId.put(entry.getKey(), maxDate.orElse(null));
+        }
+        
+        // Сортируем MinerDetail по максимальной дате обновления предложений (DESC - самые свежие первыми)
+        return minerDetails.stream()
+                .sorted((md1, md2) -> {
+                    LocalDateTime maxDate1 = maxUpdateDateByMinerDetailId.get(md1.getId());
+                    LocalDateTime maxDate2 = maxUpdateDateByMinerDetailId.get(md2.getId());
+                    
+                    if (maxDate1 == null && maxDate2 == null) {
+                        LocalDateTime upd1 = md1.getUpdatedAt() != null ? md1.getUpdatedAt() : LocalDateTime.MIN;
+                        LocalDateTime upd2 = md2.getUpdatedAt() != null ? md2.getUpdatedAt() : LocalDateTime.MIN;
+                        return upd2.compareTo(upd1); // DESC
+                    }
+                    if (maxDate1 == null) {
+                        return 1;
+                    }
+                    if (maxDate2 == null) {
+                        return -1;
+                    }
+                    
+                    int compareResult = maxDate2.compareTo(maxDate1); // DESC
+                    
+                    if (compareResult == 0) {
+                        LocalDateTime upd1 = md1.getUpdatedAt() != null ? md1.getUpdatedAt() : LocalDateTime.MIN;
+                        LocalDateTime upd2 = md2.getUpdatedAt() != null ? md2.getUpdatedAt() : LocalDateTime.MIN;
+                        return upd2.compareTo(upd1); // DESC
+                    }
+                    
+                    return compareResult;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    /**
      * Получает список уникальных производителей
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "minerDetails", key = "'manufacturers'")
     public List<String> getDistinctManufacturers() {
         return minerDetailRepository.findDistinctManufacturers();
     }
@@ -372,6 +460,7 @@ public class MinerDetailService {
      * Получает список уникальных серий
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "minerDetails", key = "'series'")
     public List<String> getDistinctSeries() {
         return minerDetailRepository.findDistinctSeries();
     }
@@ -391,6 +480,7 @@ public class MinerDetailService {
      * Получает список уникальных алгоритмов
      */
     @Transactional(readOnly = true)
+    @Cacheable(value = "minerDetails", key = "'algorithms'")
     public List<String> getDistinctAlgorithms() {
         return minerDetailRepository.findDistinctAlgorithms();
     }

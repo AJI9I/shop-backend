@@ -1,0 +1,56 @@
+[
+  {"id": 1, "standardName": "Antminer S19j PRO", "manufacturer": "Bitmain"},
+  {"id": 2, "standardName": "Antminer S19k PRO", "manufacturer": "Bitmain"},
+  {"id": 3, "standardName": "Antminer S19 PRO", "manufacturer": "Bitmain"},
+  {"id": 4, "standardName": "Whatsminer M30S++", "manufacturer": "MicroBT"},
+  {"id": 5, "standardName": "Whatsminer M30S+", "manufacturer": "MicroBT"},
+  {"id": 6, "standardName": "Whatsminer M30S", "manufacturer": "MicroBT"},
+  {"id": 7, "standardName": "Whatsminer M50S++", "manufacturer": "MicroBT"},
+  {"id": 8, "standardName": "Antminer Z15 Pro", "manufacturer": "Bitmain"},
+  {"id": 9, "standardName": "ElphapeX DG1+", "manufacturer": "ElphapeX"},
+  {"id": 10, "standardName": "Antminer S19 XP", "manufacturer": "Bitmain"},
+  {"id": 11, "standardName": "Antminer S21", "manufacturer": "Bitmain"},
+  {"id": 12, "standardName": "Whatsminer JPRO", "manufacturer": "MicroBT"},
+  {"id": 13, "standardName": "Antminer T21", "manufacturer": "Bitmain"},
+  {"id": 14, "standardName": "Antminer S19", "manufacturer": "Bitmain"},
+  {"id": 15, "standardName": "Antminer S19j", "manufacturer": "Bitmain"},
+  {"id": 16, "standardName": "AvalonMiner 1246", "manufacturer": "Canaan"},
+  {"id": 17, "standardName": "Antminer S19a", "manufacturer": "Bitmain"},
+  {"id": 18, "standardName": "Antminer S19 90/126", "manufacturer": "Bitmain"},
+  {"id": 19, "standardName": "Antminer L7", "manufacturer": "Bitmain"},
+  {"id": 20, "standardName": "Antminer S19/S19j PRO", "manufacturer": "Bitmain"},
+  {"id": 21, "standardName": "Antminer S21 XP", "manufacturer": "Bitmain"},
+  {"id": 22, "standardName": "Whatsminer L1 PRO", "manufacturer": "MicroBT"},
+  {"id": 23, "standardName": "Antminer L9", "manufacturer": "Bitmain"},
+  {"id": 24, "standardName": "Antminer E9", "manufacturer": "Bitmain"},
+  {"id": 25, "standardName": "Antminer S21 XP", "manufacturer": "Bitmain"},
+  {"id": 26, "standardName": "Whatsminer M60", "manufacturer": "MicroBT"},
+  {"id": 27, "standardName": "Whatsminer M61", "manufacturer": "MicroBT"},
+  {"id": 28, "standardName": "Whatsminer M63S+", "manufacturer": "MicroBT"},
+  {"id": 29, "standardName": "Whatsminer M63S", "manufacturer": "MicroBT"},
+  {"id": 30, "standardName": "Antminer KS5P", "manufacturer": "Bitmain"},
+  {"id": 31, "standardName": "Jasminer X16-Q", "manufacturer": "Jasminer"},
+  {"id": 32, "standardName": "Jasminer X16-Pro", "manufacturer": "Jasminer"},
+  {"id": 33, "standardName": "ElphapeX DGHOME1", "manufacturer": "ElphapeX"},
+  {"id": 34, "standardName": "Goldshell MiniDoge", "manufacturer": "Goldshell"},
+  {"id": 35, "standardName": "Goldshell DG", "manufacturer": "Goldshell"},
+  {"id": 36, "standardName": "Whatsminer KS3M", "manufacturer": "MicroBT"},
+  {"id": 37, "standardName": "Antminer P221B", "manufacturer": "Bitmain"},
+  {"id": 38, "standardName": "Antminer P221C", "manufacturer": "Bitmain"},
+  {"id": 39, "standardName": "Whatsminer M33S++", "manufacturer": "MicroBT"},
+  {"id": 40, "standardName": "Antminer S19i", "manufacturer": "Bitmain"},
+  {"id": 41, "standardName": "Whatsminer M60S+", "manufacturer": "MicroBT"},
+  {"id": 42, "standardName": "Whatsminer X4-Q", "manufacturer": "MicroBT"},
+  {"id": 43, "standardName": "Whatsminer M61S", "manufacturer": "MicroBT"},
+  {"id": 44, "standardName": "Goldshell D9", "manufacturer": "Goldshell"},
+  {"id": 45, "standardName": "Неизвестное устройство", "manufacturer": null},
+  {"id": 46, "standardName": "M30", "manufacturer": "MicroBT"}
+]
+
+
+
+
+
+
+
+

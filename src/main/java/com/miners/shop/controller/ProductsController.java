@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -48,7 +50,7 @@ public class ProductsController {
      * Страница с таблицей всех продуктов
      * Отображает все товары в виде таблицы с подробной информацией
      */
-    @GetMapping("/products/table")
+    @GetMapping("/private/products/table")
     @Transactional(readOnly = true)
     public String productsTable(
             @RequestParam(defaultValue = "0") int page,
@@ -100,6 +102,23 @@ public class ProductsController {
                 });
             }
             
+            // Загружаем MinerDetail для всех продуктов
+            List<Long> minerDetailIds = productsPage.getContent().stream()
+                    .map(Product::getMinerDetail)
+                    .filter(java.util.Objects::nonNull)
+                    .map(MinerDetail::getId)
+                    .distinct()
+                    .toList();
+            
+            final Map<Long, MinerDetail> minerDetailsMap;
+            if (!minerDetailIds.isEmpty()) {
+                List<MinerDetail> minerDetails = minerDetailRepository.findAllById(minerDetailIds);
+                minerDetailsMap = minerDetails.stream()
+                        .collect(java.util.stream.Collectors.toMap(MinerDetail::getId, md -> md));
+            } else {
+                minerDetailsMap = new HashMap<>();
+            }
+            
             // Вычисляем статистику для каждого продукта
             productsPage.getContent().forEach(product -> {
                 try {
@@ -119,10 +138,22 @@ public class ProductsController {
                     product.setMinPrice(null);
                 }
                 
+                // Инициализируем MinerDetail (если есть)
+                if (product.getMinerDetail() != null && product.getMinerDetail().getId() != null) {
+                    MinerDetail loadedMinerDetail = minerDetailsMap.get(product.getMinerDetail().getId());
+                    if (loadedMinerDetail != null) {
+                        // Заменяем proxy на реальный объект
+                        product.setMinerDetail(loadedMinerDetail);
+                    }
+                }
+                
                 // Устанавливаем URL изображения
                 String imageUrl = imageUrlResolver.resolveImageUrl(product.getModel());
                 product.setImageUrl(imageUrl);
             });
+            
+            // Получаем все MinerDetail для выбора при редактировании
+            List<MinerDetail> allMinerDetails = minerDetailService.getAllMinerDetails();
             
             model.addAttribute("productsPage", productsPage);
             model.addAttribute("currentPage", page);
@@ -130,6 +161,7 @@ public class ProductsController {
             model.addAttribute("sortDir", sortDir);
             model.addAttribute("manufacturers", manufacturers);
             model.addAttribute("currentManufacturer", manufacturer != null ? manufacturer : "");
+            model.addAttribute("allMinerDetails", allMinerDetails);
             
             return "products-table";
         } catch (Exception e) {
@@ -152,6 +184,7 @@ public class ProductsController {
             @RequestParam(required = false, defaultValue = "latestOffer") String sortBy, // latestOffer, name, manufacturer
             @RequestParam(required = false) List<String> manufacturer, // Фильтр по производителям
             @RequestParam(required = false) List<String> series, // Фильтр по сериям
+            @RequestParam(required = false) String search, // Поиск по названию, производителю или серии
             Model model) {
         try {
             Page<MinerDetail> minerDetailsPage = new org.springframework.data.domain.PageImpl<>(List.of());
@@ -162,7 +195,25 @@ public class ProductsController {
             
             // Получаем все MinerDetail с фильтрами (если есть)
             List<MinerDetail> filteredMinerDetails;
-            if ((manufacturer == null || manufacturer.isEmpty()) && (series == null || series.isEmpty())) {
+            
+            // Если есть поисковый запрос, сначала фильтруем по нему
+            if (search != null && !search.trim().isEmpty()) {
+                filteredMinerDetails = minerDetailRepository.findAllWithOffersBySearch(search.trim());
+                
+                // Применяем дополнительные фильтры по производителю (если есть)
+                if (manufacturer != null && !manufacturer.isEmpty()) {
+                    filteredMinerDetails = filteredMinerDetails.stream()
+                            .filter(md -> md.getManufacturer() != null && manufacturer.contains(md.getManufacturer()))
+                            .collect(java.util.stream.Collectors.toList());
+                }
+                
+                // Применяем дополнительные фильтры по серии (если есть)
+                if (series != null && !series.isEmpty()) {
+                    filteredMinerDetails = filteredMinerDetails.stream()
+                            .filter(md -> md.getSeries() != null && series.contains(md.getSeries()))
+                            .collect(java.util.stream.Collectors.toList());
+                }
+            } else if ((manufacturer == null || manufacturer.isEmpty()) && (series == null || series.isEmpty())) {
                 // Без фильтров - получаем все
                 filteredMinerDetails = minerDetailRepository.findAllWithOffers();
             } else {
@@ -206,10 +257,42 @@ public class ProductsController {
                 case "latestOffer":
                 default:
                     // Сортировка по последнему обновлению предложений (по умолчанию)
-                    // Используем метод сервиса для сортировки по последнему обновлению предложений
-                    // В этом случае уже есть фильтрация в сервисе
-                    minerDetailsPage = minerDetailService.findAllSortedByLatestOfferUpdate(pageable, manufacturer, series);
-                    // Переходим к обработке результатов, filteredMinerDetails не используется
+                    // Если есть поиск или другие фильтры, используем filteredMinerDetails и сортируем вручную
+                    if (search != null && !search.trim().isEmpty() || 
+                        (manufacturer != null && !manufacturer.isEmpty()) || 
+                        (series != null && !series.isEmpty())) {
+                        // Используем метод сервиса для сортировки по последнему обновлению предложений
+                        // Но сначала фильтруем результаты
+                        filteredMinerDetails = minerDetailService.sortByLatestOfferUpdate(filteredMinerDetails);
+                        // Применяем пагинацию вручную
+                        int start = (int) pageable.getOffset();
+                        int end = Math.min(start + pageable.getPageSize(), filteredMinerDetails.size());
+                        
+                        if (start >= filteredMinerDetails.size()) {
+                            minerDetailsPage = new org.springframework.data.domain.PageImpl<>(List.of(), pageable, filteredMinerDetails.size());
+                        } else {
+                            if (start < 0) start = 0;
+                            if (end <= start) end = Math.min(start + pageable.getPageSize(), filteredMinerDetails.size());
+                            if (end > filteredMinerDetails.size()) end = filteredMinerDetails.size();
+                            
+                            try {
+                                if (start >= 0 && start < filteredMinerDetails.size() && end > start && end <= filteredMinerDetails.size()) {
+                                    List<MinerDetail> pageContent = filteredMinerDetails.subList(start, end);
+                                    minerDetailsPage = new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filteredMinerDetails.size());
+                                } else {
+                                    minerDetailsPage = new org.springframework.data.domain.PageImpl<>(filteredMinerDetails, pageable, filteredMinerDetails.size());
+                                }
+                            } catch (IndexOutOfBoundsException e) {
+                                log.error("Ошибка IndexOutOfBoundsException при сортировке по latestOffer: start={}, end={}, size={}", 
+                                        start, end, filteredMinerDetails.size(), e);
+                                minerDetailsPage = new org.springframework.data.domain.PageImpl<>(filteredMinerDetails, pageable, filteredMinerDetails.size());
+                            }
+                        }
+                    } else {
+                        // Без фильтров - используем метод сервиса напрямую
+                        minerDetailsPage = minerDetailService.findAllSortedByLatestOfferUpdate(pageable, manufacturer, series);
+                    }
+                    // Переходим к обработке результатов
                     filteredMinerDetails = new java.util.ArrayList<>(); // Пустой список для избежания null
                     break;
             }
@@ -306,20 +389,55 @@ public class ProductsController {
                             .mapToInt(Offer::getQuantity)
                             .sum();
                     
-                    java.util.Optional<java.math.BigDecimal> minPrice = allMinerDetailOffers.stream()
-                            .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
-                            .filter(o -> o.getPrice() != null)
-                            .map(Offer::getPrice)
-                            .min(java.util.Comparator.naturalOrder());
-                    
+                    // Вычисляем минимальную цену: сначала за последние 24 часа, потом за все время
+                    // Исключаем цены равные 0
+                    java.util.Optional<java.math.BigDecimal> minPrice = java.util.Optional.empty();
                     String currency = null;
-                    if (minPrice.isPresent()) {
-                        currency = allMinerDetailOffers.stream()
-                                .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
-                                .filter(o -> o.getPrice() != null && o.getPrice().equals(minPrice.get()))
-                                .map(Offer::getCurrency)
-                                .findFirst()
-                                .orElse("RUB");
+                    
+                    // Фильтруем только предложения на продажу (SELL)
+                    List<Offer> sellOffers = allMinerDetailOffers.stream()
+                            .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
+                            .filter(o -> o.getPrice() != null && o.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0)
+                            .collect(java.util.stream.Collectors.toList());
+                    
+                    if (!sellOffers.isEmpty()) {
+                        // Сначала ищем предложения за последние 24 часа
+                        LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+                        List<Offer> recentOffers = sellOffers.stream()
+                                .filter(o -> o.getUpdatedAt() != null && o.getUpdatedAt().isAfter(oneDayAgo))
+                                .collect(java.util.stream.Collectors.toList());
+                        
+                        if (!recentOffers.isEmpty()) {
+                            // Находим минимальную цену за последние 24 часа
+                            minPrice = recentOffers.stream()
+                                    .map(Offer::getPrice)
+                                    .min(java.util.Comparator.naturalOrder());
+                            
+                            if (minPrice.isPresent()) {
+                                final java.math.BigDecimal finalMinPrice = minPrice.get();
+                                currency = recentOffers.stream()
+                                        .filter(o -> o.getPrice() != null && o.getPrice().equals(finalMinPrice))
+                                        .map(Offer::getCurrency)
+                                        .findFirst()
+                                        .orElse("RUB");
+                            } else {
+                                minPrice = java.util.Optional.empty();
+                            }
+                        } else {
+                            // Если за сутки нет предложений, ищем во всех предложениях
+                            minPrice = sellOffers.stream()
+                                    .map(Offer::getPrice)
+                                    .min(java.util.Comparator.naturalOrder());
+                            
+                            if (minPrice.isPresent()) {
+                                final java.math.BigDecimal finalMinPrice = minPrice.get();
+                                currency = sellOffers.stream()
+                                        .filter(o -> o.getPrice() != null && o.getPrice().equals(finalMinPrice))
+                                        .map(Offer::getCurrency)
+                                        .findFirst()
+                                        .orElse("RUB");
+                            }
+                        }
                     }
                     
                     ProductOperationInfo info = new ProductOperationInfo();
@@ -328,7 +446,12 @@ public class ProductsController {
                     info.setSellCount(sellCount);
                     info.setBuyCount(buyCount);
                     info.setTotalQuantity(totalQuantity);
-                    info.setMinPrice(minPrice.orElse(null));
+                    // Сохраняем цену только если она не null и не 0
+                    if (minPrice.isPresent() && minPrice.get().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                        info.setMinPrice(minPrice.get());
+                    } else {
+                        info.setMinPrice(null);
+                    }
                     info.setCurrency(currency);
                     info.setManufacturer(minerDetail.getManufacturer());
                     
@@ -370,10 +493,15 @@ public class ProductsController {
                     .map(com.miners.shop.dto.MinerDetailDTO::fromEntity)
                     .toList();
             
-            // Для каждой MinerDetail добавляем URL изображения (на основе standardName)
+            // Для каждой MinerDetail добавляем URL изображения: сначала проверяем imageUrl из DTO, если нет - используем ImageUrlResolver
             Map<Long, String> imageUrls = new HashMap<>();
             minerDetailDTOs.forEach(dto -> {
-                String imageUrl = imageUrlResolver.resolveImageUrl(dto.getStandardName());
+                String imageUrl = null;
+                if (dto.getImageUrl() != null && !dto.getImageUrl().trim().isEmpty()) {
+                    imageUrl = dto.getImageUrl();
+                } else {
+                    imageUrl = imageUrlResolver.resolveImageUrl(dto.getStandardName());
+                }
                 imageUrls.put(dto.getId(), imageUrl);
             });
             
@@ -382,6 +510,7 @@ public class ProductsController {
             model.addAttribute("minerDetailsPage", minerDetailsPage);
             model.addAttribute("currentPage", page);
             model.addAttribute("currentSortBy", sortBy);
+            model.addAttribute("search", search != null ? search : ""); // Параметр поиска для отображения в форме
             model.addAttribute("totalMinerDetails", totalMinerDetails);
             model.addAttribute("totalProducts", totalProducts);
             model.addAttribute("totalOffers", totalOffers);
@@ -439,7 +568,13 @@ public class ProductsController {
             MinerDetail minerDetail = minerDetailOpt.get();
             
             // Устанавливаем URL изображения на основе standardName из MinerDetail
-            String imageUrl = imageUrlResolver.resolveImageUrl(minerDetail.getStandardName());
+            // Используем imageUrl из MinerDetail, если указан, иначе используем ImageUrlResolver
+            String imageUrl = null;
+            if (minerDetail.getImageUrl() != null && !minerDetail.getImageUrl().trim().isEmpty()) {
+                imageUrl = minerDetail.getImageUrl();
+            } else {
+                imageUrl = imageUrlResolver.resolveImageUrl(minerDetail.getStandardName());
+            }
             
             // Определяем дату начала фильтрации
             LocalDateTime dateFrom = null;
@@ -479,24 +614,54 @@ public class ProductsController {
                     .toList();
             
             // Для расчета минимальной цены нужно получить все продажи (не только на странице)
+            // Фильтруем только предложения на продажу (SELL) с ценой больше 0
             var allSellOffers = productService.getOffersByMinerDetailId(id).stream()
-                    .filter(o -> o.getOperationType() != null && o.getOperationType().name().equals("SELL"))
-                    .filter(o -> o.getPrice() != null)
+                    .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
+                    .filter(o -> o.getPrice() != null && o.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0)
                     .toList();
             
-            // Рассчитываем минимальную цену для продажи
-            java.util.Optional<java.math.BigDecimal> minPrice = allSellOffers.stream()
-                    .map(offer -> offer.getPrice())
-                    .min(java.util.Comparator.naturalOrder());
-            
-            // Находим валюту минимальной цены
+            // Вычисляем минимальную цену: сначала за последние 24 часа, потом за все время
+            java.util.Optional<java.math.BigDecimal> minPrice = java.util.Optional.empty();
             String currency = null;
-            if (minPrice.isPresent()) {
-                currency = allSellOffers.stream()
-                        .filter(o -> o.getPrice() != null && o.getPrice().equals(minPrice.get()))
-                        .map(offer -> offer.getCurrency())
-                        .findFirst()
-                        .orElse("RUB");
+            
+            if (!allSellOffers.isEmpty()) {
+                // Сначала ищем предложения за последние 24 часа
+                LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+                List<Offer> recentOffers = allSellOffers.stream()
+                        .filter(o -> o.getUpdatedAt() != null && o.getUpdatedAt().isAfter(oneDayAgo))
+                        .collect(java.util.stream.Collectors.toList());
+                
+                if (!recentOffers.isEmpty()) {
+                    // Находим минимальную цену за последние 24 часа
+                    minPrice = recentOffers.stream()
+                            .map(Offer::getPrice)
+                            .min(java.util.Comparator.naturalOrder());
+                    
+                    if (minPrice.isPresent()) {
+                        final java.math.BigDecimal finalMinPrice = minPrice.get();
+                        currency = recentOffers.stream()
+                                .filter(o -> o.getPrice() != null && o.getPrice().equals(finalMinPrice))
+                                .map(Offer::getCurrency)
+                                .findFirst()
+                                .orElse("RUB");
+                    } else {
+                        minPrice = java.util.Optional.empty();
+                    }
+                } else {
+                    // Если за сутки нет предложений, ищем во всех предложениях
+                    minPrice = allSellOffers.stream()
+                            .map(Offer::getPrice)
+                            .min(java.util.Comparator.naturalOrder());
+                    
+                    if (minPrice.isPresent()) {
+                        final java.math.BigDecimal finalMinPrice = minPrice.get();
+                        currency = allSellOffers.stream()
+                                .filter(o -> o.getPrice() != null && o.getPrice().equals(finalMinPrice))
+                                .map(Offer::getCurrency)
+                                .findFirst()
+                                .orElse("RUB");
+                    }
+                }
             }
             
             // Используем данные из MinerDetail для отображения
@@ -522,7 +687,12 @@ public class ProductsController {
             model.addAttribute("offersPage", offersPage);
             model.addAttribute("sellOffers", sellOffers);
             model.addAttribute("buyOffers", buyOffers);
-            model.addAttribute("minPrice", minPrice.orElse(null));
+            // Сохраняем цену только если она не null и не 0
+            if (minPrice.isPresent() && minPrice.get().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                model.addAttribute("minPrice", minPrice.get());
+            } else {
+                model.addAttribute("minPrice", null);
+            }
             model.addAttribute("currency", currency != null ? currency : "RUB");
             model.addAttribute("dateFilter", dateFilter != null ? dateFilter : "");
             model.addAttribute("sortBy", sortBy);
@@ -793,20 +963,57 @@ public class ProductsController {
                             .mapToInt(Offer::getQuantity)
                             .sum();
                     
-                    java.util.Optional<java.math.BigDecimal> minPrice = allMinerDetailOffers.stream()
-                            .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
-                            .filter(o -> o.getPrice() != null)
-                            .map(Offer::getPrice)
-                            .min(java.util.Comparator.naturalOrder());
-                    
+                    // Вычисляем минимальную цену: сначала за последние 24 часа, потом за все время
+                    // Исключаем цены равные 0
+                    java.util.Optional<java.math.BigDecimal> minPrice = java.util.Optional.empty();
                     String currency = null;
-                    if (minPrice.isPresent()) {
-                        currency = allMinerDetailOffers.stream()
-                                .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
-                                .filter(o -> o.getPrice() != null && o.getPrice().equals(minPrice.get()))
-                                .map(Offer::getCurrency)
-                                .findFirst()
-                                .orElse("RUB");
+                    
+                    // Фильтруем только предложения на продажу (SELL)
+                    List<Offer> sellOffers = allMinerDetailOffers.stream()
+                            .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
+                            .filter(o -> o.getPrice() != null && o.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0)
+                            .collect(java.util.stream.Collectors.toList());
+                    
+                    if (!sellOffers.isEmpty()) {
+                        // Сначала ищем предложения за последние 24 часа
+                        LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+                        List<Offer> recentOffers = sellOffers.stream()
+                                .filter(o -> o.getUpdatedAt() != null && o.getUpdatedAt().isAfter(oneDayAgo))
+                                .collect(java.util.stream.Collectors.toList());
+                        
+                        if (!recentOffers.isEmpty()) {
+                            // Находим минимальную цену за последние 24 часа
+                            minPrice = recentOffers.stream()
+                                    .map(Offer::getPrice)
+                                    .min(java.util.Comparator.naturalOrder());
+                            
+                            if (minPrice.isPresent()) {
+                                final java.math.BigDecimal finalMinPrice = minPrice.get();
+                                currency = recentOffers.stream()
+                                        .filter(o -> o.getPrice() != null && o.getPrice().equals(finalMinPrice))
+                                        .map(Offer::getCurrency)
+                                        .findFirst()
+                                        .orElse("RUB");
+                            } else {
+                                minPrice = java.util.Optional.empty();
+                            }
+                        } else {
+                            // Если за сутки нет предложений, ищем во всех предложениях
+                            minPrice = sellOffers.stream()
+                                    .map(Offer::getPrice)
+                                    .min(java.util.Comparator.naturalOrder());
+                            
+                            if (minPrice.isPresent()) {
+                                final java.math.BigDecimal finalMinPrice = minPrice.get();
+                                currency = sellOffers.stream()
+                                        .filter(o -> o.getPrice() != null && o.getPrice().equals(finalMinPrice))
+                                        .map(Offer::getCurrency)
+                                        .findFirst()
+                                        .orElse("RUB");
+                            }
+                        }
+                    } else {
+                        minPrice = java.util.Optional.empty();
                     }
                     
                     ProductOperationInfo info = new ProductOperationInfo();
@@ -815,7 +1022,12 @@ public class ProductsController {
                     info.setSellCount(sellCount);
                     info.setBuyCount(buyCount);
                     info.setTotalQuantity(totalQuantity);
-                    info.setMinPrice(minPrice.orElse(null));
+                    // Сохраняем цену только если она не null и не 0
+                    if (minPrice.isPresent() && minPrice.get().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                        info.setMinPrice(minPrice.get());
+                    } else {
+                        info.setMinPrice(null);
+                    }
                     info.setCurrency(currency);
                     info.setManufacturer(minerDetail.getManufacturer());
                     
@@ -854,7 +1066,13 @@ public class ProductsController {
                                 info.put("sellCount", opInfo.getSellCount());
                                 info.put("buyCount", opInfo.getBuyCount());
                                 info.put("totalQuantity", opInfo.getTotalQuantity());
-                                info.put("minPrice", opInfo.getMinPrice());
+                                // Убеждаемся, что если цена равна 0 или null, передаем null
+                                java.math.BigDecimal minPrice = opInfo.getMinPrice();
+                                if (minPrice == null || minPrice.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                                    info.put("minPrice", null);
+                                } else {
+                                    info.put("minPrice", minPrice);
+                                }
                                 info.put("currency", opInfo.getCurrency());
                                 info.put("manufacturer", opInfo.getManufacturer());
                                 return info;
@@ -906,6 +1124,102 @@ public class ProductsController {
             log.error("Ошибка при получении серий: {}", e.getMessage(), e);
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Произошла ошибка при загрузке серий: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+    
+    /**
+     * REST API endpoint для обновления связи Product с MinerDetail
+     * @param request Тело запроса с productId и minerDetailId (может быть null для удаления связи)
+     * @return Результат операции
+     */
+    @PostMapping(value = "/api/products/update-miner-detail", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<Map<String, Object>> updateProductMinerDetail(@RequestBody Map<String, Object> request) {
+        try {
+            log.info("Запрос на обновление связи Product с MinerDetail: {}", request);
+            
+            // Получаем параметры из запроса
+            Object productIdObj = request.get("productId");
+            Object minerDetailIdObj = request.get("minerDetailId");
+            
+            if (productIdObj == null) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("error", "ID продукта обязателен");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            Long productId;
+            try {
+                productId = Long.parseLong(productIdObj.toString());
+            } catch (NumberFormatException e) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("error", "Неверный формат ID продукта");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            // Получаем продукт
+            Optional<Product> productOpt = productRepository.findById(productId);
+            if (productOpt.isEmpty()) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("error", "Продукт с ID=" + productId + " не найден");
+                return ResponseEntity.status(404).body(error);
+            }
+            
+            Product product = productOpt.get();
+            
+            // Обрабатываем MinerDetail
+            MinerDetail minerDetail = null;
+            if (minerDetailIdObj != null) {
+                try {
+                    Long minerDetailId = Long.parseLong(minerDetailIdObj.toString());
+                    Optional<MinerDetail> minerDetailOpt = minerDetailRepository.findById(minerDetailId);
+                    if (minerDetailOpt.isEmpty()) {
+                        Map<String, Object> error = new HashMap<>();
+                        error.put("success", false);
+                        error.put("error", "MinerDetail с ID=" + minerDetailId + " не найден");
+                        return ResponseEntity.status(404).body(error);
+                    }
+                    minerDetail = minerDetailOpt.get();
+                } catch (NumberFormatException e) {
+                    Map<String, Object> error = new HashMap<>();
+                    error.put("success", false);
+                    error.put("error", "Неверный формат ID MinerDetail");
+                    return ResponseEntity.badRequest().body(error);
+                }
+            }
+            
+            // Обновляем связь
+            MinerDetail oldMinerDetail = product.getMinerDetail();
+            product.setMinerDetail(minerDetail);
+            productRepository.save(product);
+            
+            String oldName = oldMinerDetail != null ? oldMinerDetail.getStandardName() : "нет";
+            String newName = minerDetail != null ? minerDetail.getStandardName() : "нет";
+            
+            log.info("Связь Product ID={} ({}) обновлена: {} -> {}", 
+                    productId, product.getModel(), oldName, newName);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Связь успешно обновлена");
+            response.put("productId", productId);
+            response.put("minerDetailId", minerDetail != null ? minerDetail.getId() : null);
+            response.put("minerDetailName", minerDetail != null ? minerDetail.getStandardName() : null);
+            
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/json;charset=UTF-8")
+                    .body(response);
+                    
+        } catch (Exception e) {
+            log.error("Ошибка при обновлении связи Product с MinerDetail: {}", e.getMessage(), e);
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("error", "Ошибка при обновлении связи: " + e.getMessage());
             return ResponseEntity.status(500).body(error);
         }
     }

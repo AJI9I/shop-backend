@@ -57,7 +57,7 @@ mvn spring-boot:run
 
 3. Откройте в браузере:
 ```
-http://localhost:8080
+http://localhost:8050
 ```
 
 ## API Endpoints
@@ -137,9 +137,9 @@ spring:
 
 Настройте WhatsApp сервис на отправку сообщений по адресу:
 ```
-http://localhost:8080/api/webhook/whatsapp
+http://localhost:8050/api/webhook/whatsapp
 ```
 
 В веб-интерфейсе WhatsApp сервиса укажите:
-- **API URL**: `http://localhost:8080`
+- **API URL**: `http://localhost:8050`
 - **API Endpoint**: `/api/webhook/whatsapp`

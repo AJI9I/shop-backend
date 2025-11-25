@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="color-two">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>О нас - MinerHive</title>
+    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="@{/assets/css/select2.min.css}" href="assets/css/select2.min.css">
+    <link rel="stylesheet" th:href="@{/assets/css/slick.css}" href="assets/css/slick.css">
+    <link rel="stylesheet" th:href="@{/assets/css/jquery-ui.css}" href="assets/css/jquery-ui.css">
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
+    <style>
+        /* Предотвращаем перенос текста в ссылках header-top */
+        .header-top ul li a {
+            white-space: nowrap !important;
+        }
+        
+        .content-section {
+            padding: 100px 0 80px;
+        }
+        .content-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: #1f2937;
+        }
+        .content-section h2 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-top: 48px;
+            margin-bottom: 24px;
+            color: #1f2937;
+        }
+        .content-section h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: #374151;
+        }
+        .content-section p {
+            font-size: 1.125rem;
+            line-height: 1.75;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
+        .content-section ul {
+            font-size: 1.125rem;
+            line-height: 1.75;
+            color: #4b5563;
+            margin-bottom: 24px;
+            padding-left: 24px;
+        }
+        .content-section li {
+            margin-bottom: 12px;
+        }
+        .feature-box {
+            background: #f9fafb;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+        .feature-box h3 {
+            color: #2563eb;
+            margin-top: 0;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #dbeafe 0%, #e0e7ff 100%);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<!--==================== Preloader Start ====================-->
+<div class="preloader">
+    <img th:src="@{/assets/images/icon/preloader.gif}" src="assets/images/icon/preloader.gif" alt="">
+</div>
+<!--==================== Preloader End ====================-->
+
+<!--==================== Overlay Start ====================-->
+<div class="overlay"></div>
+<!--==================== Overlay End ====================-->
+
+<!--==================== Sidebar Overlay Start ====================-->
+<div class="side-overlay"></div>
+<!--==================== Sidebar Overlay End ====================-->
+
+<!-- ==================== Scroll to Top Start ==================== -->
+<div class="progress-wrap">
+    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+    </svg>
+</div>
+<!-- ==================== Scroll to Top End ==================== -->
+
+<!-- ==================== Search Box Start ==================== -->
+<form action="#" class="search-box">
+    <button type="button" class="search-box__close position-absolute inset-block-start-0 inset-inline-end-0 m-16 w-48 h-48 border border-gray-100 rounded-circle flex-center text-white hover-text-gray-800 hover-bg-white text-2xl transition-1">
+        <i class="ph ph-x"></i>
+    </button>
+    <div class="container">
+        <div class="position-relative">
+            <input type="text" class="form-control py-16 px-24 text-xl rounded-pill pe-64" placeholder="Поиск майнеров...">
+            <button type="submit" class="w-48 h-48 bg-main-two-600 rounded-circle flex-center text-xl text-white position-absolute top-50 translate-middle-y inset-inline-end-0 me-8">
+                <i class="ph ph-magnifying-glass"></i>
+            </button>
+        </div>
+    </div>
+</form>
+<!-- ==================== Search Box End ==================== -->
+
+<!-- ==================== Mobile Menu Start ==================== -->
+<div class="mobile-menu scroll-sm d-lg-none d-block">
+    <button type="button" class="close-button"> <i class="ph ph-x"></i> </button>
+    <div class="mobile-menu__inner">
+        <a th:href="@{/}" class="mobile-menu__logo">
+            <img th:src="@{/assets/images/logo/logo.png}" src="/assets/images/logo/logo.png" alt="MinerHive Logo">
+        </a>
+        <div class="mobile-menu__menu">
+            <ul class="nav-menu flex-align nav-menu--mobile">
+                <li class="nav-menu__item">
+                    <a th:href="@{/}" class="nav-menu__link">Главная</a>
+                </li>
+                <li class="nav-menu__item">
+                    <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- ==================== Mobile Menu End ==================== -->
+
+<!-- ======================= Header Top Start ========================= -->
+<div class="header-top bg-main-two-600 flex-between">
+    <div class="container container-lg">
+        <div class="flex-between flex-nowrap gap-8">
+            <ul class="flex-align flex-nowrap">
+                <li class="border-right-item"><a th:href="@{/about}" class="text-white text-sm hover-text-decoration-underline">О нас</a></li>
+                <li class="border-right-item"><a th:href="@{/delivery}" class="text-white text-sm hover-text-decoration-underline">Доставка</a></li>
+                <li class="border-right-item"><a th:href="@{/services}" class="text-white text-sm hover-text-decoration-underline">Услуги</a></li>
+            </ul>
+            <ul class="header-top__right flex-align flex-nowrap">
+                <li class="border-right-item">
+                    <a th:href="@{/products}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-box"></i> </span> 
+                        <span class="hover-text-decoration-underline">Товары</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- ======================= Header Top End ========================= -->
+
+<!-- ======================= Middle Header Two Start ========================= -->
+<header class="header-middle style-two bg-color-neutral">
+    <div class="container container-lg">
+        <nav class="header-inner flex-between">
+            <div class="logo">
+                <a th:href="@{/}" class="link">
+                    <img th:src="@{/assets/images/logo/logo-two.png}" src="/assets/images/logo/logo-two.png" alt="MinerHive Logo">
+                </a>
+            </div>
+            <div class="flex-align gap-16">
+                <form action="#" class="flex-align flex-wrap form-location-wrapper">
+                    <div class="search-category style-two d-flex h-48 search-form d-sm-flex d-none">
+                        <div class="search-form__wrapper position-relative">
+                            <input type="text" class="search-form__input common-input py-13 ps-16 pe-18 rounded-0 border-0" placeholder="Поиск майнеров...">
+                        </div>
+                        <button type="submit" class="bg-main-two-600 flex-center text-xl text-white flex-shrink-0 w-48 hover-bg-main-two-700 d-lg-flex d-none"><i class="ph ph-magnifying-glass"></i></button>
+                    </div>
+                </form>
+            </div>
+            <div class="header-right flex-align d-lg-block d-none">
+                <div class="header-two-activities flex-align flex-wrap gap-32">
+                    <a th:href="@{/products}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-box"></i>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Товары</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+<!-- ======================= Middle Header Two End ========================= -->
+
+<!-- ==================== Header Start ==================== -->
+<header class="header bg-white border-bottom border-gray-100">
+    <div class="container container-lg">
+        <nav class="header-inner d-flex justify-content-between gap-8">
+            <div class="header-menu d-lg-block d-none flex-grow-1">
+                <ul class="nav-menu flex-align">
+                    <li class="nav-menu__item">
+                        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+                    </li>
+                    <li class="nav-menu__item">
+                        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+</header>
+<!-- ==================== Header End ==================== -->
+
+<!-- ==================== Content Section Start ==================== -->
+<section class="content-section">
+    <div class="container container-lg">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <h1>О нас</h1>
+                
+                <p class="lead">MinerHive — это агрегатор предложений по майнинг-оборудованию и интернет-магазин, специализирующийся на продаже ASIC-майнеров и сопутствующего оборудования для майнинга криптовалют.</p>
+                
+                <h2>Наша миссия</h2>
+                <p>Мы помогаем найти выгодные предложения на рынке майнинг-оборудования, объединяя предложения от различных продавцов в одном месте. Наша цель — сделать процесс покупки и продажи майнинг-оборудования максимально простым, прозрачным и выгодным для всех участников рынка.</p>
+                
+                <h2>Что мы предлагаем</h2>
+                
+                <div class="feature-box">
+                    <h3>Агрегация предложений</h3>
+                    <p>Мы собираем предложения от различных продавцов майнинг-оборудования по всей России, позволяя вам сравнивать цены и условия в одном месте. Вы всегда сможете найти лучшее предложение на рынке.</p>
+                </div>
+                
+                <div class="feature-box">
+                    <h3>Помощь с выкупом оборудования</h3>
+                    <p>Ищете выгодное предложение на покупку майнинг-оборудования? Мы помогаем найти лучшие варианты, сравнить цены и выбрать оптимальное решение для ваших задач. Наша команда всегда готова проконсультировать вас по вопросам выбора оборудования.</p>
+                </div>
+                
+                <div class="feature-box">
+                    <h3>Помощь с продажей оборудования</h3>
+                    <p>Хотите продать своё майнинг-оборудование? Мы помогаем найти покупателей и организовать сделку. Разместите ваше предложение на нашей площадке, и потенциальные покупатели смогут с вами связаться.</p>
+                </div>
+                
+                <div class="feature-box">
+                    <h3>Поиск выгодных предложений</h3>
+                    <p>Мы постоянно мониторим рынок и собираем актуальные предложения от проверенных продавцов. На нашей платформе вы всегда найдёте свежие предложения по выгодным ценам. Используйте фильтры и сортировку для быстрого поиска нужного оборудования.</p>
+                </div>
+                
+                <h2>Почему выбирают нас</h2>
+                <ul>
+                    <li><span class="highlight">Широкий ассортимент</span> — мы агрегируем предложения от множества продавцов по всей России</li>
+                    <li><span class="highlight">Актуальные цены</span> — информация о ценах обновляется регулярно</li>
+                    <li><span class="highlight">Удобный поиск</span> — мощные фильтры и сортировка для быстрого поиска нужного оборудования</li>
+                    <li><span class="highlight">Прозрачность</span> — вся информация о предложениях доступна сразу, без скрытых условий</li>
+                    <li><span class="highlight">Поддержка</span> — наша команда всегда готова помочь с выбором и ответить на вопросы</li>
+                    <li><span class="highlight">Надёжность</span> — мы работаем только с проверенными продавцами</li>
+                </ul>
+                
+                <h2>Наша команда</h2>
+                <p>Мы — команда профессионалов, которая понимает специфику майнинг-индустрии и знает, что важно нашим клиентам. Мы постоянно работаем над улучшением сервиса и расширением функционала платформы.</p>
+                
+                <h2>Свяжитесь с нами</h2>
+                <p>Если у вас есть вопросы, предложения или вы хотите сотрудничать с нами, свяжитесь с нами любым удобным способом. Мы всегда рады общению!</p>
+                <p>
+                    <strong>Email:</strong> <a href="mailto:ya@nismeria.com" class="text-main-two-600 hover-text-main-two-700">ya@nismeria.com</a><br>
+                    <strong>Сайт:</strong> <a href="https://minerhive.ru" class="text-main-two-600 hover-text-main-two-700" target="_blank">minerhive.ru</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- ==================== Content Section End ==================== -->
+
+<!-- ==================== Footer Start ==================== -->
+<footer class="footer bg-color-one pt-80 pb-40">
+    <div class="container container-lg">
+        <div class="footer__inner">
+            <div class="row gy-4">
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <div class="footer__logo mb-24">
+                            <a th:href="@{/}">
+                                <img th:src="@{/assets/images/logo/logo.png}" src="/assets/images/logo/logo.png" alt="MinerHive Logo">
+                            </a>
+                        </div>
+                        <p class="text-gray-600">MinerHive - агрегатор предложений по майнинг-оборудованию. Помогаем найти выгодные предложения на рынке.</p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Быстрые ссылки</h6>
+                        <ul class="footer__list">
+                            <li><a th:href="@{/}" class="text-gray-600 hover-text-main-two-600">Главная</a></li>
+                            <li><a th:href="@{/products}" class="text-gray-600 hover-text-main-two-600">Товары</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Информация</h6>
+                        <ul class="footer__list">
+                            <li><a th:href="@{/about}" class="text-gray-600 hover-text-main-two-600">О нас</a></li>
+                            <li><a th:href="@{/delivery}" class="text-gray-600 hover-text-main-two-600">Доставка</a></li>
+                            <li><a th:href="@{/services}" class="text-gray-600 hover-text-main-two-600">Услуги</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
+                        <h6 class="footer__title mb-24">Контакты</h6>
+                        <ul class="footer__list">
+                            <li class="text-gray-600">Email: ya@nismeria.com</li>
+                            <li class="text-gray-600">Сайт: <a href="https://minerhive.ru" class="text-gray-600 hover-text-main-two-600" target="_blank">minerhive.ru</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- bottom Footer -->
+<div class="bottom-footer bg-color-one py-8">
+    <div class="container container-lg">
+        <div class="bottom-footer__inner flex-between flex-wrap gap-16 py-16">
+            <p class="bottom-footer__text">MinerHive &copy; 2025. Все права защищены</p>
+        </div>
+    </div>
+</div>
+<!-- ==================== Footer End ==================== -->
+
+<!-- jQuery js -->
+<script th:src="@{/assets/js/jquery-3.7.1.min.js}"></script>
+<!-- Bootstrap Bundle Js -->
+<script th:src="@{/assets/js/boostrap.bundle.min.js}"></script>
+<!-- Phosphor Icons -->
+<script th:src="@{/assets/js/phosphor-icon.js}"></script>
+<!-- Select 2 -->
+<script th:src="@{/assets/js/select2.min.js}"></script>
+<!-- Slick js -->
+<script th:src="@{/assets/js/slick.min.js}"></script>
+<!-- jQuery UI -->
+<script th:src="@{/assets/js/jquery-ui.js}"></script>
+<!-- Main js -->
+<script th:src="@{/assets/js/main.js}"></script>
+
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function(m,e,t,r,i,k,a){
+        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+        m[i].l=1*new Date();
+        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=105468809', 'ym');
+
+    ym(105468809, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", accurateTrackBounce:true, trackLinks:true});
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/105468809" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+
+</body>
+</html>
+

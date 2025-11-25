@@ -36,6 +36,7 @@ public class MinerDetailDTO {
     private String features;
     private String placementInfo;
     private String producerInfo;
+    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<Long> productIds; // ID товаров, связанных с этой детальной записью
@@ -66,6 +67,7 @@ public class MinerDetailDTO {
                 .features(minerDetail.getFeatures())
                 .placementInfo(minerDetail.getPlacementInfo())
                 .producerInfo(minerDetail.getProducerInfo())
+                .imageUrl(minerDetail.getImageUrl())
                 .createdAt(minerDetail.getCreatedAt())
                 .updatedAt(minerDetail.getUpdatedAt())
                 .build();
@@ -102,6 +104,7 @@ public class MinerDetailDTO {
         minerDetail.setFeatures(this.features);
         minerDetail.setPlacementInfo(this.placementInfo);
         minerDetail.setProducerInfo(this.producerInfo);
+        minerDetail.setImageUrl(this.imageUrl);
         return minerDetail;
     }
 }

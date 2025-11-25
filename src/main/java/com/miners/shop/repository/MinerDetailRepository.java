@@ -3,6 +3,7 @@ package com.miners.shop.repository;
 import com.miners.shop.entity.MinerDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -126,5 +127,18 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     List<MinerDetail> findAllWithOffersByManufacturersAndSeries(
             @org.springframework.data.repository.query.Param("manufacturers") java.util.List<String> manufacturers,
             @org.springframework.data.repository.query.Param("series") java.util.List<String> series);
+    
+    /**
+     * Находит все MinerDetail, у которых есть предложения, с поиском по названию, производителю или серии
+     * Поиск выполняется по стандартному названию, производителю и серии (без учета регистра)
+     */
+    @Query("SELECT DISTINCT md FROM MinerDetail md " +
+           "INNER JOIN md.products p " +
+           "INNER JOIN p.offers o " +
+           "WHERE o.id IS NOT NULL AND " +
+           "(LOWER(md.standardName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(md.manufacturer) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(md.series) LIKE LOWER(CONCAT('%', :search, '%')))")
+    List<MinerDetail> findAllWithOffersBySearch(@Param("search") String search);
 }
 

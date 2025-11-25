@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ru" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-menu-styles="light" data-toggled="close">
+<head>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Дашборд менеджера - MinerHive</title>
+    <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}">
+    <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/bootstrap-theme/assets/css/styles.min.css}" rel="stylesheet">
+    <link th:href="@{/bootstrap-theme/assets/css/icons.css}" rel="stylesheet">
+    <script th:inline="javascript">
+        (function() {
+            function ensureElements() {
+                if (!document.querySelector('.horizontal-menu')) {
+                    let headerCenter = document.querySelector('.main-header-center');
+                    if (!headerCenter && document.querySelector('.header-content-left')) {
+                        headerCenter = document.createElement('div');
+                        headerCenter.className = 'main-header-center d-none d-lg-block';
+                        headerCenter.style.display = 'none';
+                        document.querySelector('.header-content-left').appendChild(headerCenter);
+                    }
+                    if (headerCenter) {
+                        const horizontalMenu = document.createElement('nav');
+                        horizontalMenu.className = 'horizontal-menu';
+                        horizontalMenu.style.display = 'none';
+                        headerCenter.appendChild(horizontalMenu);
+                    }
+                }
+                if (!document.getElementById('loader')) {
+                    const loader = document.createElement('div');
+                    loader.id = 'loader';
+                    loader.style.display = 'none';
+                    if (document.body) document.body.insertBefore(loader, document.body.firstChild);
+                }
+                if (!document.getElementById('switcher-canvas')) {
+                    const switcher = document.createElement('div');
+                    switcher.className = 'offcanvas offcanvas-end';
+                    switcher.id = 'switcher-canvas';
+                    switcher.setAttribute('tabindex', '-1');
+                    switcher.style.display = 'none';
+                    if (document.body) document.body.appendChild(switcher);
+                }
+                if (!document.getElementById('header-sidebar')) {
+                    const sidebar = document.createElement('div');
+                    sidebar.className = 'offcanvas offcanvas-end';
+                    sidebar.id = 'header-sidebar';
+                    sidebar.setAttribute('tabindex', '-1');
+                    sidebar.style.display = 'none';
+                    if (document.body) document.body.appendChild(sidebar);
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', ensureElements);
+            } else {
+                ensureElements();
+            }
+            if (document.body) ensureElements();
+        })();
+    </script>
+</head>
+<body>
+    <div id="loader" style="display: none;"><div class="spinner-border text-primary"></div></div>
+    <div class="page">
+        <header class="app-header">
+            <div class="main-header-container container-fluid">
+                <div class="header-content-left">
+                    <div class="header-element">
+                        <div class="horizontal-logo">
+                            <a th:href="@{/}" class="header-logo">
+                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-logo.png}" alt="logo" class="desktop-logo">
+                            </a>
+                        </div>
+                    </div>
+                    <div class="header-element">
+                        <a class="sidemenu-toggle header-link" data-bs-toggle="sidebar"><i class="header-icon fe fe-align-left"></i></a>
+                        <div class="main-header-center d-none d-lg-block" style="display: none !important;"><nav class="horizontal-menu"></nav></div>
+                    </div>
+                </div>
+                <div class="header-content-right">
+                    <div class="header-element headerProfile-dropdown">
+                        <a href="javascript:void(0);" class="header-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fe fe-user fs-20"></i></a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" th:href="@{/}">Главная</a></li>
+                            <li><a class="dropdown-item" th:href="@{/logout}">Выход</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <aside class="app-sidebar sticky" id="sidebar">
+            <div class="main-sidebar-header">
+                <a th:href="@{/}" class="header-logo">
+                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-logo.png}" alt="logo" class="desktop-logo">
+                </a>
+            </div>
+            <div class="main-sidebar">
+                <nav class="main-menu-container nav nav-pills flex-column">
+                    <ul class="main-menu">
+                        <li class="slide"><a th:href="@{/private/manager}" class="side-menu__item active">Дашборд</a></li>
+                        <li class="slide__category"><span>Доступные разделы</span></li>
+                        <li class="slide"><a th:href="@{/private/requests}" class="side-menu__item">Заявки</a></li>
+                        <li class="slide"><a th:href="@{/private/profitability}" class="side-menu__item">Калькулятор доходности</a></li>
+                        <li class="slide"><a th:href="@{/private/miner-details}" class="side-menu__item">Детали майнеров</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+        <div class="main-content app-content">
+            <div class="container-fluid">
+                <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
+                    <div class="my-auto">
+                        <h5 class="page-title fs-21 mb-1">Дашборд менеджера</h5>
+                        <nav><ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
+                            <li class="breadcrumb-item active">Дашборд менеджера</li>
+                        </ol></nav>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        <div class="card custom-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md bg-warning-transparent rounded-circle me-3">
+                                        <i class="fe fe-clipboard fs-20"></i>
+                                    </div>
+                                    <div class="flex-fill">
+                                        <h6 class="mb-1 fw-semibold">Заявки</h6>
+                                        <p class="mb-0 text-muted fs-12">Просмотр и управление заявками от пользователей</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <a th:href="@{/private/requests}" class="btn btn-warning btn-sm">Перейти к заявкам <i class="fe fe-arrow-right ms-1"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        <div class="card custom-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md bg-info-transparent rounded-circle me-3">
+                                        <i class="fe fe-calculator fs-20"></i>
+                                    </div>
+                                    <div class="flex-fill">
+                                        <h6 class="mb-1 fw-semibold">Калькулятор доходности</h6>
+                                        <p class="mb-0 text-muted fs-12">Расчет доходности ASIC майнеров</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <a th:href="@{/private/profitability}" class="btn btn-info btn-sm">Перейти к калькулятору <i class="fe fe-arrow-right ms-1"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-lg-6 col-md-6">
+                        <div class="card custom-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md bg-danger-transparent rounded-circle me-3">
+                                        <i class="fe fe-cpu fs-20"></i>
+                                    </div>
+                                    <div class="flex-fill">
+                                        <h6 class="mb-1 fw-semibold">Детали майнеров</h6>
+                                        <p class="mb-0 text-muted fs-12">Просмотр и управление деталями майнеров</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <a th:href="@{/private/miner-details}" class="btn btn-danger btn-sm">Перейти к деталям <i class="fe fe-arrow-right ms-1"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="footer mt-auto py-3 bg-white text-center">
+            <div class="container">
+                <span class="text-muted">© 2025 <a href="javascript:void(0);" class="text-dark fw-semibold">MinerHive</a>. Все права защищены.</span>
+            </div>
+        </footer>
+    </div>
+    <script th:src="@{/bootstrap-theme/assets/libs/@popperjs/core/umd/popper.min.js}"></script>
+    <script th:src="@{/bootstrap-theme/assets/libs/bootstrap/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/bootstrap-theme/assets/js/defaultmenu.min.js}"></script>
+    <script th:src="@{/bootstrap-theme/assets/js/main.js}"></script>
+</body>
+</html>
+

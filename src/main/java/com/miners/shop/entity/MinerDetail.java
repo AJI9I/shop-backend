@@ -124,6 +124,13 @@ public class MinerDetail {
     private String producerInfo;
     
     /**
+     * URL изображения майнера
+     * Если указан, используется это изображение, иначе используется ImageUrlResolver
+     */
+    @Column(length = 500)
+    private String imageUrl;
+    
+    /**
      * Список товаров (Product), которые ссылаются на эту детальную запись
      * Связь OneToMany: одна детальная запись может использоваться несколькими товарами
      */

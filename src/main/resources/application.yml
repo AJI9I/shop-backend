@@ -10,6 +10,14 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:vasagaroot}
+    # HikariCP Connection Pool (базовые настройки, переопределяются в prod)
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 300000
+      max-lifetime: 900000
+      connection-test-query: SELECT 1
   
   # JPA/Hibernate
   jpa:
@@ -44,13 +52,19 @@ spring:
   
   # Thymeleaf
   thymeleaf:
-    cache: false
+    cache: ${THYMELEAF_CACHE:false}  # По умолчанию false для dev, true для prod
     prefix: classpath:/templates/
     suffix: .html
     encoding: UTF-8
     mode: HTML
     servlet:
       content-type: text/html;charset=UTF-8
+  
+  # Кэширование (Spring Cache)
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=5m
   
   # Jackson (для JSON)
   jackson:
@@ -70,16 +84,42 @@ spring:
       charset: UTF-8
       enabled: true
       force: true
+  
+  # Настройки загрузки файлов
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+      file-size-threshold: 2KB
 
 # Настройки сервера
+# ВАЖНО: Порт ВСЕГДА должен быть 8050 (не менять!)
 server:
-  port: 8080
+  port: 8050
   servlet:
     context-path: /
     encoding:
       charset: UTF-8
       enabled: true
       force: true
+  # Сжатие ответов (gzip) - включено по умолчанию
+  compression:
+    enabled: ${SERVER_COMPRESSION_ENABLED:true}
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,application/xml,image/svg+xml
+    min-response-size: 1024
+
+# Настройки приложения
+app:
+  upload:
+    # Директория для загружаемых изображений (вне src/main/resources, чтобы не компилировалась в JAR)
+    # Можно переопределить через переменную окружения: APP_UPLOAD_DIR
+    # По умолчанию: C:\IdeaPRG\miners\siteImg (для текущей среды разработки)
+    # Примеры:
+    #   - Абсолютный путь Windows: C:/IdeaPRG/miners/siteImg
+    #   - Абсолютный путь Linux: /var/www/miners/images
+    #   - Относительный путь: uploads/img/miner-details
+    dir: ${APP_UPLOAD_DIR:C:/IdeaPRG/miners/siteImg}
 
 # Логирование
 logging:

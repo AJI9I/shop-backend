@@ -1,0 +1,17 @@
+# Пример переменных окружения для Spring Boot приложения
+# Скопируйте этот файл в .env или установите переменные окружения в системе
+
+# Директория для загружаемых изображений
+# По умолчанию: C:/IdeaPRG/miners/siteImg (для текущей среды разработки)
+# Можно использовать:
+#   - Абсолютный путь Windows: C:/IdeaPRG/miners/siteImg
+#   - Абсолютный путь Linux: /var/www/miners/images
+#   - Относительный путь (относительно корня проекта): uploads/img
+# Примечание: Файлы будут сохраняться в подпапку miner-details внутри указанной директории
+APP_UPLOAD_DIR=C:/IdeaPRG/miners/siteImg
+
+# Настройки базы данных (опционально, можно задать в application.yml)
+# SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/miners
+# SPRING_DATASOURCE_USERNAME=postgres
+# SPRING_DATASOURCE_PASSWORD=your_password
+

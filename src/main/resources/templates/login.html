@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" dir="ltr" data-nav-layout="vertical" data-vertical-style="overlay" data-theme-mode="light" data-header-styles="light" data-menu-styles="light" data-toggled="close">
+<head>
+    <meta charset="UTF-8">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Вход в систему - MinerHive</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%232563eb'/><text x='50' y='70' font-size='60' fill='white' text-anchor='middle' font-family='Arial'>M</text></svg>" type="image/svg+xml">
+    
+    <!-- Bootstrap Css -->
+    <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
+    
+    <!-- Style Css -->
+    <link th:href="@{/bootstrap-theme/assets/css/styles.min.css}" rel="stylesheet">
+    
+    <!-- Icons Css -->
+    <link th:href="@{/bootstrap-theme/assets/css/icons.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid custom-page">
+        <div class="row bg-white">
+            <!-- The image half -->
+            <div class="col-md-6 col-lg-6 col-xl-7 d-none d-md-flex bg-primary-transparent-3">
+                <div class="row w-100 mx-auto text-center">
+                    <div class="col-md-12 col-lg-12 col-xl-12 my-auto mx-auto w-100">
+                        <svg class="my-auto ht-xl-80p wd-md-100p wd-xl-80p mx-auto" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <rect width="500" height="500" fill="url(#grad1)" rx="30"/>
+                            <!-- Иконка майнера -->
+                            <g transform="translate(250, 200)">
+                                <!-- Корпус майнера -->
+                                <rect x="-80" y="-40" width="160" height="100" rx="8" fill="white" opacity="0.2"/>
+                                <rect x="-70" y="-30" width="140" height="80" rx="6" fill="white" opacity="0.3"/>
+                                <!-- Вентиляторы -->
+                                <circle cx="-40" cy="20" r="15" fill="white" opacity="0.4" stroke="white" stroke-width="2"/>
+                                <circle cx="0" cy="20" r="15" fill="white" opacity="0.4" stroke="white" stroke-width="2"/>
+                                <circle cx="40" cy="20" r="15" fill="white" opacity="0.4" stroke="white" stroke-width="2"/>
+                                <!-- Индикаторы -->
+                                <circle cx="-50" cy="-20" r="4" fill="#10b981"/>
+                                <circle cx="-30" cy="-20" r="4" fill="#10b981"/>
+                                <circle cx="-10" cy="-20" r="4" fill="#10b981"/>
+                            </g>
+                            <text x="250" y="380" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white" text-anchor="middle">MinerHive</text>
+                            <text x="250" y="410" font-family="Arial, sans-serif" font-size="18" fill="white" opacity="0.8" text-anchor="middle">Система управления майнерами</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <!-- The content half -->
+            <div class="col-md-6 col-lg-6 col-xl-5 bg-white py-4">
+                <div class="login d-flex align-items-center py-2">
+                    <div class="container p-0">
+                        <div class="row">
+                            <div class="col-md-10 col-lg-10 col-xl-9 mx-auto">
+                                <div class="card-sigin">
+                                    <div class="mb-5 d-flex">
+                                        <a th:href="@{/}" class="header-logo">
+                                            <svg class="desktop-logo ht-40" width="140" height="40" viewBox="0 0 140 40" xmlns="http://www.w3.org/2000/svg">
+                                                <defs>
+                                                    <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                        <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+                                                        <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+                                                    </linearGradient>
+                                                </defs>
+                                                <rect width="140" height="40" rx="8" fill="url(#logoGrad1)"/>
+                                                <circle cx="20" cy="20" r="8" fill="white"/>
+                                                <text x="70" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">MinerHive</text>
+                                            </svg>
+                                            <svg class="desktop-white ht-40" width="140" height="40" viewBox="0 0 140 40" xmlns="http://www.w3.org/2000/svg">
+                                                <rect width="140" height="40" rx="8" fill="#1f2937"/>
+                                                <circle cx="20" cy="20" r="8" fill="white"/>
+                                                <text x="70" y="26" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">MinerHive</text>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                    <div class="card-sigin">
+                                        <div class="main-signup-header">
+                                            <h3>Добро пожаловать!</h3>
+                                            <h6 class="fw-medium mb-4 fs-17">Пожалуйста, войдите в систему для продолжения.</h6>
+                                            
+                                            <!-- Сообщение об ошибке -->
+                                            <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                                                Неверное имя пользователя или пароль.
+                                            </div>
+                                            
+                                            <!-- Сообщение о выходе -->
+                                            <div th:if="${param.logout}" class="alert alert-success" role="alert">
+                                                Вы успешно вышли из системы.
+                                            </div>
+                                            
+                                            <form th:action="@{/login}" method="post">
+                                                <div class="form-group mb-3">
+                                                    <label class="form-label">Имя пользователя</label>
+                                                    <input class="form-control" name="username" placeholder="Введите имя пользователя" type="text" required autofocus>
+                                                </div>
+                                                <div class="form-group mb-3">
+                                                    <label class="form-label">Пароль</label>
+                                                    <input class="form-control" name="password" placeholder="Введите пароль" type="password" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary btn-block w-100">Войти</button>
+                                            </form>
+                                            <div class="main-signin-footer mt-5">
+                                                <p class="mb-1"><a th:href="@{/}">Вернуться на главную</a></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script th:src="@{/bootstrap-theme/assets/libs/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
+

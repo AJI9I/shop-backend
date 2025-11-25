@@ -111,5 +111,18 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
      */
     @Deprecated
     List<Offer> findBySellerPhone(String sellerPhone);
+    
+    /**
+     * Находит минимальные цены для списка товаров по типу операции
+     * Возвращает массив [productId, minPrice] для каждого товара
+     */
+    @Query("SELECT o.product.id, MIN(o.price) FROM Offer o " +
+           "WHERE o.product.id IN :productIds " +
+           "AND o.operationType = :operationType " +
+           "AND o.price IS NOT NULL " +
+           "GROUP BY o.product.id")
+    List<Object[]> findMinPriceByProductIdsAndOperationType(
+            @Param("productIds") List<Long> productIds,
+            @Param("operationType") com.miners.shop.entity.OperationType operationType);
 }
 

@@ -22,7 +22,7 @@ import java.util.Optional;
  * Контроллер для просмотра сообщений WhatsApp и обработанных данных от нейросети
  */
 @Controller
-@RequestMapping("/messages")
+@RequestMapping("/private/messages")
 @RequiredArgsConstructor
 @Slf4j
 public class MessagesController {

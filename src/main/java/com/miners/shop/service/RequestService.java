@@ -91,6 +91,27 @@ public class RequestService {
     }
     
     /**
+     * Пометить заявку как просмотренную (изменить статус с NEW на PROCESSED)
+     */
+    @Transactional
+    public Request markAsViewed(Long id) {
+        log.info("Пометка заявки ID={} как просмотренной", id);
+        
+        Request request = requestRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Заявка с ID=" + id + " не найдена"));
+        
+        // Если заявка еще новая, меняем статус на "В обработке"
+        if (request.getStatus() == RequestStatus.NEW) {
+            request.setStatus(RequestStatus.PROCESSED);
+            request = requestRepository.save(request);
+            log.info("Статус заявки ID={} изменен на PROCESSED", id);
+        }
+        
+        return request;
+    }
+    
+    /**
      * Обновить статус заявки
      */
     @Transactional
