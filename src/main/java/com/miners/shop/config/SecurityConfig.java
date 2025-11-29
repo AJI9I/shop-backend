@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -17,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
@@ -42,6 +44,9 @@ public class SecurityConfig {
                     // Страница входа и ошибок (без авторизации)
                     .requestMatchers("/login", "/error", "/logout").permitAll()
                     
+                    // Редиректы старых путей (требуют авторизации, так как ведут на /private/messages)
+                    .requestMatchers("/messages", "/messages/**").authenticated()
+                    
                     // Общедоступные страницы (без авторизации) - ВАЖНО: должно быть перед anyRequest()
                     .requestMatchers("/", "/products", "/products/**", "/about", "/delivery", "/services").permitAll()
                     
@@ -63,6 +68,9 @@ public class SecurityConfig {
                     .requestMatchers("/private/profitability", "/private/profitability/**").hasAnyRole("ADMIN", "MANAGER")
                     .requestMatchers("/private/miner-details", "/private/miner-details/**").hasAnyRole("ADMIN", "MANAGER")
                     
+                    // Предложения - доступны администраторам и менеджерам
+                    .requestMatchers("/private/offers", "/private/offers/**").hasAnyRole("ADMIN", "MANAGER")
+                    
                     // Остальные страницы /private - только администраторам
                     .requestMatchers("/private/**").hasRole("ADMIN")
                     
@@ -74,16 +82,6 @@ public class SecurityConfig {
             .formLogin(form -> form
                 .loginPage("/login")
                 .defaultSuccessUrl("/private", true)
-                .successHandler((request, response, authentication) -> {
-                    // Перенаправляем менеджера на его дашборд, администратора - на /private
-                    boolean isManager = authentication.getAuthorities().stream()
-                            .anyMatch(a -> a.getAuthority().equals("ROLE_MANAGER"));
-                    if (isManager) {
-                        response.sendRedirect(request.getContextPath() + "/private/manager");
-                    } else {
-                        response.sendRedirect(request.getContextPath() + "/private");
-                    }
-                })
                 .permitAll()
             )
             

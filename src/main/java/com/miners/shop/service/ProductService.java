@@ -103,10 +103,78 @@ public class ProductService {
         }
         
         // Находим или создаем продавца
+        log.info("═".repeat(100));
+        log.info("📞 СОЗДАНИЕ/ПОИСК ПРОДАВЦА:");
+        log.info("═".repeat(100));
+        log.info("   Входные параметры:");
+        log.info("   - sellerPhone: {}", sellerPhone);
+        log.info("   - sellerName: {}", sellerName);
+        log.info("   - sellerPhone == null: {}", sellerPhone == null);
+        log.info("   - sellerPhone.isEmpty(): {}", sellerPhone != null && sellerPhone.isEmpty());
+        
         Seller seller = null;
-        if (sellerPhone != null && !sellerPhone.isEmpty()) {
-            seller = sellerService.findOrCreateSeller(sellerPhone, sellerName, null);
+        if (sellerPhone != null && !sellerPhone.isEmpty() && !sellerPhone.equals("unknown")) {
+            log.info("   ✅ sellerPhone не null, не пустой и не 'unknown', начинаем валидацию");
+            
+            // Нормализуем номер телефона: удаляем пробелы, дефисы, скобки и другие символы форматирования
+            // Разрешаем только цифры и + в начале
+            String normalizedPhone = sellerPhone.trim().replaceAll("[\\s\\-\\(\\)]", "");
+            
+            // Проверяем, что номер не является "unknown" или похожим на WhatsApp ID
+            boolean isNotUnknown = !normalizedPhone.equalsIgnoreCase("unknown");
+            boolean noAt = !normalizedPhone.contains("@");
+            boolean noUnderscore = !normalizedPhone.contains("_");
+            
+            // Разрешаем + в начале, затем только цифры (максимум 15 цифр после +)
+            // Также разрешаем номера без + (только цифры, максимум 15)
+            boolean isValidFormat = normalizedPhone.matches("^\\+?[0-9]{1,15}$");
+            
+            // Для длины учитываем только цифры (без +)
+            String digitsOnly = normalizedPhone.replaceAll("\\+", "");
+            boolean lengthOk = digitsOnly.length() <= 15 && digitsOnly.length() >= 1;
+            
+            log.info("   Валидация номера телефона:");
+            log.info("   - Оригинальный номер: '{}'", sellerPhone);
+            log.info("   - Нормализованный номер: '{}'", normalizedPhone);
+            log.info("   - Только цифры (длина): {} (фактическая длина: {})", lengthOk, digitsOnly.length());
+            log.info("   - не содержит @: {}", noAt);
+            log.info("   - не содержит _: {}", noUnderscore);
+            log.info("   - не 'unknown': {}", isNotUnknown);
+            log.info("   - валидный формат (\\+?[0-9]{1,15}): {}", isValidFormat);
+            
+            if (!isNotUnknown || !noAt || !noUnderscore || !isValidFormat || !lengthOk) {
+                log.error("   ❌❌❌ sellerPhone НЕ ВАЛИДЕН ❌❌❌");
+                log.error("   ❌ sellerPhone: {}", sellerPhone);
+                log.error("   ❌ normalizedPhone: {}", normalizedPhone);
+                log.error("   ❌ Пропускаем создание продавца для этого сообщения");
+                log.error("   ⚠️  ВСЕ ПРЕДЛОЖЕНИЯ БУДУТ ПРОПУЩЕНЫ, Т.К. SELLER == NULL");
+            } else {
+                // Убираем + из начала перед сохранением (сохраняем только цифры)
+                String phoneToSave = normalizedPhone.startsWith("+") ? normalizedPhone.substring(1) : normalizedPhone;
+                
+                log.info("   ✅ Номер телефона валидный, создаем/ищем продавца");
+                log.info("   📞 Вызов sellerService.findOrCreateSeller(phone={}, name={})", phoneToSave, sellerName);
+                seller = sellerService.findOrCreateSeller(phoneToSave, sellerName, null);
+                if (seller != null) {
+                    log.info("   ✅✅✅ ПРОДАВЕЦ УСПЕШНО НАЙДЕН/СОЗДАН ✅✅✅");
+                    log.info("   ✅ ID: {}", seller.getId());
+                    log.info("   ✅ Phone: {}", seller.getPhone());
+                    log.info("   ✅ Name: {}", seller.getName());
+                } else {
+                    log.error("   ❌❌❌ НЕ УДАЛОСЬ СОЗДАТЬ/НАЙТИ ПРОДАВЦА ❌❌❌");
+                    log.error("   ❌ phone={}", phoneToSave);
+                    log.error("   ⚠️  ВСЕ ПРЕДЛОЖЕНИЯ БУДУТ ПРОПУЩЕНЫ, Т.К. SELLER == NULL");
+                }
+            }
+        } else {
+            log.error("   ❌❌❌ sellerPhone ПУСТОЙ, NULL ИЛИ 'unknown' ❌❌❌");
+            log.error("   ❌ sellerPhone: {}", sellerPhone);
+            log.error("   ⚠️  Невозможно создать/найти продавца");
+            log.error("   ⚠️  ВСЕ ПРЕДЛОЖЕНИЯ БУДУТ ПРОПУЩЕНЫ, Т.К. SELLER == NULL");
         }
+        log.info("═".repeat(100));
+        log.info("   РЕЗУЛЬТАТ: seller == null: {}", seller == null);
+        log.info("═".repeat(100));
         
         // Проверяем, есть ли уже предложения от этого продавца (для определения дубликатов)
         // Считаем, что это обновление, если есть хотя бы одно предложение от этого продавца
@@ -141,8 +209,23 @@ public class ProductService {
             }
         }
         
-        log.info("Обработано {} товаров из распарсенных данных: {} обновлено, {} создано", 
-                products.size(), updatedCount, createdCount);
+        log.info("═".repeat(100));
+        log.info("📊 ИТОГИ ОБРАБОТКИ РАСПАРСЕННЫХ ДАННЫХ:");
+        log.info("═".repeat(100));
+        log.info("   Всего товаров в parsedData: {}", products.size());
+        log.info("   Обновлено предложений: {}", updatedCount);
+        log.info("   Создано предложений: {}", createdCount);
+        log.info("   Всего обработано: {}", updatedCount + createdCount);
+        
+        if (updatedCount == 0 && createdCount == 0) {
+            log.error("   ❌❌❌ НЕ БЫЛО СОЗДАНО НИ ОДНОГО ПРЕДЛОЖЕНИЯ ❌❌❌");
+            if (seller == null) {
+                log.error("   Причина: seller == null (продавец не был создан)");
+            }
+        } else {
+            log.info("   ✅ Предложения успешно обработаны");
+        }
+        log.info("═".repeat(100));
         
         return updatedCount > 0;
     }
@@ -216,9 +299,16 @@ public class ProductService {
         
         // Проверяем продавца
         if (seller == null) {
-            log.warn("⚠️  Продавец не передан в метод, пропускаем товар: {}", model);
+            log.error("═".repeat(100));
+            log.error("❌❌❌ ПРОПУСК СОЗДАНИЯ ПРЕДЛОЖЕНИЯ: ПРОДАВЕЦ == NULL ❌❌❌");
+            log.error("   Товар: {}", model);
+            log.error("   Причина: seller == null");
+            log.error("   ⚠️  Предложение НЕ БУДЕТ СОЗДАНО для товара {}", model);
+            log.error("═".repeat(100));
             return false;
         }
+        
+        log.info("   ✅ Продавец присутствует (ID: {}), продолжаем создание предложения для товара {}", seller.getId(), model);
         
         // Ищем существующее предложение от этого продавца для этой модели
         // Учитываем: продукт + продавец + тип операции (SELL/BUY)

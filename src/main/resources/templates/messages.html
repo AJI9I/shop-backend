@@ -47,7 +47,7 @@
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/products">Товары</a>
-                <a class="nav-link active" href="/messages">Сообщения</a>
+                <a class="nav-link active" href="/private/messages">Сообщения</a>
             </div>
         </div>
     </nav>
@@ -76,7 +76,7 @@
                             <div class="timestamp" th:text="${message.timestamp}">Timestamp</div>
                         </div>
                         <div>
-                            <a th:href="@{'/messages/' + ${message.id}}" class="btn btn-primary btn-sm">Просмотр</a>
+                            <a th:href="@{'/private/messages/' + ${message.id}}" class="btn btn-primary btn-sm">Просмотр</a>
                         </div>
                     </div>
                     

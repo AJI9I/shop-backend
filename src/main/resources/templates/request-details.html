@@ -663,8 +663,28 @@
                                             <tr>
                                                 <td class="fw-semibold">Отправитель</td>
                                                 <td>
-                                                    <span th:text="${request.whatsAppMessage.senderName}">-</span>
-                                                    <span class="text-muted ms-2" th:text="${request.whatsAppMessage.senderPhoneNumber}">-</span>
+                                                    <!-- Имя отправителя (если не является просто числом) -->
+                                                    <span th:if="${request.whatsAppMessage.senderName != null && !#strings.isEmpty(request.whatsAppMessage.senderName)}" 
+                                                          th:text="${request.whatsAppMessage.senderName}">-</span>
+                                                    
+                                                    <!-- Номер телефона отправителя (приоритет 1) -->
+                                                    <span th:if="${request.whatsAppMessage.senderPhoneNumber != null && !#strings.isEmpty(request.whatsAppMessage.senderPhoneNumber)}" 
+                                                          class="text-primary fw-semibold ms-2" 
+                                                          th:text="${request.whatsAppMessage.senderPhoneNumber}">
+                                                        <i class="fe fe-phone"></i> -
+                                                    </span>
+                                                    
+                                                    <!-- Если нет номера в поле senderPhoneNumber, извлекаем из senderId -->
+                                                    <span th:if="${(request.whatsAppMessage.senderPhoneNumber == null || #strings.isEmpty(request.whatsAppMessage.senderPhoneNumber)) && request.whatsAppMessage.senderId != null}" 
+                                                          class="text-primary fw-semibold ms-2">
+                                                        <i class="fe fe-phone"></i>
+                                                        <span th:with="phoneNumber=${#strings.replace(#strings.replace(request.whatsAppMessage.senderId, '@c.us', ''), '@g.us', '')}" 
+                                                              th:text="${phoneNumber}">-</span>
+                                                    </span>
+                                                    
+                                                    <!-- Если вообще ничего нет -->
+                                                    <span th:if="${(request.whatsAppMessage.senderName == null || #strings.isEmpty(request.whatsAppMessage.senderName)) && (request.whatsAppMessage.senderPhoneNumber == null || #strings.isEmpty(request.whatsAppMessage.senderPhoneNumber)) && (request.whatsAppMessage.senderId == null || #strings.isEmpty(request.whatsAppMessage.senderId))}" 
+                                                          class="text-muted">Не указано</span>
                                                 </td>
                                             </tr>
                                             <tr>

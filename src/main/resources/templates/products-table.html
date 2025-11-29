@@ -72,6 +72,45 @@
             margin-left: 8px;
             font-size: 0.75rem;
         }
+        
+        /* Стили для модального окна с таблицей MinerDetails */
+        #minerDetailsTableContainer {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        #minerDetailsTableContainer thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .miner-detail-row:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .miner-detail-row.table-primary {
+            background-color: #cfe2ff;
+        }
+        
+        #minerDetailsTableContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #minerDetailsTableContainer::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        #minerDetailsTableContainer::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        #minerDetailsTableContainer::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
     </style>
     
     <!-- Fix for missing DOM elements - MUST be before other scripts -->
@@ -663,7 +702,7 @@
 
     <!-- Модальное окно для редактирования связи с MinerDetail -->
     <div class="modal fade" id="editMinerDetailModal" tabindex="-1" aria-labelledby="editMinerDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="editMinerDetailModalLabel">Редактировать связь с MinerDetail</h5>
@@ -672,24 +711,74 @@
                 <div class="modal-body">
                     <form id="editMinerDetailForm">
                         <input type="hidden" id="editProductId" name="productId">
+                        <input type="hidden" id="selectedMinerDetailId" name="minerDetailId" value="">
                         <div class="mb-3">
                             <label for="productModel" class="form-label">Продукт:</label>
                             <input type="text" class="form-control" id="productModel" readonly>
                         </div>
                         <div class="mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label for="minerDetailSelect" class="form-label mb-0">MinerDetail:</label>
+                                <label class="form-label mb-0">Выберите MinerDetail:</label>
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="openCreateMinerDetailModal()">
                                     <i class="fe fe-plus"></i> Создать новый
                                 </button>
                             </div>
-                            <select class="form-select" id="minerDetailSelect" name="minerDetailId">
-                                <option value="">-- Не привязан --</option>
-                                <option th:each="md : ${allMinerDetails}" 
-                                        th:value="${md.id}" 
-                                        th:text="${md.standardName != null ? md.standardName : 'Без названия'}">
-                                </option>
-                            </select>
+                            <!-- Поле поиска -->
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="fe fe-search"></i></span>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="minerDetailSearch" 
+                                       placeholder="Поиск по названию, производителю или серии..."
+                                       autocomplete="off">
+                                <button type="button" 
+                                        class="btn btn-outline-secondary" 
+                                        id="clearSearchBtn" 
+                                        style="display: none;"
+                                        onclick="clearSearch()">
+                                    <i class="fe fe-x"></i>
+                                </button>
+                            </div>
+                            <!-- Опция "Не привязан" -->
+                            <div class="mb-2">
+                                <button type="button" 
+                                        class="btn btn-sm w-100 text-start" 
+                                        id="unlinkMinerDetailBtn"
+                                        onclick="selectUnlinkOption()"
+                                        style="border: 1px solid #dee2e6;">
+                                    <i class="fe fe-x-circle me-2"></i>Не привязан
+                                </button>
+                            </div>
+                            <!-- Таблица с бесконечной прокруткой -->
+                            <div class="border rounded" style="max-height: 400px; overflow-y: auto;" id="minerDetailsTableContainer">
+                                <table class="table table-hover table-sm mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th style="width: 60px;">ID</th>
+                                            <th>Название</th>
+                                            <th>Производитель</th>
+                                            <th>Серия</th>
+                                            <th style="width: 100px; text-align: center;">Товаров</th>
+                                            <th style="width: 50px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="minerDetailsTableBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                                Загрузка...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div id="minerDetailsLoadingMore" class="text-center py-2" style="display: none;">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                    <span class="ms-2 text-muted">Загрузка...</span>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-muted small">
+                                <span id="minerDetailsInfo">Загрузка...</span>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -832,6 +921,14 @@
             }
         });
         
+        // Переменные для управления бесконечной прокруткой и поиском
+        let currentMinerDetailPage = 0;
+        let minerDetailSearchQuery = '';
+        let isLoadingMinerDetails = false;
+        let hasMoreMinerDetails = true;
+        let selectedMinerDetailId = null;
+        let searchTimeout = null;
+        
         // Функция для открытия модального окна редактирования связи
         function openEditMinerDetailModal(button) {
             const productId = button.getAttribute('data-product-id');
@@ -846,17 +943,352 @@
             // Заполняем форму
             document.getElementById('editProductId').value = productId;
             document.getElementById('productModel').value = productModel;
-            document.getElementById('minerDetailSelect').value = minerDetailId || '';
+            selectedMinerDetailId = minerDetailId || null;
+            document.getElementById('selectedMinerDetailId').value = selectedMinerDetailId || '';
+            
+            // Сбрасываем состояние поиска и прокрутки
+            currentMinerDetailPage = 0;
+            minerDetailSearchQuery = '';
+            hasMoreMinerDetails = true;
+            document.getElementById('minerDetailSearch').value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            
+            // Очищаем таблицу и загружаем данные
+            const tableBody = document.getElementById('minerDetailsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Загрузка...</td></tr>';
+            
+            // Настраиваем состояние кнопки "Не привязан"
+            const unlinkBtn = document.getElementById('unlinkMinerDetailBtn');
+            if (selectedMinerDetailId === null || selectedMinerDetailId === '') {
+                unlinkBtn.classList.remove('btn-outline-secondary');
+                unlinkBtn.classList.add('btn-primary');
+            } else {
+                unlinkBtn.classList.remove('btn-primary');
+                unlinkBtn.classList.add('btn-outline-secondary');
+            }
             
             // Открываем модальное окно
             const modal = new bootstrap.Modal(document.getElementById('editMinerDetailModal'));
             modal.show();
+            
+            // Загружаем первую страницу данных
+            loadMinerDetails(true);
+            
+            // Настраиваем обработчики событий
+            setupMinerDetailModalHandlers();
+            
+            // Обработчик закрытия модального окна для очистки состояния
+            const modalElement = document.getElementById('editMinerDetailModal');
+            modalElement.addEventListener('hidden.bs.modal', function() {
+                // Очищаем состояние при закрытии
+                clearTimeout(searchTimeout);
+                isLoadingMinerDetails = false;
+            });
+        }
+        
+        // Настройка обработчиков событий для модального окна
+        function setupMinerDetailModalHandlers() {
+            // Обработчик поиска с debounce
+            const searchInput = document.getElementById('minerDetailSearch');
+            searchInput.removeEventListener('input', handleSearchInput);
+            searchInput.addEventListener('input', handleSearchInput);
+            
+            // Обработчик бесконечной прокрутки
+            const container = document.getElementById('minerDetailsTableContainer');
+            container.removeEventListener('scroll', handleScroll);
+            container.addEventListener('scroll', handleScroll);
+        }
+        
+        // Обработчик ввода в поле поиска
+        function handleSearchInput(event) {
+            clearTimeout(searchTimeout);
+            const query = event.target.value.trim();
+            
+            searchTimeout = setTimeout(() => {
+                minerDetailSearchQuery = query;
+                currentMinerDetailPage = 0;
+                hasMoreMinerDetails = true;
+                
+                // Показываем/скрываем кнопку очистки
+                const clearBtn = document.getElementById('clearSearchBtn');
+                clearBtn.style.display = query ? 'block' : 'none';
+                
+                // Очищаем таблицу и загружаем новые данные
+                const tableBody = document.getElementById('minerDetailsTableBody');
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Поиск...</td></tr>';
+                loadMinerDetails(true);
+            }, 500); // Debounce 500ms
+        }
+        
+        // Очистка поиска
+        function clearSearch() {
+            document.getElementById('minerDetailSearch').value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            minerDetailSearchQuery = '';
+            currentMinerDetailPage = 0;
+            hasMoreMinerDetails = true;
+            
+            const tableBody = document.getElementById('minerDetailsTableBody');
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Загрузка...</td></tr>';
+            loadMinerDetails(true);
+        }
+        
+        // Обработчик прокрутки для бесконечной загрузки
+        function handleScroll(event) {
+            const container = event.target;
+            const scrollTop = container.scrollTop;
+            const scrollHeight = container.scrollHeight;
+            const clientHeight = container.clientHeight;
+            
+            // Загружаем следующую страницу, когда прокрутили до 80% от конца
+            if (scrollTop + clientHeight >= scrollHeight * 0.8 && !isLoadingMinerDetails && hasMoreMinerDetails) {
+                loadMinerDetails(false);
+            }
+        }
+        
+        // Загрузка MinerDetails через API
+        function loadMinerDetails(resetTable) {
+            if (isLoadingMinerDetails) {
+                return Promise.resolve();
+            }
+            
+            isLoadingMinerDetails = true;
+            
+            // Показываем индикатор загрузки
+            const loadingMore = document.getElementById('minerDetailsLoadingMore');
+            const tableBody = document.getElementById('minerDetailsTableBody');
+            
+            if (resetTable) {
+                tableBody.innerHTML = '';
+            } else {
+                loadingMore.style.display = 'block';
+            }
+            
+            // Формируем URL для запроса
+            const url = new URL('/api/miner-details/search', window.location.origin);
+            url.searchParams.append('page', currentMinerDetailPage);
+            url.searchParams.append('size', '20');
+            if (minerDetailSearchQuery) {
+                url.searchParams.append('search', minerDetailSearchQuery);
+            }
+            
+            return fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                loadingMore.style.display = 'none';
+                
+                if (resetTable) {
+                    tableBody.innerHTML = '';
+                }
+                
+                // Добавляем строки в таблицу
+                if (data.content && data.content.length > 0) {
+                    data.content.forEach(item => {
+                        const row = createMinerDetailRow(item);
+                        tableBody.appendChild(row);
+                    });
+                    
+                    // Выделяем выбранный элемент после загрузки
+                    if (selectedMinerDetailId) {
+                        document.querySelectorAll('.miner-detail-row').forEach(row => {
+                            const rowId = row.querySelector('td:first-child').textContent.trim();
+                            if (rowId === selectedMinerDetailId.toString()) {
+                                row.classList.add('table-primary');
+                                // Прокручиваем к выбранному элементу только при первой загрузке
+                                if (resetTable) {
+                                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }
+                        });
+                    }
+                    
+                    // Обновляем информацию о количестве
+                    const infoText = `Показано ${tableBody.children.length} из ${data.totalElements || 0}`;
+                    document.getElementById('minerDetailsInfo').textContent = infoText;
+                    
+                    currentMinerDetailPage++;
+                    hasMoreMinerDetails = data.hasNext || false;
+                } else {
+                    if (resetTable) {
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Майнер детали не найдены</td></tr>';
+                    }
+                    hasMoreMinerDetails = false;
+                }
+                
+                isLoadingMinerDetails = false;
+                return data;
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке MinerDetails:', error);
+                loadingMore.style.display = 'none';
+                if (resetTable) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Ошибка при загрузке данных</td></tr>';
+                }
+                isLoadingMinerDetails = false;
+                throw error;
+            });
+        }
+        
+        // Выбор опции "Не привязан"
+        function selectUnlinkOption() {
+            // Снимаем выделение со всех строк таблицы
+            document.querySelectorAll('.miner-detail-row').forEach(r => {
+                r.classList.remove('table-primary');
+            });
+            
+            // Снимаем выделение с кнопки "Не привязан"
+            const unlinkBtn = document.getElementById('unlinkMinerDetailBtn');
+            unlinkBtn.classList.remove('btn-primary');
+            unlinkBtn.classList.add('btn-outline-secondary');
+            
+            // Если кнопка уже была выбрана, просто снимаем выделение
+            if (selectedMinerDetailId === null) {
+                selectedMinerDetailId = null;
+                document.getElementById('selectedMinerDetailId').value = '';
+                return;
+            }
+            
+            // Устанавливаем null как выбранное значение
+            selectedMinerDetailId = null;
+            document.getElementById('selectedMinerDetailId').value = '';
+            
+            // Выделяем кнопку "Не привязан"
+            unlinkBtn.classList.remove('btn-outline-secondary');
+            unlinkBtn.classList.add('btn-primary');
+        }
+        
+        // Создание строки таблицы для MinerDetail
+        function createMinerDetailRow(item) {
+            const row = document.createElement('tr');
+            row.className = 'miner-detail-row';
+            row.style.cursor = 'pointer';
+            
+            // Выделяем выбранный элемент
+            if (selectedMinerDetailId && item.id.toString() === selectedMinerDetailId.toString()) {
+                row.classList.add('table-primary');
+            }
+            
+            row.onclick = function() {
+                // Снимаем выделение с кнопки "Не привязан"
+                const unlinkBtn = document.getElementById('unlinkMinerDetailBtn');
+                unlinkBtn.classList.remove('btn-primary');
+                unlinkBtn.classList.add('btn-outline-secondary');
+                
+                // Если кликнули на уже выбранную строку, снимаем выделение (отмена выбора)
+                if (selectedMinerDetailId && item.id.toString() === selectedMinerDetailId.toString()) {
+                    row.classList.remove('table-primary');
+                    selectedMinerDetailId = null;
+                    document.getElementById('selectedMinerDetailId').value = '';
+                    return;
+                }
+                
+                // Снимаем выделение с предыдущей строки
+                document.querySelectorAll('.miner-detail-row').forEach(r => {
+                    r.classList.remove('table-primary');
+                });
+                // Выделяем текущую строку
+                row.classList.add('table-primary');
+                selectedMinerDetailId = item.id;
+                document.getElementById('selectedMinerDetailId').value = selectedMinerDetailId || '';
+            };
+            
+            row.innerHTML = `
+                <td>${escapeHtml(item.id)}</td>
+                <td>${escapeHtml(item.standardName || '-')}</td>
+                <td>${escapeHtml(item.manufacturer || '-')}</td>
+                <td>${escapeHtml(item.series || '-')}</td>
+                <td class="text-center"><span class="badge bg-info">${item.productCount || 0}</span></td>
+                <td class="text-center">
+                    ${selectedMinerDetailId && item.id.toString() === selectedMinerDetailId.toString() 
+                        ? '<i class="fe fe-check text-success"></i>' : ''}
+                </td>
+            `;
+            
+            return row;
+        }
+        
+        // Загрузка всех страниц, пока не найден нужный элемент (максимум 10 страниц)
+        function loadAllPagesUntilFound(targetId, maxPages = 10) {
+            let pagesLoaded = 0;
+            
+            function loadNextPage() {
+                if (pagesLoaded >= maxPages || !hasMoreMinerDetails || isLoadingMinerDetails) {
+                    // Прокручиваем к элементу, если он найден
+                    setTimeout(() => {
+                        const createdRow = Array.from(document.querySelectorAll('.miner-detail-row')).find(row => {
+                            const rowId = row.querySelector('td:first-child').textContent.trim();
+                            return rowId === targetId.toString();
+                        });
+                        if (createdRow) {
+                            createdRow.classList.add('table-primary');
+                            createdRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 300);
+                    return;
+                }
+                
+                loadMinerDetails(false).then(() => {
+                    pagesLoaded++;
+                    const found = Array.from(document.querySelectorAll('.miner-detail-row')).some(row => {
+                        const rowId = row.querySelector('td:first-child').textContent.trim();
+                        return rowId === targetId.toString();
+                    });
+                    
+                    if (!found && hasMoreMinerDetails && pagesLoaded < maxPages) {
+                        loadNextPage();
+                    } else {
+                        // Найден или достигнут лимит - выделяем элемент
+                        setTimeout(() => {
+                            const createdRow = Array.from(document.querySelectorAll('.miner-detail-row')).find(row => {
+                                const rowId = row.querySelector('td:first-child').textContent.trim();
+                                return rowId === targetId.toString();
+                            });
+                            if (createdRow) {
+                                createdRow.classList.add('table-primary');
+                                createdRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        }, 300);
+                    }
+                }).catch(() => {
+                    // В случае ошибки просто пытаемся выделить элемент из уже загруженных
+                    setTimeout(() => {
+                        const createdRow = Array.from(document.querySelectorAll('.miner-detail-row')).find(row => {
+                            const rowId = row.querySelector('td:first-child').textContent.trim();
+                            return rowId === targetId.toString();
+                        });
+                        if (createdRow) {
+                            createdRow.classList.add('table-primary');
+                            createdRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 300);
+                });
+            }
+            
+            loadNextPage();
+        }
+        
+        // Экранирование HTML
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
         
         // Функция для сохранения связи
         function saveMinerDetailLink() {
             const productId = document.getElementById('editProductId').value;
-            const minerDetailId = document.getElementById('minerDetailSelect').value;
+            const minerDetailId = document.getElementById('selectedMinerDetailId').value;
             
             if (!productId) {
                 showMessage('Ошибка: ID продукта не указан', 'danger');
@@ -976,13 +1408,9 @@
                 if (result.success) {
                     showCreateMessage('MinerDetail успешно создан!', 'success');
                     
-                    // Добавляем новый MinerDetail в выпадающий список
-                    const select = document.getElementById('minerDetailSelect');
-                    const option = document.createElement('option');
-                    option.value = result.data.id;
-                    option.textContent = result.data.standardName || 'Без названия';
-                    option.selected = true;
-                    select.appendChild(option);
+                    // Устанавливаем созданный MinerDetail как выбранный
+                    selectedMinerDetailId = result.data.id;
+                    document.getElementById('selectedMinerDetailId').value = selectedMinerDetailId;
                     
                     // Закрываем модальное окно создания
                     const createModal = bootstrap.Modal.getInstance(document.getElementById('createMinerDetailModal'));
@@ -990,10 +1418,49 @@
                         createModal.hide();
                     }
                     
-                    // Открываем обратно модальное окно редактирования связи
+                    // Открываем обратно модальное окно редактирования связи и перезагружаем данные
                     setTimeout(function() {
                         const editModal = new bootstrap.Modal(document.getElementById('editMinerDetailModal'));
                         editModal.show();
+                        
+                        // Устанавливаем созданный MinerDetail как выбранный
+                        selectedMinerDetailId = result.data.id;
+                        document.getElementById('selectedMinerDetailId').value = selectedMinerDetailId;
+                        
+                        // Настраиваем состояние кнопки "Не привязан"
+                        const unlinkBtn = document.getElementById('unlinkMinerDetailBtn');
+                        unlinkBtn.classList.remove('btn-primary');
+                        unlinkBtn.classList.add('btn-outline-secondary');
+                        
+                        // Сбрасываем состояние и перезагружаем данные
+                        currentMinerDetailPage = 0;
+                        minerDetailSearchQuery = '';
+                        hasMoreMinerDetails = true;
+                        document.getElementById('minerDetailSearch').value = '';
+                        document.getElementById('clearSearchBtn').style.display = 'none';
+                        const tableBody = document.getElementById('minerDetailsTableBody');
+                        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Загрузка...</td></tr>';
+                        
+                        // Загружаем данные и выделяем созданный элемент
+                        loadMinerDetails(true).then(() => {
+                            // Прокручиваем к созданному элементу
+                            setTimeout(() => {
+                                const createdRow = Array.from(document.querySelectorAll('.miner-detail-row')).find(row => {
+                                    const rowId = row.querySelector('td:first-child').textContent.trim();
+                                    return rowId === selectedMinerDetailId.toString();
+                                });
+                                if (createdRow) {
+                                    createdRow.classList.add('table-primary');
+                                    createdRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                } else {
+                                    // Если элемент не найден, возможно он на другой странице
+                                    // Загружаем все страницы, пока не найдем
+                                    const container = document.getElementById('minerDetailsTableContainer');
+                                    container.scrollTop = 0; // Сбрасываем прокрутку
+                                    loadAllPagesUntilFound(selectedMinerDetailId);
+                                }
+                            }, 300);
+                        });
                     }, 500);
                 } else {
                     showCreateMessage('Ошибка: ' + (result.error || 'Неизвестная ошибка'), 'danger');

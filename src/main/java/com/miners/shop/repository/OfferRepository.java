@@ -26,6 +26,7 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
      */
     Page<Offer> findAllByOrderByCreatedAtDesc(Pageable pageable);
     
+    
     /**
      * Находит предложения по товару с пагинацией
      */
@@ -124,5 +125,40 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<Object[]> findMinPriceByProductIdsAndOperationType(
             @Param("productIds") List<Long> productIds,
             @Param("operationType") com.miners.shop.entity.OperationType operationType);
+    
+    /**
+     * Находит все предложения с фильтрацией по производителю и типу операции
+     * Сортировка по дате создания (от последнего)
+     */
+    @Query("SELECT o FROM Offer o " +
+           "WHERE (:manufacturer IS NULL OR o.manufacturer = :manufacturer) " +
+           "AND (:operationType IS NULL OR o.operationType = :operationType) " +
+           "ORDER BY o.createdAt DESC")
+    Page<Offer> findByManufacturerAndOperationTypeOrderByCreatedAtDesc(
+            @Param("manufacturer") String manufacturer,
+            @Param("operationType") com.miners.shop.entity.OperationType operationType,
+            Pageable pageable);
+    
+    /**
+     * Получает список уникальных производителей из предложений
+     * Используется для заполнения фильтра по производителю
+     */
+    @Query("SELECT DISTINCT o.manufacturer FROM Offer o WHERE o.manufacturer IS NOT NULL AND o.manufacturer != '' ORDER BY o.manufacturer")
+    List<String> findDistinctManufacturers();
+    
+    /**
+     * Находит предложения с фильтрацией по производителю, типу операции и дате создания
+     * Сортировка по дате создания (от последнего)
+     */
+    @Query("SELECT o FROM Offer o " +
+           "WHERE (:manufacturer IS NULL OR o.manufacturer = :manufacturer) " +
+           "AND (:operationType IS NULL OR o.operationType = :operationType) " +
+           "AND (:dateFrom IS NULL OR o.createdAt >= :dateFrom) " +
+           "ORDER BY o.createdAt DESC")
+    Page<Offer> findByManufacturerAndOperationTypeAndDateOrderByCreatedAtDesc(
+            @Param("manufacturer") String manufacturer,
+            @Param("operationType") com.miners.shop.entity.OperationType operationType,
+            @Param("dateFrom") LocalDateTime dateFrom,
+            Pageable pageable);
 }
 

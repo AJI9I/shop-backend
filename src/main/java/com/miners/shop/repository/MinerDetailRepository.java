@@ -1,6 +1,8 @@
 package com.miners.shop.repository;
 
 import com.miners.shop.entity.MinerDetail;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -89,13 +91,13 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     /**
      * Находит все MinerDetail, отсортированные по алфавиту (standardName)
      */
-    org.springframework.data.domain.Page<MinerDetail> findAllByOrderByStandardNameAsc(org.springframework.data.domain.Pageable pageable);
+    Page<MinerDetail> findAllByOrderByStandardNameAsc(Pageable pageable);
     
     /**
      * Находит все MinerDetail, отсортированные по производителю, затем по названию
      */
     @Query("SELECT md FROM MinerDetail md ORDER BY md.manufacturer ASC, md.standardName ASC")
-    org.springframework.data.domain.Page<MinerDetail> findAllByOrderByManufacturerAscStandardNameAsc(org.springframework.data.domain.Pageable pageable);
+    Page<MinerDetail> findAllByOrderByManufacturerAscStandardNameAsc(Pageable pageable);
     
     /**
      * Находит все MinerDetail, у которых есть предложения, с фильтрацией по производителю
@@ -140,5 +142,19 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
            "LOWER(md.manufacturer) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(md.series) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<MinerDetail> findAllWithOffersBySearch(@Param("search") String search);
+    
+    /**
+     * Находит все MinerDetail с пагинацией, поиском и сортировкой
+     * Поддерживает поиск по standardName, manufacturer и series
+     */
+    @Query("SELECT md FROM MinerDetail md WHERE " +
+           "(:search IS NULL OR :search = '' OR " +
+           "LOWER(md.standardName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(md.manufacturer) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(md.series) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+           "ORDER BY md.standardName ASC")
+    Page<MinerDetail> findAllBySearchOrderByStandardNameAsc(
+            @Param("search") String search,
+            Pageable pageable);
 }
 

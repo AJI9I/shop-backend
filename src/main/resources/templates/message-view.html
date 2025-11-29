@@ -75,15 +75,15 @@
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="/">Главная</a>
                 <a class="nav-link" href="/products">Товары</a>
-                <a class="nav-link active" href="/messages">Сообщения</a>
+                <a class="nav-link active" href="/private/messages">Сообщения</a>
             </div>
         </div>
     </nav>
 
     <div class="container mt-4">
         <div class="mb-3">
-            <a href="/messages" class="btn btn-secondary">← Назад к списку</a>
-            <a th:href="@{'/messages/' + ${message.id} + '/json'}" target="_blank" class="btn btn-outline-primary ms-2">
+            <a href="/private/messages" class="btn btn-secondary">← Назад к списку</a>
+            <a th:href="@{'/private/messages/' + ${message.id} + '/json'}" target="_blank" class="btn btn-outline-primary ms-2">
                 📄 JSON API
             </a>
         </div>

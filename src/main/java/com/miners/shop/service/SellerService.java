@@ -36,6 +36,17 @@ public class SellerService {
             return null;
         }
         
+        // ВАЛИДАЦИЯ: Проверяем, что name не является WhatsApp ID
+        String validName = name;
+        if (name != null && name.length() > 15 && name.matches("^[0-9]+$")) {
+            log.warn("⚠️  Имя продавца похоже на WhatsApp ID ({}), устанавливаем 'Неизвестный продавец'", name);
+            validName = "Неизвестный продавец";
+        } else if (name == null || name.isEmpty() || name.trim().isEmpty()) {
+            validName = "Неизвестный продавец";
+        }
+        
+        log.info("🔍 Поиск/создание продавца: phone={}, name={}, whatsappId={}", phone, validName, whatsappId);
+        
         // Ищем существующего продавца по телефону
         Optional<Seller> existingSeller = sellerRepository.findByPhone(phone);
         
@@ -43,10 +54,12 @@ public class SellerService {
             Seller seller = existingSeller.get();
             
             // Обновляем имя, если оно изменилось или было пустым
-            if (name != null && !name.isEmpty() && 
-                (seller.getName() == null || seller.getName().isEmpty() || !seller.getName().equals(name))) {
-                log.debug("Обновление имени продавца {}: {} -> {}", phone, seller.getName(), name);
-                seller.setName(name);
+            // НО: не обновляем, если новое имя - это WhatsApp ID
+            if (validName != null && !validName.isEmpty() && !validName.equals("Неизвестный продавец") &&
+                (seller.getName() == null || seller.getName().isEmpty() || 
+                 seller.getName().equals("Неизвестный продавец") || !seller.getName().equals(validName))) {
+                log.info("📝 Обновление имени продавца {}: '{}' -> '{}'", phone, seller.getName(), validName);
+                seller.setName(validName);
             }
             
             // Обновляем WhatsApp ID, если он не был установлен
@@ -56,17 +69,17 @@ public class SellerService {
             }
             
             sellerRepository.save(seller);
-            log.debug("Найден существующий продавец: {} (ID: {})", phone, seller.getId());
+            log.info("✅ Найден существующий продавец: ID={}, phone={}, name={}", seller.getId(), phone, seller.getName());
             return seller;
         } else {
             // Создаем нового продавца
             Seller newSeller = new Seller();
             newSeller.setPhone(phone);
-            newSeller.setName(name != null && !name.isEmpty() ? name : "Неизвестный продавец");
+            newSeller.setName(validName);
             newSeller.setWhatsappId(whatsappId);
             
             Seller saved = sellerRepository.save(newSeller);
-            log.info("Создан новый продавец: {} (ID: {})", phone, saved.getId());
+            log.info("✅ Создан новый продавец: ID={}, phone={}, name={}", saved.getId(), phone, saved.getName());
             return saved;
         }
     }

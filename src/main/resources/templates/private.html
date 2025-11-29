@@ -268,7 +268,7 @@
     <!-- Page Loader -->
 
     <!-- Start Switcher -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="switcher-canvas" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="switcher-canvas" aria-labelledby="offcanvasRightLabel" aria-hidden="true">
         <div class="offcanvas-header border-bottom">
             <h5 class="offcanvas-title text-default" id="offcanvasRightLabel">Switcher</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -340,7 +340,7 @@
     <!-- End Switcher -->
 
     <!-- Start::Off-canvas sidebar-->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="header-sidebar" aria-labelledby="sidebarLabel">
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="header-sidebar" aria-labelledby="sidebarLabel" aria-hidden="true">
         <div class="offcanvas-header rounded-0">
             <h5 class="fs-14 text-uppercase mb-0 fw-semibold" id="sidebarLabel">Меню</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -350,6 +350,7 @@
                 <li class="list-group-item"><a th:href="@{/private}" class="text-dark">Панель управления</a></li>
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/messages}" class="text-dark">Сообщения</a></li>
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/products/table}" class="text-dark">Таблица товаров</a></li>
+                <li class="list-group-item" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')"><a th:href="@{/private/offers}" class="text-dark">Предложения</a></li>
                 <li class="list-group-item"><a th:href="@{/private/requests}" class="text-dark">Заявки</a></li>
                 <li class="list-group-item"><a th:href="@{/private/miner-details}" class="text-dark">Детали майнеров</a></li>
                 <li class="list-group-item"><a th:href="@{/private/profitability}" class="text-dark">Калькулятор доходности</a></li>
@@ -505,6 +506,18 @@
                         <!-- End::slide -->
 
                         <!-- Start::slide -->
+                        <li class="slide" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                            <a th:href="@{/private/offers}" class="side-menu__item">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24">
+                                    <path d="M0 0h24v24H0V0z" fill="none"/>
+                                    <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+                                </svg>
+                                <span class="side-menu__label">Предложения</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide -->
                         <li class="slide">
                             <a th:href="@{/private/requests}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
@@ -605,6 +618,26 @@
                                 </div>
                                 <div class="mt-3">
                                     <a th:href="@{/private/products/table}" class="btn btn-success btn-sm">Перейти к таблице <i class="fe fe-arrow-right ms-1"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <!-- Предложения (для администраторов и менеджеров) -->
+                    <div class="col-xl-4 col-lg-6 col-md-6" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                        <div class="card custom-card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-md bg-purple-transparent rounded-circle me-3">
+                                        <i class="fe fe-shopping-bag fs-20"></i>
+                                    </div>
+                                    <div class="flex-fill">
+                                        <h6 class="mb-1 fw-semibold">Предложения</h6>
+                                        <p class="mb-0 text-muted fs-12">Просмотр всех предложений от продавцов, отсортированных от последнего</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <a th:href="@{/private/offers}" class="btn btn-purple btn-sm">Перейти к предложениям <i class="fe fe-arrow-right ms-1"></i></a>
                                 </div>
                             </div>
                         </div>
@@ -833,8 +866,8 @@
             // Function to clean up modal backdrops and restore body state
             function cleanupModals() {
                 try {
-                    // Remove all modal backdrops
-                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    // Remove all modal backdrops (both modal and offcanvas)
+                    const backdrops = document.querySelectorAll('.modal-backdrop, .offcanvas-backdrop');
                     backdrops.forEach(backdrop => {
                         try {
                             backdrop.remove();
@@ -874,43 +907,129 @@
                             console.warn('Error closing modal:', e);
                         }
                     });
+                    
+                    // Close any open offcanvas elements
+                    const openOffcanvas = document.querySelectorAll('.offcanvas.show');
+                    openOffcanvas.forEach(offcanvas => {
+                        try {
+                            if (typeof bootstrap !== 'undefined' && bootstrap.Offcanvas) {
+                                const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvas);
+                                if (bsOffcanvas) {
+                                    bsOffcanvas.hide();
+                                } else {
+                                    offcanvas.classList.remove('show');
+                                    offcanvas.classList.remove('showing');
+                                    offcanvas.setAttribute('aria-hidden', 'true');
+                                    offcanvas.removeAttribute('aria-modal');
+                                }
+                            } else {
+                                offcanvas.classList.remove('show');
+                                offcanvas.classList.remove('showing');
+                                offcanvas.setAttribute('aria-hidden', 'true');
+                                offcanvas.removeAttribute('aria-modal');
+                            }
+                        } catch (e) {
+                            console.warn('Error closing offcanvas:', e);
+                        }
+                    });
+                    
+                    // Remove offcanvas backdrops specifically
+                    const offcanvasBackdrops = document.querySelectorAll('.offcanvas-backdrop');
+                    offcanvasBackdrops.forEach(backdrop => {
+                        try {
+                            backdrop.remove();
+                        } catch (e) {
+                            console.warn('Error removing offcanvas backdrop:', e);
+                        }
+                    });
                 } catch (e) {
                     console.error('Error in cleanupModals:', e);
                 }
             }
+            
+            // Prevent offcanvas from opening automatically on page load
+            function preventAutoOpenOffcanvas() {
+                try {
+                    // Ensure offcanvas elements are closed and have proper attributes
+                    const offcanvasElements = document.querySelectorAll('.offcanvas');
+                    offcanvasElements.forEach(offcanvas => {
+                        offcanvas.classList.remove('show', 'showing');
+                        offcanvas.setAttribute('aria-hidden', 'true');
+                        offcanvas.removeAttribute('aria-modal');
+                        offcanvas.style.visibility = 'hidden';
+                    });
+                } catch (e) {
+                    console.warn('Error preventing auto-open offcanvas:', e);
+                }
+            }
+            
+            // Run prevention immediately
+            preventAutoOpenOffcanvas();
             
             // Run cleanup immediately
             cleanupModals();
             
             // Run cleanup after all scripts have loaded
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', cleanupModals);
+                document.addEventListener('DOMContentLoaded', function() {
+                    preventAutoOpenOffcanvas();
+                    cleanupModals();
+                });
             } else {
                 // DOM already loaded, run immediately and after delays
+                preventAutoOpenOffcanvas();
                 cleanupModals();
-                setTimeout(cleanupModals, 100);
-                setTimeout(cleanupModals, 500);
-                setTimeout(cleanupModals, 1000);
+                setTimeout(function() {
+                    preventAutoOpenOffcanvas();
+                    cleanupModals();
+                }, 100);
+                setTimeout(function() {
+                    preventAutoOpenOffcanvas();
+                    cleanupModals();
+                }, 500);
+                setTimeout(function() {
+                    preventAutoOpenOffcanvas();
+                    cleanupModals();
+                }, 1000);
             }
             
             // Also clean up on window load
             window.addEventListener('load', function() {
+                preventAutoOpenOffcanvas();
                 cleanupModals();
                 // Additional cleanup after page fully loads
-                setTimeout(cleanupModals, 100);
+                setTimeout(function() {
+                    preventAutoOpenOffcanvas();
+                    cleanupModals();
+                }, 100);
             });
             
             // Clean up if modal events are triggered incorrectly
-            if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-                document.addEventListener('hidden.bs.modal', function(e) {
-                    // Ensure cleanup after modal is hidden
-                    setTimeout(cleanupModals, 100);
-                });
+            if (typeof bootstrap !== 'undefined') {
+                if (bootstrap.Modal) {
+                    document.addEventListener('hidden.bs.modal', function(e) {
+                        // Ensure cleanup after modal is hidden
+                        setTimeout(cleanupModals, 100);
+                    });
+                    
+                    document.addEventListener('show.bs.modal', function(e) {
+                        // Clean up any existing backdrops before showing new modal
+                        cleanupModals();
+                    });
+                }
                 
-                document.addEventListener('show.bs.modal', function(e) {
-                    // Clean up any existing backdrops before showing new modal
-                    cleanupModals();
-                });
+                // Also handle offcanvas events
+                if (bootstrap.Offcanvas) {
+                    document.addEventListener('hidden.bs.offcanvas', function(e) {
+                        // Ensure cleanup after offcanvas is hidden
+                        setTimeout(cleanupModals, 100);
+                    });
+                    
+                    document.addEventListener('show.bs.offcanvas', function(e) {
+                        // Clean up any existing backdrops before showing new offcanvas
+                        cleanupModals();
+                    });
+                }
             }
         })();
     </script>

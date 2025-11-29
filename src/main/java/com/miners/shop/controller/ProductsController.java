@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -1042,8 +1043,14 @@ public class ProductsController {
                     minerDetailOperationInfo.put(minerDetail.getId(), info);
                 }
                 
-                // Добавляем URL изображения
-                imageUrls.put(minerDetail.getId(), imageUrlResolver.resolveImageUrl(minerDetail.getStandardName()));
+                // Добавляем URL изображения: сначала проверяем imageUrl из MinerDetail, если нет - используем ImageUrlResolver
+                String imageUrl = null;
+                if (minerDetail.getImageUrl() != null && !minerDetail.getImageUrl().trim().isEmpty()) {
+                    imageUrl = minerDetail.getImageUrl();
+                } else {
+                    imageUrl = imageUrlResolver.resolveImageUrl(minerDetail.getStandardName());
+                }
+                imageUrls.put(minerDetail.getId(), imageUrl);
             }
             
             // Преобразуем в DTO
@@ -1220,6 +1227,69 @@ public class ProductsController {
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);
             error.put("error", "Ошибка при обновлении связи: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+    
+    /**
+     * API endpoint для получения MinerDetails с пагинацией, поиском и количеством товаров
+     * Используется в модальном окне для выбора MinerDetail
+     */
+    @GetMapping(value = "/api/miner-details/search", produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> searchMinerDetails(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String search) {
+        try {
+            log.debug("Поиск MinerDetails: страница={}, размер={}, поиск={}", page, size, search);
+            
+            // Создаем Pageable
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "standardName"));
+            
+            // Нормализуем поисковый запрос
+            String searchQuery = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
+            
+            // Получаем MinerDetails с пагинацией и поиском
+            Page<MinerDetail> minerDetailsPage = minerDetailRepository.findAllBySearchOrderByStandardNameAsc(
+                    searchQuery, pageable);
+            
+            // Подсчитываем количество товаров для каждого MinerDetail
+            List<Map<String, Object>> minerDetailsData = new java.util.ArrayList<>();
+            for (MinerDetail md : minerDetailsPage.getContent()) {
+                // Подсчитываем количество связанных товаров
+                long productCount = productRepository.findByMinerDetailId(md.getId()).size();
+                
+                Map<String, Object> mdData = new HashMap<>();
+                mdData.put("id", md.getId());
+                mdData.put("standardName", md.getStandardName());
+                mdData.put("manufacturer", md.getManufacturer());
+                mdData.put("series", md.getSeries());
+                mdData.put("productCount", productCount);
+                
+                minerDetailsData.add(mdData);
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", minerDetailsData);
+            response.put("totalElements", minerDetailsPage.getTotalElements());
+            response.put("totalPages", minerDetailsPage.getTotalPages());
+            response.put("currentPage", minerDetailsPage.getNumber());
+            response.put("pageSize", minerDetailsPage.getSize());
+            response.put("hasNext", minerDetailsPage.hasNext());
+            response.put("hasPrevious", minerDetailsPage.hasPrevious());
+            
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/json;charset=UTF-8")
+                    .body(response);
+                    
+        } catch (Exception e) {
+            log.error("Ошибка при поиске MinerDetails: {}", e.getMessage(), e);
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("error", "Ошибка при поиске: " + e.getMessage());
             return ResponseEntity.status(500).body(error);
         }
     }
