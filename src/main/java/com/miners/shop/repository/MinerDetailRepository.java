@@ -39,28 +39,32 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     
     /**
      * Получить список уникальных производителей
+     * Возвращает только производителей активных MinerDetail (active = true)
      */
-    @Query("SELECT DISTINCT md.manufacturer FROM MinerDetail md WHERE md.manufacturer IS NOT NULL AND md.manufacturer != '' ORDER BY md.manufacturer")
+    @Query("SELECT DISTINCT md.manufacturer FROM MinerDetail md WHERE md.manufacturer IS NOT NULL AND md.manufacturer != '' AND (md.active IS NULL OR md.active = true) ORDER BY md.manufacturer")
     List<String> findDistinctManufacturers();
     
     /**
      * Получить список уникальных серий
+     * Возвращает только серии активных MinerDetail (active = true)
      */
-    @Query("SELECT DISTINCT md.series FROM MinerDetail md WHERE md.series IS NOT NULL AND md.series != '' ORDER BY md.series")
+    @Query("SELECT DISTINCT md.series FROM MinerDetail md WHERE md.series IS NOT NULL AND md.series != '' AND (md.active IS NULL OR md.active = true) ORDER BY md.series")
     List<String> findDistinctSeries();
     
     /**
      * Получить список уникальных серий для выбранных производителей
+     * Возвращает только серии активных MinerDetail (active = true)
      */
-    @Query("SELECT DISTINCT md.series FROM MinerDetail md WHERE md.series IS NOT NULL AND md.series != '' AND md.manufacturer IN :manufacturers ORDER BY md.series")
+    @Query("SELECT DISTINCT md.series FROM MinerDetail md WHERE md.series IS NOT NULL AND md.series != '' AND md.manufacturer IN :manufacturers AND (md.active IS NULL OR md.active = true) ORDER BY md.series")
     List<String> findDistinctSeriesByManufacturers(
             @org.springframework.data.repository.query.Param("manufacturers") java.util.List<String> manufacturers);
     
     /**
      * Получить маппинг серия -> производитель для всех MinerDetail
      * Возвращает список объектов, каждый содержит series и manufacturer
+     * Возвращает только маппинги для активных MinerDetail (active = true)
      */
-    @Query("SELECT DISTINCT md.series as series, md.manufacturer as manufacturer FROM MinerDetail md WHERE md.series IS NOT NULL AND md.series != '' AND md.manufacturer IS NOT NULL AND md.manufacturer != ''")
+    @Query("SELECT DISTINCT md.series as series, md.manufacturer as manufacturer FROM MinerDetail md WHERE md.series IS NOT NULL AND md.series != '' AND md.manufacturer IS NOT NULL AND md.manufacturer != '' AND (md.active IS NULL OR md.active = true)")
     List<Object[]> findSeriesManufacturerMapping();
     
     /**
@@ -72,20 +76,22 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     /**
      * Находит все MinerDetail, у которых есть предложения
      * Сортировка будет применена в сервисе для поддержки сортировки по MAX(offer.updated_at)
+     * Показываются только активные MinerDetail (active = true)
      */
     @Query("SELECT DISTINCT md FROM MinerDetail md " +
            "INNER JOIN md.products p " +
            "INNER JOIN p.offers o " +
-           "WHERE o.id IS NOT NULL")
+           "WHERE o.id IS NOT NULL AND (md.active IS NULL OR md.active = true)")
     List<MinerDetail> findAllWithOffers();
     
     /**
      * Подсчитывает количество MinerDetail, у которых есть предложения
+     * Считаются только активные MinerDetail (active = true)
      */
     @Query("SELECT COUNT(DISTINCT md) FROM MinerDetail md " +
            "INNER JOIN md.products p " +
            "INNER JOIN p.offers o " +
-           "WHERE o.id IS NOT NULL")
+           "WHERE o.id IS NOT NULL AND (md.active IS NULL OR md.active = true)")
     long countAllWithOffers();
     
     /**
@@ -101,31 +107,34 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     
     /**
      * Находит все MinerDetail, у которых есть предложения, с фильтрацией по производителю
+     * Показываются только активные MinerDetail (active = true)
      */
     @Query("SELECT DISTINCT md FROM MinerDetail md " +
            "INNER JOIN md.products p " +
            "INNER JOIN p.offers o " +
-           "WHERE o.id IS NOT NULL AND md.manufacturer IN :manufacturers")
+           "WHERE o.id IS NOT NULL AND md.manufacturer IN :manufacturers AND (md.active IS NULL OR md.active = true)")
     List<MinerDetail> findAllWithOffersByManufacturers(
             @org.springframework.data.repository.query.Param("manufacturers") java.util.List<String> manufacturers);
     
     /**
      * Находит все MinerDetail, у которых есть предложения, с фильтрацией по сериям
+     * Показываются только активные MinerDetail (active = true)
      */
     @Query("SELECT DISTINCT md FROM MinerDetail md " +
            "INNER JOIN md.products p " +
            "INNER JOIN p.offers o " +
-           "WHERE o.id IS NOT NULL AND md.series IN :series")
+           "WHERE o.id IS NOT NULL AND md.series IN :series AND (md.active IS NULL OR md.active = true)")
     List<MinerDetail> findAllWithOffersBySeries(
             @org.springframework.data.repository.query.Param("series") java.util.List<String> series);
     
     /**
      * Находит все MinerDetail, у которых есть предложения, с фильтрацией по производителю и сериям
+     * Показываются только активные MinerDetail (active = true)
      */
     @Query("SELECT DISTINCT md FROM MinerDetail md " +
            "INNER JOIN md.products p " +
            "INNER JOIN p.offers o " +
-           "WHERE o.id IS NOT NULL AND md.manufacturer IN :manufacturers AND md.series IN :series")
+           "WHERE o.id IS NOT NULL AND md.manufacturer IN :manufacturers AND md.series IN :series AND (md.active IS NULL OR md.active = true)")
     List<MinerDetail> findAllWithOffersByManufacturersAndSeries(
             @org.springframework.data.repository.query.Param("manufacturers") java.util.List<String> manufacturers,
             @org.springframework.data.repository.query.Param("series") java.util.List<String> series);
@@ -133,11 +142,12 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     /**
      * Находит все MinerDetail, у которых есть предложения, с поиском по названию, производителю или серии
      * Поиск выполняется по стандартному названию, производителю и серии (без учета регистра)
+     * Показываются только активные MinerDetail (active = true)
      */
     @Query("SELECT DISTINCT md FROM MinerDetail md " +
            "INNER JOIN md.products p " +
            "INNER JOIN p.offers o " +
-           "WHERE o.id IS NOT NULL AND " +
+           "WHERE o.id IS NOT NULL AND (md.active IS NULL OR md.active = true) AND " +
            "(LOWER(md.standardName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(md.manufacturer) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(md.series) LIKE LOWER(CONCAT('%', :search, '%')))")

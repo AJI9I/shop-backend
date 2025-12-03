@@ -39,10 +39,12 @@ spring:
         temp:
           use_jdbc_metadata_defaults: false
   
-  # SQL скрипты для инициализации схемы (выполняются после Hibernate ddl-auto)
+  # SQL скрипты для инициализации схемы
+  # ВАЖНО: spring.sql.init выполняется ПОСЛЕ Hibernate ddl-auto
+  # Поэтому миграция duplicate_count выполняется через DatabaseMigrationConfig (ApplicationRunner)
   sql:
     init:
-      mode: never
+      mode: never  # Отключаем автоматическое выполнение SQL скриптов
       continue-on-error: true
   
   # H2 Console отключен (используем PostgreSQL)
@@ -135,3 +137,6 @@ logging:
     name: logs/application.log
     max-size: 10MB
     max-history: 10
+  charset:
+    console: UTF-8
+    file: UTF-8

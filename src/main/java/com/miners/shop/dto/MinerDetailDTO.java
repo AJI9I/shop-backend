@@ -37,6 +37,7 @@ public class MinerDetailDTO {
     private String placementInfo;
     private String producerInfo;
     private String imageUrl;
+    private Boolean active; // Флаг активности майнера
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<Long> productIds; // ID товаров, связанных с этой детальной записью
@@ -68,6 +69,7 @@ public class MinerDetailDTO {
                 .placementInfo(minerDetail.getPlacementInfo())
                 .producerInfo(minerDetail.getProducerInfo())
                 .imageUrl(minerDetail.getImageUrl())
+                .active(minerDetail.getActive() != null ? minerDetail.getActive() : true)
                 .createdAt(minerDetail.getCreatedAt())
                 .updatedAt(minerDetail.getUpdatedAt())
                 .build();
@@ -105,6 +107,7 @@ public class MinerDetailDTO {
         minerDetail.setPlacementInfo(this.placementInfo);
         minerDetail.setProducerInfo(this.producerInfo);
         minerDetail.setImageUrl(this.imageUrl);
+        minerDetail.setActive(this.active != null ? this.active : true);
         return minerDetail;
     }
 }

@@ -48,4 +48,10 @@ public class WhatsAppMessageDTO {
      * Распарсенные данные от Ollama (JSON объект)
      */
     private Object parsedData;
+    
+    /**
+     * Счетчик дубликатов - количество раз, когда от этого отправителя было получено
+     * идентичное сообщение в других группах за последние 10 минут
+     */
+    private Integer duplicateCount;
 }

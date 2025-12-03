@@ -131,6 +131,13 @@ public class MinerDetail {
     private String imageUrl;
     
     /**
+     * Флаг активности майнера
+     * Если false, майнер скрыт и не отображается в публичных списках
+     */
+    @Column(nullable = false)
+    private Boolean active = true;
+    
+    /**
      * Список товаров (Product), которые ссылаются на эту детальную запись
      * Связь OneToMany: одна детальная запись может использоваться несколькими товарами
      */

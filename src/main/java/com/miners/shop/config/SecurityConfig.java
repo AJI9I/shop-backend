@@ -41,6 +41,9 @@ public class SecurityConfig {
                     // API эндпоинты (без авторизации)
                     .requestMatchers("/api/webhook/**", "/requests/api/**", "/api/products/**").permitAll()
                     
+                    // API эндпоинты для MinerDetails (требуют авторизации, проверяется через @PreAuthorize)
+                    .requestMatchers("/api/miner-details/**").authenticated()
+                    
                     // Страница входа и ошибок (без авторизации)
                     .requestMatchers("/login", "/error", "/logout").permitAll()
                     

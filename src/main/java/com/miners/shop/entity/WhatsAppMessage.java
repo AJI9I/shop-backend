@@ -74,6 +74,13 @@ public class WhatsAppMessage {
     @Column(columnDefinition = "TEXT")
     private String parsedData;
     
+    /**
+     * Счетчик дубликатов - количество раз, когда от этого отправителя было получено
+     * идентичное сообщение в других группах за последние 10 минут
+     */
+    @Column(nullable = true) // Временно nullable для миграции, будет установлено в NOT NULL через миграцию
+    private Integer duplicateCount = 0;
+    
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

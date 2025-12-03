@@ -1,42 +1,46 @@
 @echo off
-echo ============================================
-echo Stopping Java processes...
-echo ============================================
+echo ========================================
+echo Остановка Java процессов и очистка
+echo ========================================
+echo.
+
+echo Останавливаем процессы Java...
 taskkill /F /IM java.exe 2>nul
+taskkill /F /IM javaw.exe 2>nul
 timeout /t 2 /nobreak >nul
 
-echo ============================================
-echo Changing to shop-backend directory...
-echo ============================================
-cd /d %~dp0
+echo.
+echo Очищаем директорию target...
+if exist target (
+    rmdir /s /q target 2>nul
+    if exist target (
+        echo ВНИМАНИЕ: Не удалось полностью удалить директорию target
+        echo Закройте IDE и все Java процессы вручную, затем попробуйте снова
+        pause
+        exit /b 1
+    )
+)
 
-echo ============================================
-echo Cleaning Maven project...
-echo ============================================
+echo.
+echo Выполняем очистку через Maven...
 call mvn clean
-if errorlevel 1 (
-    echo ERROR: Clean failed!
+
+echo.
+echo Собираем проект...
+call mvn compile -DskipTests
+
+if %ERRORLEVEL% EQU 0 (
+    echo.
+    echo ========================================
+    echo Сборка успешно завершена!
+    echo ========================================
+) else (
+    echo.
+    echo ========================================
+    echo Ошибка при сборке!
+    echo ========================================
     pause
     exit /b 1
 )
 
-echo ============================================
-echo Building Maven project...
-echo ============================================
-call mvn package -DskipTests
-if errorlevel 1 (
-    echo ERROR: Build failed!
-    pause
-    exit /b 1
-)
-
-echo ============================================
-echo Starting Spring Boot application...
-echo ============================================
-start "Shop Backend" cmd /k "mvn spring-boot:run"
-echo.
-echo Application is starting in a new window.
-echo Please wait for the application to start.
-echo.
-
-
+pause

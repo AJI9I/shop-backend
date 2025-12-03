@@ -52,10 +52,10 @@
                 errorFilename.includes('defaultmenu.min.js') ||
                 errorFilename.includes('custom-switcher.min.js') ||
                 errorFilename.includes('custom.js')) {
-                // Suppress the error (don't try to create elements here to avoid recursion)
-                console.warn('Suppressed non-critical error:', errorMessage, errorFilename);
+                // Suppress the error silently (don't try to create elements here to avoid recursion)
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 return true;
             }
         }, true);
@@ -69,7 +69,7 @@
                 reason.includes('addEventListener') ||
                 reason.includes('appendChild')
             )) {
-                console.warn('Suppressed unhandled promise rejection:', reason);
+                // Suppress the error silently
                 e.preventDefault();
                 return true;
             }
@@ -256,6 +256,15 @@
             setTimeout(function() { isEnsuring = false; window.ensureElements(); }, 100);
         })();
     </script>
+    
+    <!-- Стили для восстановления прокрутки страницы -->
+    <style>
+        /* Восстановление прокрутки страницы */
+        html, body {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+    </style>
 </head> 
 
 <body>

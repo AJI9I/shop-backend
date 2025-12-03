@@ -1244,7 +1244,9 @@ public class ProductsController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String search) {
         try {
-            log.debug("Поиск MinerDetails: страница={}, размер={}, поиск={}", page, size, search);
+            log.info("═══════════════════════════════════════════════════════════════");
+            log.info("🔍 [SEARCH_MINER_DETAILS] Запрос на поиск MinerDetails");
+            log.info("🔍 [SEARCH_MINER_DETAILS] Параметры: страница={}, размер={}, поиск={}", page, size, search);
             
             // Создаем Pageable
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "standardName"));
@@ -1255,6 +1257,9 @@ public class ProductsController {
             // Получаем MinerDetails с пагинацией и поиском
             Page<MinerDetail> minerDetailsPage = minerDetailRepository.findAllBySearchOrderByStandardNameAsc(
                     searchQuery, pageable);
+            
+            log.info("🔍 [SEARCH_MINER_DETAILS] Найдено записей: {}, всего: {}", 
+                    minerDetailsPage.getContent().size(), minerDetailsPage.getTotalElements());
             
             // Подсчитываем количество товаров для каждого MinerDetail
             List<Map<String, Object>> minerDetailsData = new java.util.ArrayList<>();
@@ -1281,12 +1286,51 @@ public class ProductsController {
             response.put("hasNext", minerDetailsPage.hasNext());
             response.put("hasPrevious", minerDetailsPage.hasPrevious());
             
-            return ResponseEntity.ok()
+            log.info("🔍 [SEARCH_MINER_DETAILS] Ответ подготовлен: content.size()={}, totalElements={}, hasNext={}", 
+                    minerDetailsData.size(), minerDetailsPage.getTotalElements(), minerDetailsPage.hasNext());
+            
+            // Логируем первые несколько элементов для проверки
+            if (!minerDetailsData.isEmpty()) {
+                log.info("🔍 [SEARCH_MINER_DETAILS] Первые 3 элемента ответа:");
+                for (int i = 0; i < Math.min(3, minerDetailsData.size()); i++) {
+                    Map<String, Object> item = minerDetailsData.get(i);
+                    log.info("🔍 [SEARCH_MINER_DETAILS]   [{}] ID={}, standardName={}, manufacturer={}, productCount={}", 
+                            i, item.get("id"), item.get("standardName"), item.get("manufacturer"), item.get("productCount"));
+                }
+            }
+            
+            // Логируем полную структуру ответа
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                String responseJson = objectMapper.writeValueAsString(response);
+                log.info("🔍 [SEARCH_MINER_DETAILS] Полный JSON ответ (первые 1000 символов): {}", 
+                        responseJson.length() > 1000 ? responseJson.substring(0, 1000) + "..." : responseJson);
+                log.info("🔍 [SEARCH_MINER_DETAILS] Размер полного JSON ответа: {} символов", responseJson.length());
+            } catch (Exception e) {
+                log.warn("🔍 [SEARCH_MINER_DETAILS] Не удалось сериализовать ответ в JSON: {}", e.getMessage());
+            }
+            
+            log.info("═══════════════════════════════════════════════════════════════");
+            log.info("✅ [SEARCH_MINER_DETAILS] Отправка ответа клиенту...");
+            log.info("✅ [SEARCH_MINER_DETAILS] Размер ответа: {} элементов", response.size());
+            log.info("✅ [SEARCH_MINER_DETAILS] Ключи в ответе: {}", response.keySet());
+            
+            ResponseEntity<Map<String, Object>> responseEntity = ResponseEntity.ok()
                     .header("Content-Type", "application/json;charset=UTF-8")
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "Content-Type, Authorization")
                     .body(response);
+            
+            log.info("✅ [SEARCH_MINER_DETAILS] ResponseEntity создан");
+            log.info("✅ [SEARCH_MINER_DETAILS] Headers установлены: Content-Type=application/json;charset=UTF-8");
+            log.info("✅ [SEARCH_MINER_DETAILS] Статус: 200 OK");
+            log.info("✅ [SEARCH_MINER_DETAILS] Возвращаем ResponseEntity");
+            
+            return responseEntity;
                     
         } catch (Exception e) {
-            log.error("Ошибка при поиске MinerDetails: {}", e.getMessage(), e);
+            log.error("❌ [SEARCH_MINER_DETAILS] Ошибка при поиске MinerDetails: {}", e.getMessage(), e);
             Map<String, Object> error = new HashMap<>();
             error.put("success", false);
             error.put("error", "Ошибка при поиске: " + e.getMessage());

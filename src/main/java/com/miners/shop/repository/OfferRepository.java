@@ -127,16 +127,44 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             @Param("operationType") com.miners.shop.entity.OperationType operationType);
     
     /**
-     * Находит все предложения с фильтрацией по производителю и типу операции
+     * Находит все предложения с фильтрацией по производителю, типу операции и серии
+     * Серия берется из MinerDetail через связь Offer -> Product -> MinerDetail
      * Сортировка по дате создания (от последнего)
+     * Поддерживает NULL значения для всех параметров
+     * ВАЖНО: Не используем JOIN FETCH с пагинацией, так как это может вызвать проблемы.
+     * Вместо этого используем ручную инициализацию в контроллере.
      */
     @Query("SELECT o FROM Offer o " +
-           "WHERE (:manufacturer IS NULL OR o.manufacturer = :manufacturer) " +
+           "WHERE (:manufacturer IS NULL OR :manufacturer = '' OR o.manufacturer = :manufacturer) " +
            "AND (:operationType IS NULL OR o.operationType = :operationType) " +
+           "AND (:series IS NULL OR :series = '' OR (o.product.minerDetail IS NOT NULL AND o.product.minerDetail.series = :series)) " +
            "ORDER BY o.createdAt DESC")
-    Page<Offer> findByManufacturerAndOperationTypeOrderByCreatedAtDesc(
+    Page<Offer> findByManufacturerAndOperationTypeAndSeriesOrderByCreatedAtDesc(
             @Param("manufacturer") String manufacturer,
             @Param("operationType") com.miners.shop.entity.OperationType operationType,
+            @Param("series") String series,
+            Pageable pageable);
+    
+    /**
+     * Находит предложения с фильтрацией по производителю, типу операции, серии и дате
+     * Серия берется из MinerDetail через связь Offer -> Product -> MinerDetail
+     * Сортировка по дате создания (от последнего)
+     * Поддерживает NULL значения для всех параметров кроме даты
+     * ВАЖНО: Не используем JOIN FETCH с пагинацией, так как это может вызвать проблемы.
+     * Вместо этого используем ручную инициализацию в контроллере.
+     */
+    @Query("SELECT o FROM Offer o " +
+           "WHERE (:manufacturer IS NULL OR :manufacturer = '' OR o.manufacturer = :manufacturer) " +
+           "AND (:operationType IS NULL OR o.operationType = :operationType) " +
+           "AND (:series IS NULL OR :series = '' OR (o.product.minerDetail IS NOT NULL AND o.product.minerDetail.series = :series)) " +
+           "AND o.createdAt >= :dateFrom AND o.createdAt < :dateTo " +
+           "ORDER BY o.createdAt DESC")
+    Page<Offer> findByManufacturerAndOperationTypeAndSeriesAndCreatedAtBetweenOrderByCreatedAtDesc(
+            @Param("manufacturer") String manufacturer,
+            @Param("operationType") com.miners.shop.entity.OperationType operationType,
+            @Param("series") String series,
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
             Pageable pageable);
     
     /**
@@ -147,18 +175,60 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
     List<String> findDistinctManufacturers();
     
     /**
-     * Находит предложения с фильтрацией по производителю, типу операции и дате создания
+     * Получает список уникальных серий из предложений по производителю
+     * Серии берутся из MinerDetail через связь Offer -> Product -> MinerDetail
+     * Используется для заполнения фильтра по серии при выборе производителя
+     */
+    @Query("SELECT DISTINCT o.product.minerDetail.series FROM Offer o " +
+           "WHERE o.manufacturer = :manufacturer " +
+           "AND o.product.minerDetail IS NOT NULL " +
+           "AND o.product.minerDetail.series IS NOT NULL AND o.product.minerDetail.series != '' " +
+           "ORDER BY o.product.minerDetail.series")
+    List<String> findDistinctSeriesByManufacturer(@Param("manufacturer") String manufacturer);
+    
+    /**
+     * Находит предложения с фильтрацией только по дате создания (за конкретный день)
+     * Использует BETWEEN для выбора предложений за конкретный день
      * Сортировка по дате создания (от последнего)
      */
-    @Query("SELECT o FROM Offer o " +
-           "WHERE (:manufacturer IS NULL OR o.manufacturer = :manufacturer) " +
-           "AND (:operationType IS NULL OR o.operationType = :operationType) " +
-           "AND (:dateFrom IS NULL OR o.createdAt >= :dateFrom) " +
-           "ORDER BY o.createdAt DESC")
-    Page<Offer> findByManufacturerAndOperationTypeAndDateOrderByCreatedAtDesc(
+    @Query("SELECT o FROM Offer o WHERE o.createdAt >= :dateFrom AND o.createdAt < :dateTo ORDER BY o.createdAt DESC")
+    Page<Offer> findByCreatedAtBetweenOrderByCreatedAtDesc(
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
+            Pageable pageable);
+    
+    /**
+     * Находит предложения с фильтрацией по производителю и дате (за конкретный день)
+     * Сортировка по дате создания (от последнего)
+     */
+    @Query("SELECT o FROM Offer o WHERE o.manufacturer = :manufacturer AND o.createdAt >= :dateFrom AND o.createdAt < :dateTo ORDER BY o.createdAt DESC")
+    Page<Offer> findByManufacturerAndCreatedAtBetweenOrderByCreatedAtDesc(
+            @Param("manufacturer") String manufacturer,
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
+            Pageable pageable);
+    
+    /**
+     * Находит предложения с фильтрацией по типу операции и дате (за конкретный день)
+     * Сортировка по дате создания (от последнего)
+     */
+    @Query("SELECT o FROM Offer o WHERE o.operationType = :operationType AND o.createdAt >= :dateFrom AND o.createdAt < :dateTo ORDER BY o.createdAt DESC")
+    Page<Offer> findByOperationTypeAndCreatedAtBetweenOrderByCreatedAtDesc(
+            @Param("operationType") com.miners.shop.entity.OperationType operationType,
+            @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
+            Pageable pageable);
+    
+    /**
+     * Находит предложения с фильтрацией по производителю, типу операции и дате (за конкретный день)
+     * Сортировка по дате создания (от последнего)
+     */
+    @Query("SELECT o FROM Offer o WHERE o.manufacturer = :manufacturer AND o.operationType = :operationType AND o.createdAt >= :dateFrom AND o.createdAt < :dateTo ORDER BY o.createdAt DESC")
+    Page<Offer> findByManufacturerAndOperationTypeAndCreatedAtBetweenOrderByCreatedAtDesc(
             @Param("manufacturer") String manufacturer,
             @Param("operationType") com.miners.shop.entity.OperationType operationType,
             @Param("dateFrom") LocalDateTime dateFrom,
+            @Param("dateTo") LocalDateTime dateTo,
             Pageable pageable);
 }
 

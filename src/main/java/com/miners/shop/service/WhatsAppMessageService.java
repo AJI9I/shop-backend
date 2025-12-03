@@ -110,6 +110,9 @@ public class WhatsAppMessageService {
         message.setMessageType(dto.getMessageType());
         message.setIsForwarded(dto.getIsForwarded() != null ? dto.getIsForwarded() : false);
         
+        // Инициализируем счетчик дубликатов
+        message.setDuplicateCount(dto.getDuplicateCount() != null ? dto.getDuplicateCount() : 0);
+        
         // Сохраняем обработанные данные от нейросети (parsedData) как JSON строку
         if (dto.getParsedData() != null) {
             try {

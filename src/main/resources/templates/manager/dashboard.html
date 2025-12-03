@@ -57,6 +57,15 @@
             if (document.body) ensureElements();
         })();
     </script>
+    
+    <!-- Стили для восстановления прокрутки страницы -->
+    <style>
+        /* Восстановление прокрутки страницы */
+        html, body {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+        }
+    </style>
 </head>
 <body>
     <div id="loader" style="display: none;"><div class="spinner-border text-primary"></div></div>

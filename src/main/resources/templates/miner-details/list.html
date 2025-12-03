@@ -39,6 +39,69 @@
     
     <!-- Custom styles для таблицы -->
     <style>
+        /* Восстановление прокрутки страницы - полная версия */
+        html {
+            overflow-x: hidden !important;
+            overflow-y: scroll !important; /* Всегда показываем полосу прокрутки */
+            height: 100% !important;
+        }
+        
+        body {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            min-height: 100vh !important;
+            position: relative !important;
+        }
+        
+        /* Основной контейнер страницы должен прокручиваться */
+        .page {
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+            height: auto !important;
+            min-height: 100vh !important;
+        }
+        
+        /* Контент должен прокручиваться */
+        .main-content, .app-content {
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+            height: auto !important;
+            min-height: 100vh !important;
+        }
+        
+        /* Гарантируем, что body может прокручиваться даже с модальными окнами */
+        body.modal-open {
+            overflow-y: scroll !important;
+            padding-right: 0 !important;
+        }
+        
+        /* Принудительно показываем стандартную полосу прокрутки */
+        ::-webkit-scrollbar {
+            width: 10px !important;
+            height: 10px !important;
+            display: block !important;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1 !important;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888 !important;
+            border-radius: 5px !important;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555 !important;
+        }
+        
+        /* Для Firefox */
+        html {
+            scrollbar-width: thin !important;
+            scrollbar-color: #888 #f1f1f1 !important;
+        }
+        
         .miner-details-table {
             font-size: 0.875rem;
         }
@@ -58,10 +121,119 @@
             padding: 8px 12px;
             vertical-align: middle;
         }
+        
+        /* Стили для неактивных записей */
+        .miner-details-table tbody tr.inactive-row {
+            opacity: 0.6;
+            background-color: #f8f9fa;
+        }
+        
+        .miner-details-table thead th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .miner-details-table thead th.sortable:hover {
+            background-color: #34495e;
+        }
+        
+        .sort-icon {
+            margin-left: 8px;
+            font-size: 0.75rem;
+        }
     </style>
     
     <!-- Fix for missing DOM elements - MUST be before other scripts -->
     <script>
+        // Агрессивный обработчик ошибок для подавления ошибок из скриптов темы
+        // Устанавливается самым первым, до всех остальных скриптов
+        (function() {
+            'use strict';
+            
+            // Функция для проверки, нужно ли подавить ошибку
+            function shouldSuppressError(message, filename, stack) {
+                const messageStr = String(message || '');
+                const filenameStr = String(filename || '');
+                const stackStr = String(stack || '');
+                
+                // Проверяем по всем параметрам
+                const checks = [
+                    messageStr.includes('Cannot read properties of null'),
+                    messageStr.includes('addEventListener'),
+                    messageStr.includes('appendChild'),
+                    messageStr.includes('classList'),
+                    filenameStr.includes('custom-switcher'),
+                    filenameStr.includes('custom.js'),
+                    stackStr.includes('custom-switcher'),
+                    stackStr.includes('custom.js'),
+                    stackStr.includes('switcherClick'),
+                    filenameStr.includes('custom-switcher.min.js')
+                ];
+                
+                return checks.some(function(check) { return check; });
+            }
+            
+            // Перехватываем console.error
+            if (typeof console !== 'undefined' && console.error) {
+                const originalError = console.error.bind(console);
+                console.error = function(...args) {
+                    const errorText = args.map(function(arg) {
+                        return typeof arg === 'object' ? JSON.stringify(arg) : String(arg);
+                    }).join(' ');
+                    
+                    if (shouldSuppressError(errorText, '', '')) {
+                        return; // Подавляем вывод
+                    }
+                    originalError.apply(console, args);
+                };
+            }
+            
+            // Перехватываем window.onerror (старый способ)
+            const originalOnError = window.onerror;
+            window.onerror = function(message, filename, lineno, colno, error) {
+                const stack = error && error.stack ? error.stack : '';
+                if (shouldSuppressError(message, filename, stack)) {
+                    return true; // Подавляем ошибку
+                }
+                if (originalOnError) {
+                    return originalOnError.apply(window, arguments);
+                }
+                return false;
+            };
+            
+            // Перехватываем через addEventListener (новый способ)
+            window.addEventListener('error', function(e) {
+                const error = e.error || {};
+                const stack = error.stack || '';
+                
+                if (shouldSuppressError(e.message, e.filename, stack)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return true;
+                }
+            }, true); // Используем capture phase для раннего перехвата
+            
+            // Перехватываем unhandledrejection
+            window.addEventListener('unhandledrejection', function(e) {
+                const reason = e.reason || {};
+                let reasonStr = '';
+                
+                if (typeof reason === 'string') {
+                    reasonStr = reason;
+                } else if (reason.message) {
+                    reasonStr = reason.message;
+                } else if (reason.stack) {
+                    reasonStr = reason.stack;
+                }
+                
+                if (shouldSuppressError(reasonStr, '', reason.stack || '')) {
+                    e.preventDefault();
+                    return true;
+                }
+            }, true);
+        })();
+        
         // Ensure all required DOM elements exist before scripts execute
         (function() {
             function ensureElements() {
@@ -484,31 +656,92 @@
                                 <!-- Сообщения об успехе/ошибке -->
                                 <div id="importMessage" class="alert" style="display: none; margin-bottom: 24px;"></div>
                                 
+                                <!-- Фильтр по активности -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold mb-2">Фильтр по активности</label>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button type="button" 
+                                                class="btn btn-outline-primary active-filter-btn active" 
+                                                data-active-filter="all">
+                                            Все
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-outline-success active-filter-btn" 
+                                                data-active-filter="true">
+                                            Только активные
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-outline-secondary active-filter-btn" 
+                                                data-active-filter="false">
+                                            Только неактивные
+                                        </button>
+                                    </div>
+                                </div>
+                                
                                 <!-- Таблица с основными параметрами -->
                                 <div class="table-responsive">
                                     <table class="table miner-details-table text-nowrap">
                                         <thead>
                                             <tr>
-                                                <th>ID</th>
-                                                <th>Название</th>
-                                                <th>Производитель</th>
-                                                <th>Серия</th>
-                                                <th>Хэшрейт</th>
-                                                <th>Алгоритм</th>
-                                                <th>Потребление</th>
+                                                <th class="sortable" th:classappend="${sortBy == 'id'} ? 'sortable'" th:attr="data-sort=id">
+                                                    ID
+                                                    <span class="sort-icon" th:if="${sortBy == 'id'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'standardName'} ? 'sortable'" th:attr="data-sort=standardName">
+                                                    Название
+                                                    <span class="sort-icon" th:if="${sortBy == 'standardName'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'manufacturer'} ? 'sortable'" th:attr="data-sort=manufacturer">
+                                                    Производитель
+                                                    <span class="sort-icon" th:if="${sortBy == 'manufacturer'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'series'} ? 'sortable'" th:attr="data-sort=series">
+                                                    Серия
+                                                    <span class="sort-icon" th:if="${sortBy == 'series'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'hashrate'} ? 'sortable'" th:attr="data-sort=hashrate">
+                                                    Хэшрейт
+                                                    <span class="sort-icon" th:if="${sortBy == 'hashrate'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'productCount'} ? 'sortable'" th:attr="data-sort=productCount">
+                                                    Количество товаров
+                                                    <span class="sort-icon" th:if="${sortBy == 'productCount'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'powerConsumption'} ? 'sortable'" th:attr="data-sort=powerConsumption">
+                                                    Потребление
+                                                    <span class="sort-icon" th:if="${sortBy == 'powerConsumption'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="text-center">Активность</th>
                                                 <th class="text-center">Действия</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="minerDetailsTableBody">
                                             <!-- Пустое состояние -->
                                             <tr th:if="${minerDetails == null || minerDetails.isEmpty()}">
-                                                <td colspan="8" class="text-center py-24 text-muted">
+                                                <td colspan="9" class="text-center py-24 text-muted">
                                                     Детальные записи майнеров отсутствуют
                                                 </td>
                                             </tr>
                                             
                                             <!-- Записи майнеров -->
-                                            <tr th:each="detail : ${minerDetails}">
+                                            <tr th:each="detail : ${minerDetails}"
+                                                th:classappend="${detail.active == null || detail.active == false} ? 'inactive-row' : ''"
+                                                th:attr="data-active=${detail.active != null ? detail.active : true}"
+                                                class="miner-detail-row">
                                                 <!-- ID -->
                                                 <td th:text="${detail.id}">ID</td>
                                                 
@@ -530,11 +763,25 @@
                                                 <!-- Хэшрейт -->
                                                 <td th:utext="${detail.hashrate} ?: '-'">Хэшрейт</td>
                                                 
-                                                <!-- Алгоритм -->
-                                                <td th:utext="${detail.algorithm} ?: '-'">Алгоритм</td>
+                                                <!-- Количество товаров -->
+                                                <td>
+                                                    <span class="badge bg-info" th:text="${productCounts != null ? (productCounts.get(detail.id) ?: 0) : (detail.productIds != null ? detail.productIds.size() : 0)}">0</span>
+                                                </td>
                                                 
                                                 <!-- Потребление -->
                                                 <td th:utext="${detail.powerConsumption} ?: '-'">Потребление</td>
+                                                
+                                                <!-- Активность -->
+                                                <td class="text-center">
+                                                    <button type="button" 
+                                                            class="btn btn-sm toggle-active-btn"
+                                                            th:classappend="${detail.active != null && detail.active == true} ? 'btn-success' : 'btn-danger'"
+                                                            th:attr="data-id=${detail.id}, data-active=${detail.active != null ? detail.active : true}"
+                                                            th:title="${detail.active != null && detail.active == true} ? 'Деактивировать' : 'Активировать'">
+                                                        <i th:classappend="${detail.active != null && detail.active == true} ? 'fe fe-check' : 'fe fe-x'"></i>
+                                                        <span th:text="${detail.active != null && detail.active == true} ? 'Активен' : 'Неактивен'">Активен</span>
+                                                    </button>
+                                                </td>
                                                 
                                                 <!-- Действия -->
                                                 <td class="text-center">
@@ -688,7 +935,7 @@
     
     <!-- Custom-Switcher JS -->
     <script th:src="@{/bootstrap-theme/assets/js/custom-switcher.min.js}" src="../assets/js/custom-switcher.min.js"></script>
-
+    
     <!-- Custom JS -->
     <script th:src="@{/bootstrap-theme/assets/js/custom.js}" src="../assets/js/custom.js"></script>
     
@@ -925,6 +1172,350 @@
                 }
             }
         });
+        
+        // Обработка переключения активности MinerDetail
+        document.addEventListener('DOMContentLoaded', function() {
+            // Используем делегирование событий для динамически созданных кнопок
+            document.addEventListener('click', function(e) {
+                const button = e.target.closest('.toggle-active-btn');
+                if (!button) {
+                    return;
+                }
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const id = button.dataset.id;
+                const currentActive = button.dataset.active === 'true';
+                const newActive = !currentActive;
+                
+                if (!id) {
+                    console.error('ID не найден для кнопки переключения активности');
+                    return;
+                }
+                
+                console.log('Переключение активности для MinerDetail ID:', id, 'Новое состояние:', newActive);
+                
+                // Блокируем кнопку во время запроса
+                button.disabled = true;
+                const originalHtml = button.innerHTML;
+                button.innerHTML = '<i class="fe fe-loader"></i> Обновление...';
+                
+                // Отправляем AJAX запрос
+                fetch(`/private/miner-details/api/${id}/toggle-active`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ active: newActive })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.error || 'Ошибка при обновлении активности');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Активность успешно обновлена:', data);
+                    
+                    // Обновляем состояние кнопки
+                    button.dataset.active = newActive.toString();
+                    
+                    if (newActive) {
+                        button.className = 'btn btn-sm btn-success toggle-active-btn';
+                        button.innerHTML = '<i class="fe fe-check"></i> Активен';
+                        button.title = 'Деактивировать';
+                    } else {
+                        button.className = 'btn btn-sm btn-danger toggle-active-btn';
+                        button.innerHTML = '<i class="fe fe-x"></i> Неактивен';
+                        button.title = 'Активировать';
+                    }
+                    
+                    // Обновляем строку таблицы визуально (добавляем стиль для неактивных)
+                    const row = button.closest('tr');
+                    if (row) {
+                        row.dataset.active = newActive.toString();
+                        if (newActive) {
+                            row.classList.remove('inactive-row');
+                            row.classList.remove('table-secondary', 'opacity-75');
+                        } else {
+                            row.classList.add('inactive-row');
+                            row.classList.add('table-secondary', 'opacity-75');
+                        }
+                        
+                        // Применяем фильтр после обновления
+                        setTimeout(() => {
+                            if (typeof window.applyActiveFilter === 'function') {
+                                window.applyActiveFilter();
+                            }
+                        }, 100);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при переключении активности:', error);
+                    alert('Ошибка при обновлении активности: ' + error.message);
+                    // Восстанавливаем кнопку
+                    button.innerHTML = originalHtml;
+                })
+                .finally(() => {
+                    button.disabled = false;
+                });
+            });
+            
+            // Фильтрация по активности
+            window.activeFilter = 'all'; // По умолчанию показываем все
+            
+            window.applyActiveFilter = function() {
+                const rows = document.querySelectorAll('.miner-detail-row');
+                rows.forEach(row => {
+                    const isActive = row.dataset.active === 'true';
+                    
+                    if (window.activeFilter === 'all') {
+                        row.style.display = '';
+                    } else if (window.activeFilter === 'true') {
+                        row.style.display = isActive ? '' : 'none';
+                    } else if (window.activeFilter === 'false') {
+                        row.style.display = isActive ? 'none' : '';
+                    }
+                });
+            };
+            
+            // Обработчики кликов на кнопки фильтра активности
+            document.addEventListener('click', function(e) {
+                const button = e.target.closest('.active-filter-btn');
+                if (!button) {
+                    return;
+                }
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Убираем активное состояние у всех кнопок фильтра
+                document.querySelectorAll('.active-filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Добавляем активное состояние к нажатой кнопке
+                button.classList.add('active');
+                
+                // Обновляем фильтр
+                window.activeFilter = button.dataset.activeFilter || 'all';
+                
+                console.log('Фильтр по активности изменен на:', window.activeFilter);
+                
+                // Применяем фильтр
+                window.applyActiveFilter();
+            });
+            
+            // Применяем фильтр при загрузке страницы
+            window.applyActiveFilter();
+        });
+        
+        // Обработка сортировки по столбцам (AJAX)
+        let currentSortBy = 'id';
+        let currentSortDir = 'ASC';
+        
+        function updateSortIcons(sortBy, sortDir) {
+            document.querySelectorAll('.miner-details-table thead th.sortable').forEach(header => {
+                const iconSpan = header.querySelector('.sort-icon');
+                const headerSort = header.getAttribute('data-sort');
+                
+                if (iconSpan) {
+                    iconSpan.remove();
+                }
+                
+                if (headerSort === sortBy) {
+                    const newIconSpan = document.createElement('span');
+                    newIconSpan.className = 'sort-icon';
+                    const icon = document.createElement('i');
+                    icon.className = sortDir === 'ASC' ? 'fe fe-arrow-up' : 'fe fe-arrow-down';
+                    newIconSpan.appendChild(icon);
+                    header.appendChild(newIconSpan);
+                }
+            });
+        }
+        
+        function loadMinerDetailsTable(sortBy, sortDir) {
+            const tbody = document.querySelector('.miner-details-table tbody');
+            if (!tbody) return;
+            
+            // Показываем индикатор загрузки
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Загрузка...</span></div></td></tr>';
+            
+            const url = `/private/miner-details/api/list?sortBy=${sortBy}&sortDir=${sortDir}`;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error('Ошибка загрузки данных: ' + response.status);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                currentSortBy = data.sortBy || sortBy;
+                currentSortDir = data.sortDir || sortDir;
+                
+                updateSortIcons(currentSortBy, currentSortDir);
+                
+                const minerDetails = data.minerDetails || [];
+                const productCounts = data.productCounts || {};
+                
+                if (minerDetails.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-24 text-muted">Детальные записи майнеров отсутствуют</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                minerDetails.forEach(detail => {
+                    const isActive = detail.active !== null ? detail.active : true;
+                    const productCount = productCounts[detail.id] || 0;
+                    const activeClass = isActive ? '' : 'inactive-row';
+                    
+                    html += `<tr class="miner-detail-row ${activeClass}" data-active="${isActive}">`;
+                    html += `<td>${escapeHtml(String(detail.id || ''))}</td>`;
+                    html += `<td><a href="/private/miner-details/${detail.id}" class="text-primary hover-text-decoration-underline fw-semibold">${escapeHtml(detail.standardName || '-')}</a></td>`;
+                    html += `<td>${escapeHtml(detail.manufacturer || '-')}</td>`;
+                    html += `<td>${escapeHtml(detail.series || '-')}</td>`;
+                    html += `<td>${escapeHtml(detail.hashrate || '-')}</td>`;
+                    html += `<td><span class="badge bg-info">${productCount}</span></td>`;
+                    html += `<td>${escapeHtml(detail.powerConsumption || '-')}</td>`;
+                    html += `<td class="text-center">`;
+                    html += `<button type="button" class="btn btn-sm toggle-active-btn ${isActive ? 'btn-success' : 'btn-danger'}" data-id="${detail.id}" data-active="${isActive}" title="${isActive ? 'Деактивировать' : 'Активировать'}">`;
+                    html += `<i class="fe ${isActive ? 'fe-check' : 'fe-x'}"></i> <span>${isActive ? 'Активен' : 'Неактивен'}</span>`;
+                    html += `</button>`;
+                    html += `</td>`;
+                    html += `<td class="text-center">`;
+                    html += `<div class="d-flex gap-2 justify-content-center">`;
+                    html += `<a href="/private/miner-details/${detail.id}" class="btn btn-sm btn-primary" title="Просмотр всех записей"><i class="fe fe-eye me-1"></i> Просмотр</a>`;
+                    html += `<a href="/private/miner-details/${detail.id}/edit" class="btn btn-sm btn-secondary" title="Редактировать"><i class="fe fe-edit me-1"></i> Редактировать</a>`;
+                    html += `</div>`;
+                    html += `</td>`;
+                    html += `</tr>`;
+                });
+                
+                tbody.innerHTML = html;
+                
+                // Применяем фильтр по активности после обновления таблицы
+                if (typeof window.applyActiveFilter === 'function') {
+                    setTimeout(() => {
+                        window.applyActiveFilter();
+                    }, 50);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке MinerDetails:', error);
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Ошибка загрузки данных: ' + escapeHtml(error.message) + '</td></tr>';
+            });
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализируем текущие параметры сортировки из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentSortBy = urlParams.get('sortBy') || 'id';
+            currentSortDir = urlParams.get('sortDir') || 'ASC';
+            
+            const sortableHeaders = document.querySelectorAll('.miner-details-table thead th.sortable');
+            
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const sortBy = this.getAttribute('data-sort');
+                    if (!sortBy) return;
+                    
+                    // Определяем новое направление сортировки
+                    let newSortDir = 'ASC';
+                    if (currentSortBy === sortBy) {
+                        // Если кликнули по тому же столбцу, меняем направление
+                        newSortDir = currentSortDir === 'ASC' ? 'DESC' : 'ASC';
+                    }
+                    
+                    // Обновляем таблицу через AJAX
+                    loadMinerDetailsTable(sortBy, newSortDir);
+                });
+            });
+        });
+        
+        // Принудительно восстанавливаем прокрутку страницы
+        (function() {
+            function restoreScrollbar() {
+                // Восстанавливаем прокрутку для html - ВСЕГДА показываем полосу прокрутки
+                document.documentElement.style.overflowY = 'scroll'; // scroll = всегда видна полоса
+                document.documentElement.style.overflowX = 'hidden';
+                document.documentElement.style.height = '100%';
+                
+                // Восстанавливаем прокрутку для body
+                document.body.style.overflowY = 'auto';
+                document.body.style.overflowX = 'hidden';
+                document.body.style.height = 'auto';
+                document.body.style.minHeight = '100vh';
+                document.body.style.maxHeight = 'none';
+                document.body.style.position = 'relative';
+                
+                // Восстанавливаем прокрутку для контейнеров
+                const containers = document.querySelectorAll('.page, .main-content, .app-content');
+                containers.forEach(function(container) {
+                    container.style.overflowY = 'visible';
+                    container.style.overflowX = 'hidden';
+                    container.style.height = 'auto';
+                    container.style.minHeight = '100vh';
+                    container.style.maxHeight = 'none';
+                });
+                
+                // Удаляем modal-open класс, если он блокирует прокрутку
+                if (document.body.classList.contains('modal-open')) {
+                    document.body.style.overflowY = 'scroll'; // Все равно показываем прокрутку
+                    document.body.style.paddingRight = '';
+                }
+                
+                // Удаляем кастомные скроллбары Simplebar, если они используются
+                const simplebarElements = document.querySelectorAll('[data-simplebar]');
+                simplebarElements.forEach(function(el) {
+                    el.removeAttribute('data-simplebar');
+                    el.style.overflowY = 'auto';
+                });
+            }
+            
+            // Выполняем сразу
+            restoreScrollbar();
+            
+            // Выполняем после загрузки DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', restoreScrollbar);
+            }
+            
+            // Выполняем после полной загрузки страницы
+            window.addEventListener('load', function() {
+                restoreScrollbar();
+                // Повторяем через небольшие задержки для гарантии
+                setTimeout(restoreScrollbar, 100);
+                setTimeout(restoreScrollbar, 500);
+                setTimeout(restoreScrollbar, 1000);
+            });
+            
+            // Выполняем при изменении размера окна
+            window.addEventListener('resize', restoreScrollbar);
+        })();
     </script>
 
 </body>

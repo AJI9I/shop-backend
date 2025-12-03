@@ -23,6 +23,8 @@
         <maven.compiler.source>23</maven.compiler.source>
         <maven.compiler.target>23</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
     </properties>
     
     <dependencies>
@@ -124,6 +126,15 @@
     </dependencies>
     
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <!-- Исключаем MarketPro из bootstrapTheme, но оставляем HTML/dist для WebConfig -->
+                    <exclude>bootstrapTheme/MarketPro/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -135,6 +146,10 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <jvmArguments>
+                        -Dfile.encoding=UTF-8
+                        -Dconsole.encoding=UTF-8
+                    </jvmArguments>
                 </configuration>
             </plugin>
             <plugin>

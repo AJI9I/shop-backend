@@ -1,5 +1,8 @@
 @echo off
 chcp 65001 >nul
+REM Устанавливаем кодировку UTF-8 для Maven и Java
+set MAVEN_OPTS=-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8
+set JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8
 echo ========================================
 echo Пересборка и перезапуск Spring Boot
 echo ========================================
@@ -34,7 +37,7 @@ if errorlevel 1 (
 
 echo.
 echo Запуск Spring Boot приложения...
-start "Spring Boot - Логи" cmd /k "mvn spring-boot:run"
+start "Spring Boot - Логи" cmd /k "chcp 65001 >nul && set MAVEN_OPTS=-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8 && set JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF-8 -Dconsole.encoding=UTF-8 && mvn spring-boot:run"
 
 timeout /t 3 /nobreak >nul
 

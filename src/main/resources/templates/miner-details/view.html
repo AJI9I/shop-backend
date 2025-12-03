@@ -115,6 +115,31 @@
             }
         })();
     </script>
+    
+    <!-- Стили для восстановления прокрутки страницы -->
+    <style>
+        /* Восстановление прокрутки страницы */
+        html, body {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            height: auto !important;
+            max-height: none !important;
+        }
+        
+        /* Восстановление прокрутки для всех контейнеров */
+        .page, .main-content, .app-content, .container-fluid {
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+            height: auto !important;
+            max-height: none !important;
+        }
+        
+        /* Гарантируем, что body может прокручиваться */
+        body.modal-open {
+            overflow-y: auto !important;
+            padding-right: 0 !important;
+        }
+    </style>
 </head> 
 
 <body>
@@ -664,6 +689,45 @@
     
     <!-- Main Theme Js - Loaded at the end to ensure DOM elements are ready -->
     <script th:src="@{/bootstrap-theme/assets/js/main.js}" src="../assets/js/main.js"></script>
+    
+    <!-- Принудительно восстанавливаем прокрутку страницы -->
+    <script>
+        (function() {
+            function restoreScrollbar() {
+                document.documentElement.style.overflowY = 'auto';
+                document.documentElement.style.overflowX = 'hidden';
+                document.body.style.overflowY = 'auto';
+                document.body.style.overflowX = 'hidden';
+                document.body.style.height = 'auto';
+                document.body.style.maxHeight = 'none';
+                
+                const containers = document.querySelectorAll('.page, .main-content, .app-content');
+                containers.forEach(function(container) {
+                    container.style.overflowY = 'visible';
+                    container.style.overflowX = 'hidden';
+                    container.style.height = 'auto';
+                    container.style.maxHeight = 'none';
+                });
+                
+                if (document.body.classList.contains('modal-open')) {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.paddingRight = '';
+                }
+            }
+            
+            restoreScrollbar();
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', restoreScrollbar);
+            }
+            window.addEventListener('load', function() {
+                restoreScrollbar();
+                setTimeout(restoreScrollbar, 100);
+                setTimeout(restoreScrollbar, 500);
+                setTimeout(restoreScrollbar, 1000);
+            });
+            window.addEventListener('resize', restoreScrollbar);
+        })();
+    </script>
 
 </body>
 </html>
