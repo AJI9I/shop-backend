@@ -736,6 +736,11 @@ public class ProductsController {
             String productSchema = SchemaOrgUtil.generateProductSchema(minerDetail, offers, imageUrl);
             model.addAttribute("productSchema", productSchema);
             
+            // Вычисляем slug один раз
+            String slug = minerDetail.getSlug() != null && !minerDetail.getSlug().isEmpty() 
+                    ? minerDetail.getSlug() 
+                    : String.valueOf(minerDetail.getId());
+            
             // Breadcrumb schema
             java.util.List<java.util.Map<String, String>> breadcrumbs = new java.util.ArrayList<>();
             java.util.Map<String, String> homeBreadcrumb = new java.util.HashMap<>();
@@ -748,9 +753,6 @@ public class ProductsController {
             breadcrumbs.add(productsBreadcrumb);
             java.util.Map<String, String> productBreadcrumb = new java.util.HashMap<>();
             productBreadcrumb.put("name", minerDetail.getStandardName() != null ? minerDetail.getStandardName() : "Майнер");
-            String slug = minerDetail.getSlug() != null && !minerDetail.getSlug().isEmpty() 
-                    ? minerDetail.getSlug() 
-                    : String.valueOf(minerDetail.getId());
             productBreadcrumb.put("url", "/products/" + slug);
             breadcrumbs.add(productBreadcrumb);
             model.addAttribute("breadcrumbSchema", SchemaOrgUtil.generateBreadcrumbSchema(breadcrumbs));
@@ -762,9 +764,6 @@ public class ProductsController {
             String pageDescription = minerDetail.getDescription() != null && !minerDetail.getDescription().isEmpty()
                     ? minerDetail.getDescription()
                     : "Купить " + (minerDetail.getStandardName() != null ? minerDetail.getStandardName() : "майнер") + " для майнинга криптовалют. ASIC майнер от " + (minerDetail.getManufacturer() != null ? minerDetail.getManufacturer() : "производителя") + ".";
-            String slug = minerDetail.getSlug() != null && !minerDetail.getSlug().isEmpty() 
-                    ? minerDetail.getSlug() 
-                    : String.valueOf(minerDetail.getId());
             String canonicalUrl = SeoUtil.generateCanonicalUrl("/products/" + slug);
             String ogImageUrl = imageUrl != null && !imageUrl.isEmpty() 
                     ? (imageUrl.startsWith("http") ? imageUrl : "https://minerhive.ru" + imageUrl)
