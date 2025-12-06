@@ -25,3 +25,4 @@ public interface HashrateUnitRepository extends JpaRepository<HashrateUnit, Long
 }
 
 
+

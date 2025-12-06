@@ -166,5 +166,15 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     Page<MinerDetail> findAllBySearchOrderByStandardNameAsc(
             @Param("search") String search,
             Pageable pageable);
+    
+    /**
+     * Проверяет существование MinerDetail с указанным slug
+     */
+    boolean existsBySlug(String slug);
+    
+    /**
+     * Находит MinerDetail по slug
+     */
+    Optional<MinerDetail> findBySlug(String slug);
 }
 

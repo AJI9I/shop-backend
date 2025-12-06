@@ -62,3 +62,4 @@ SELECT 'ГигаСол в секунду', 'GSol/s', 1000000000, 10
 WHERE NOT EXISTS (SELECT 1 FROM hashrate_units WHERE abbreviation = 'GSol/s');
 
 
+

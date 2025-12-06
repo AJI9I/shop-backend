@@ -131,6 +131,14 @@ public class MinerDetail {
     private String imageUrl;
     
     /**
+     * ЧПУ-ссылка (slug) для товара
+     * Используется для создания красивых URL вида /products/antminer-s21
+     * Генерируется автоматически из standardName при необходимости
+     */
+    @Column(length = 200, unique = true)
+    private String slug;
+    
+    /**
      * Флаг активности майнера
      * Если false, майнер скрыт и не отображается в публичных списках
      */

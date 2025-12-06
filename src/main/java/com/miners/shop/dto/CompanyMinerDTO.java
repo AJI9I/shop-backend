@@ -1,7 +1,6 @@
 package com.miners.shop.dto;
 
 import com.miners.shop.entity.CompanyMiner;
-import com.miners.shop.entity.CompanyMinerCustomField;
 import com.miners.shop.entity.Currency;
 import com.miners.shop.entity.HashrateUnit;
 import com.miners.shop.entity.MinerDetail;
@@ -162,5 +161,6 @@ public class CompanyMinerDTO {
                 .build();
     }
 }
+
 
 
