@@ -23,11 +23,18 @@ public class Request {
     private Long id;
     
     /**
-     * Связь с предложением
+     * Связь с предложением (опционально, если есть CompanyMiner)
      */
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "offer_id", nullable = false)
+    @JoinColumn(name = "offer_id", nullable = true)
     private Offer offer;
+    
+    /**
+     * Связь с майнером компании (опционально, если есть Offer)
+     */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "company_miner_id", nullable = true)
+    private com.miners.shop.entity.CompanyMiner companyMiner;
     
     /**
      * Связь с исходным сообщением WhatsApp (опционально)

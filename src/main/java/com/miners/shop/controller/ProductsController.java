@@ -2,10 +2,14 @@ package com.miners.shop.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.miners.shop.dto.OfferDTO;
+import com.miners.shop.dto.CompanyMinerDTO;
+import com.miners.shop.entity.CompanyMiner;
 import com.miners.shop.entity.MinerDetail;
 import com.miners.shop.entity.OperationType;
 import com.miners.shop.entity.Offer;
 import com.miners.shop.entity.Product;
+import com.miners.shop.repository.CompanyMinerRepository;
+import com.miners.shop.service.CompanyMinerService;
 import com.miners.shop.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +50,8 @@ public class ProductsController {
     private final com.miners.shop.service.MinerDetailService minerDetailService;
     private final com.miners.shop.util.ImageUrlResolver imageUrlResolver;
     private final ObjectMapper objectMapper;
+    private final CompanyMinerRepository companyMinerRepository;
+    private final CompanyMinerService companyMinerService;
     
     /**
      * Страница с таблицей всех продуктов
@@ -700,6 +706,19 @@ public class ProductsController {
             model.addAttribute("sortDir", sortDir);
             model.addAttribute("currentPage", page);
             model.addAttribute("pageSize", size);
+            
+            // Проверяем наличие CompanyMiner для этого MinerDetail
+            Optional<CompanyMiner> companyMinerOpt = companyMinerRepository.findByMinerDetailIdAndActiveTrue(id);
+            boolean useCompanyMiner = companyMinerOpt.isPresent();
+            CompanyMinerDTO.CompanyMinerInfo companyMinerInfo = null;
+            
+            if (useCompanyMiner) {
+                companyMinerInfo = companyMinerService.getCompanyMinerByMinerDetailId(id)
+                        .orElse(null);
+            }
+            
+            model.addAttribute("useCompanyMiner", useCompanyMiner);
+            model.addAttribute("companyMiner", companyMinerInfo);
             
             return "product-details-new";
         } catch (Exception e) {

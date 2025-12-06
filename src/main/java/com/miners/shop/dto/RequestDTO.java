@@ -30,7 +30,9 @@ public record RequestDTO(
         // Информация о сообщении
         MessageInfo messageInfo,
         // Информация о продавце
-        SellerInfo sellerInfo
+        SellerInfo sellerInfo,
+        // Информация о майнере компании
+        CompanyMinerInfo companyMinerInfo
 ) {
     
     /**
@@ -72,6 +74,23 @@ public record RequestDTO(
             String phone,
             String whatsappId,
             String contactInfo
+    ) {}
+    
+    /**
+     * Информация о майнере компании
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record CompanyMinerInfo(
+            Long id,
+            String minerDetailName,
+            String price,
+            String currencyCode,
+            String currencySymbol,
+            String hashrateMin,
+            String hashrateMax,
+            String hashrateUnitAbbreviation,
+            Integer quantity,
+            String condition
     ) {}
     
     /**
@@ -123,6 +142,27 @@ public record RequestDTO(
             );
         }
         
+        CompanyMinerInfo companyMinerInfo = null;
+        if (request.getCompanyMiner() != null) {
+            var companyMiner = request.getCompanyMiner();
+            var minerDetail = companyMiner.getMinerDetail();
+            var currency = companyMiner.getCurrency();
+            var hashrateUnit = companyMiner.getHashrateUnit();
+            
+            companyMinerInfo = new CompanyMinerInfo(
+                    companyMiner.getId(),
+                    minerDetail != null ? minerDetail.getStandardName() : null,
+                    companyMiner.getPrice() != null ? companyMiner.getPrice().toString() : null,
+                    currency != null ? currency.getCode() : null,
+                    currency != null ? currency.getSymbol() : null,
+                    companyMiner.getHashrateMin() != null ? companyMiner.getHashrateMin().toString() : null,
+                    companyMiner.getHashrateMax() != null ? companyMiner.getHashrateMax().toString() : null,
+                    hashrateUnit != null ? hashrateUnit.getAbbreviation() : null,
+                    companyMiner.getQuantity(),
+                    companyMiner.getCondition()
+            );
+        }
+        
         return new RequestDTO(
                 request.getId(),
                 request.getOffer() != null ? request.getOffer().getId() : null,
@@ -136,7 +176,8 @@ public record RequestDTO(
                 request.getUpdatedAt(),
                 offerInfo,
                 messageInfo,
-                sellerInfo
+                sellerInfo,
+                companyMinerInfo
         );
     }
     
@@ -145,7 +186,8 @@ public record RequestDTO(
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CreateRequestDTO(
-            Long offerId,
+            Long offerId,          // ID предложения (опционально, если есть companyMinerId)
+            Long companyMinerId,   // ID майнера компании (опционально, если есть offerId)
             String clientName,
             String clientPhone,
             String message

@@ -31,12 +31,19 @@ public class PublicRequestController {
     public ResponseEntity<Map<String, Object>> createRequest(
             @RequestBody RequestDTO.CreateRequestDTO createDTO) {
         try {
-            log.info("Получен публичный запрос на создание заявки для предложения ID={}", createDTO.offerId());
+            log.info("Получен публичный запрос на создание заявки: offerId={}, companyMinerId={}", 
+                    createDTO.offerId(), createDTO.companyMinerId());
             
-            // Валидация
-            if (createDTO.offerId() == null) {
+            // Валидация: должен быть указан либо offerId, либо companyMinerId
+            if (createDTO.offerId() == null && createDTO.companyMinerId() == null) {
                 Map<String, Object> error = new HashMap<>();
-                error.put("error", "ID предложения обязателен");
+                error.put("error", "Необходимо указать либо ID предложения (offerId), либо ID майнера компании (companyMinerId)");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            if (createDTO.offerId() != null && createDTO.companyMinerId() != null) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("error", "Нельзя указать одновременно offerId и companyMinerId. Укажите только один из них.");
                 return ResponseEntity.badRequest().body(error);
             }
             

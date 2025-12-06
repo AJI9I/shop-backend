@@ -674,8 +674,74 @@
             </div>
         </div>
 
-        <!-- Блок с таблицей предложений -->
-        <div class="pt-80" th:if="${offersPage != null && offersPage.totalElements > 0}">
+        <!-- Блок с информацией о CompanyMiner (если используется) -->
+        <div class="pt-80" th:if="${useCompanyMiner != null && useCompanyMiner == true && companyMiner != null}">
+            <div class="border rounded-24 p-32">
+                <h6 class="mb-24 fw-semibold">Предложение компании</h6>
+                
+                <div class="row g-24">
+                    <!-- Цена -->
+                    <div class="col-md-6" th:if="${companyMiner.price != null}">
+                        <div class="d-flex align-items-center gap-12">
+                            <span class="text-gray-600 fw-medium">Цена:</span>
+                            <span class="text-heading fw-semibold" th:text="${companyMiner.price + ' ' + (companyMiner.currencySymbol != null ? companyMiner.currencySymbol : companyMiner.currencyCode)}">Цена</span>
+                            <span class="text-gray-500 text-sm" th:if="${companyMiner.priceOld != null && companyMiner.priceOld.doubleValue() > 0}">
+                                <del th:text="${companyMiner.priceOld + ' ' + (companyMiner.currencySymbol != null ? companyMiner.currencySymbol : companyMiner.currencyCode)}">Старая цена</del>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Хэшрейт -->
+                    <div class="col-md-6" th:if="${companyMiner.hashrateMin != null}">
+                        <div class="d-flex align-items-center gap-12">
+                            <span class="text-gray-600 fw-medium">Хэшрейт:</span>
+                            <span class="text-heading" th:text="${companyMiner.hashrateMin + (companyMiner.hashrateMax != null ? ' - ' + companyMiner.hashrateMax : '') + ' ' + (companyMiner.hashrateUnitAbbreviation != null ? companyMiner.hashrateUnitAbbreviation : '')}">Хэшрейт</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Количество -->
+                    <div class="col-md-6" th:if="${companyMiner.quantity != null}">
+                        <div class="d-flex align-items-center gap-12">
+                            <span class="text-gray-600 fw-medium">Количество:</span>
+                            <span class="text-heading" th:text="${companyMiner.quantity}">Количество</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Состояние -->
+                    <div class="col-md-6" th:if="${companyMiner.condition != null && !#strings.isEmpty(companyMiner.condition)}">
+                        <div class="d-flex align-items-center gap-12">
+                            <span class="text-gray-600 fw-medium">Состояние:</span>
+                            <span class="text-heading" th:utext="${companyMiner.condition}">Состояние</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Дополнительные поля -->
+                <div class="mt-24" th:if="${companyMiner.customFields != null && !#lists.isEmpty(companyMiner.customFields)}">
+                    <h6 class="mb-16 fw-semibold">Дополнительная информация</h6>
+                    <div class="row g-16">
+                        <div class="col-md-6" th:each="field : ${companyMiner.customFields}">
+                            <div class="d-flex align-items-start gap-12">
+                                <span class="text-gray-600 fw-medium" th:text="${field.fieldName + ':'}">Поле:</span>
+                                <span class="text-heading" th:utext="${field.fieldValue}">Значение</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Кнопка создания запроса -->
+                <div class="mt-32">
+                    <button type="button" 
+                            class="btn btn-main-two btn-lg w-100" 
+                            th:onclick="'openCompanyMinerRequestModal(' + ${companyMiner.id} + ')'">
+                        <i class="ph ph-paper-plane-tilt"></i> Отправить заявку
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Блок с таблицей предложений (показывается только если нет CompanyMiner или есть предложения) -->
+        <div class="pt-80" th:if="${(useCompanyMiner == null || useCompanyMiner == false) && offersPage != null && offersPage.totalElements > 0}">
             <div class="border rounded-24 p-32">
                 <div class="flex-between flex-wrap gap-16 mb-24">
                     <div class="flex-align gap-8 flex-wrap">
@@ -1763,7 +1829,7 @@
             updateFilterButtons();
         });
         
-        // Функция открытия модального окна заявки
+        // Функция открытия модального окна заявки для Offer
         function openRequestModal(offerId) {
             const modalElement = document.getElementById('requestModal');
             if (!modalElement) {
@@ -1772,7 +1838,24 @@
             }
             const modal = new bootstrap.Modal(modalElement);
             document.getElementById('requestOfferId').value = offerId;
+            document.getElementById('requestCompanyMinerId').value = '';
             document.getElementById('requestForm').reset();
+            document.getElementById('requestOfferId').value = offerId; // Восстанавливаем после reset
+            modal.show();
+        }
+        
+        // Функция открытия модального окна заявки для CompanyMiner
+        function openCompanyMinerRequestModal(companyMinerId) {
+            const modalElement = document.getElementById('requestModal');
+            if (!modalElement) {
+                console.error('Модальное окно requestModal не найдено');
+                return;
+            }
+            const modal = new bootstrap.Modal(modalElement);
+            document.getElementById('requestOfferId').value = '';
+            document.getElementById('requestCompanyMinerId').value = companyMinerId;
+            document.getElementById('requestForm').reset();
+            document.getElementById('requestCompanyMinerId').value = companyMinerId; // Восстанавливаем после reset
             modal.show();
         }
         
@@ -1784,11 +1867,22 @@
                     e.preventDefault();
                     
                     const offerId = document.getElementById('requestOfferId').value;
+                    const companyMinerId = document.getElementById('requestCompanyMinerId').value;
                     const clientName = document.getElementById('clientName').value.trim();
                     const clientPhone = document.getElementById('clientPhone').value.trim();
                     const message = document.getElementById('requestMessage').value.trim();
                     
                     // Валидация
+                    if (!offerId && !companyMinerId) {
+                        alert('Ошибка: не указан ID предложения или майнера компании');
+                        return;
+                    }
+                    
+                    if (offerId && companyMinerId) {
+                        alert('Ошибка: указаны оба ID. Укажите только один.');
+                        return;
+                    }
+                    
                     if (!clientName) {
                         alert('Пожалуйста, укажите ваше имя');
                         return;
@@ -1805,18 +1899,26 @@
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Отправка...';
                     
+                    // Формируем тело запроса
+                    const requestBody = {
+                        clientName: clientName,
+                        clientPhone: clientPhone,
+                        message: message || null
+                    };
+                    
+                    if (offerId) {
+                        requestBody.offerId = parseInt(offerId);
+                    } else {
+                        requestBody.companyMinerId = parseInt(companyMinerId);
+                    }
+                    
                     fetch('/requests/api/create', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json;charset=UTF-8',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: JSON.stringify({
-                            offerId: parseInt(offerId),
-                            clientName: clientName,
-                            clientPhone: clientPhone,
-                            message: message || null
-                        })
+                        body: JSON.stringify(requestBody)
                     })
                     .then(response => {
                         // Проверяем статус ответа
@@ -1947,6 +2049,7 @@
                 <form id="requestForm">
                     <div class="modal-body">
                         <input type="hidden" id="requestOfferId" name="offerId">
+                        <input type="hidden" id="requestCompanyMinerId" name="companyMinerId">
                         
                         <div class="mb-24">
                             <label for="clientName" class="form-label fw-semibold">

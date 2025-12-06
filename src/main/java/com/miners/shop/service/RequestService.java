@@ -1,10 +1,12 @@
 package com.miners.shop.service;
 
 import com.miners.shop.dto.RequestDTO;
+import com.miners.shop.entity.CompanyMiner;
 import com.miners.shop.entity.Offer;
 import com.miners.shop.entity.Request;
 import com.miners.shop.entity.Request.RequestStatus;
 import com.miners.shop.entity.WhatsAppMessage;
+import com.miners.shop.repository.CompanyMinerRepository;
 import com.miners.shop.repository.OfferRepository;
 import com.miners.shop.repository.RequestRepository;
 import com.miners.shop.repository.WhatsAppMessageRepository;
@@ -25,31 +27,67 @@ public class RequestService {
     
     private final RequestRepository requestRepository;
     private final OfferRepository offerRepository;
+    private final CompanyMinerRepository companyMinerRepository;
     private final WhatsAppMessageRepository whatsAppMessageRepository;
     
     /**
      * Создать новую заявку
+     * Поддерживает создание заявки как для Offer, так и для CompanyMiner
      */
     @Transactional
     public Request createRequest(RequestDTO.CreateRequestDTO createDTO) {
-        log.info("Создание новой заявки для предложения ID={}, клиент: {}", 
-                createDTO.offerId(), createDTO.clientName());
-        
-        // Находим предложение
-        Offer offer = offerRepository.findById(createDTO.offerId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Предложение с ID=" + createDTO.offerId() + " не найдено"));
-        
-        // Пытаемся найти связанное сообщение WhatsApp по sourceMessageId
-        WhatsAppMessage whatsAppMessage = null;
-        if (offer.getSourceMessageId() != null) {
-            whatsAppMessage = whatsAppMessageRepository.findByMessageId(offer.getSourceMessageId())
-                    .orElse(null);
+        // Валидация: должен быть указан либо offerId, либо companyMinerId
+        if (createDTO.offerId() == null && createDTO.companyMinerId() == null) {
+            throw new IllegalArgumentException("Необходимо указать либо ID предложения (offerId), либо ID майнера компании (companyMinerId)");
         }
         
-        // Создаем заявку
+        if (createDTO.offerId() != null && createDTO.companyMinerId() != null) {
+            throw new IllegalArgumentException("Нельзя указать одновременно offerId и companyMinerId. Укажите только один из них.");
+        }
+        
         Request request = new Request();
-        request.setOffer(offer);
+        WhatsAppMessage whatsAppMessage = null;
+        
+        // Обработка заявки для Offer
+        if (createDTO.offerId() != null) {
+            log.info("Создание новой заявки для предложения ID={}, клиент: {}", 
+                    createDTO.offerId(), createDTO.clientName());
+            
+            // Находим предложение
+            Offer offer = offerRepository.findById(createDTO.offerId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Предложение с ID=" + createDTO.offerId() + " не найдено"));
+            
+            // Пытаемся найти связанное сообщение WhatsApp по sourceMessageId
+            if (offer.getSourceMessageId() != null) {
+                whatsAppMessage = whatsAppMessageRepository.findByMessageId(offer.getSourceMessageId())
+                        .orElse(null);
+            }
+            
+            request.setOffer(offer);
+            request.setCompanyMiner(null);
+        }
+        
+        // Обработка заявки для CompanyMiner
+        if (createDTO.companyMinerId() != null) {
+            log.info("Создание новой заявки для майнера компании ID={}, клиент: {}", 
+                    createDTO.companyMinerId(), createDTO.clientName());
+            
+            // Находим майнер компании
+            CompanyMiner companyMiner = companyMinerRepository.findById(createDTO.companyMinerId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Майнер компании с ID=" + createDTO.companyMinerId() + " не найден"));
+            
+            // Проверяем, что майнер активен
+            if (companyMiner.getActive() == null || !companyMiner.getActive()) {
+                throw new IllegalArgumentException("Майнер компании неактивен и недоступен для заявок");
+            }
+            
+            request.setOffer(null);
+            request.setCompanyMiner(companyMiner);
+        }
+        
+        // Устанавливаем общие поля
         request.setWhatsAppMessage(whatsAppMessage);
         request.setClientName(createDTO.clientName());
         request.setClientPhone(createDTO.clientPhone());
@@ -57,7 +95,9 @@ public class RequestService {
         request.setStatus(RequestStatus.NEW);
         
         Request savedRequest = requestRepository.save(request);
-        log.info("Заявка создана: ID={}", savedRequest.getId());
+        log.info("Заявка создана: ID={}, тип={}", 
+                savedRequest.getId(), 
+                savedRequest.getOffer() != null ? "Offer" : "CompanyMiner");
         
         return savedRequest;
     }
