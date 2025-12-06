@@ -11,6 +11,7 @@ import com.miners.shop.entity.Product;
 import com.miners.shop.repository.CompanyMinerRepository;
 import com.miners.shop.service.CompanyMinerService;
 import com.miners.shop.service.ProductService;
+import com.miners.shop.util.SchemaOrgUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
