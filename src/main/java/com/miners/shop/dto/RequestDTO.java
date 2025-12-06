@@ -148,7 +148,8 @@ public record RequestDTO(
             Long offerId,
             String clientName,
             String clientPhone,
-            String message
+            String message,
+            Boolean consentPersonalData
     ) {}
 }
 

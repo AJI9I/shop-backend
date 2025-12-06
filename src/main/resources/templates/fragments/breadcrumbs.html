@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="breadcrumbs(breadcrumbs)">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li th:each="breadcrumb, iterStat : ${breadcrumbs}" 
+                class="breadcrumb-item" 
+                th:classappend="${iterStat.last} ? 'active' : ''"
+                th:attr="aria-current=${iterStat.last} ? 'page' : null">
+                <a th:if="${!iterStat.last}" 
+                   th:href="@{${breadcrumb.url}}" 
+                   th:text="${breadcrumb.name}">Главная</a>
+                <span th:if="${iterStat.last}" 
+                      th:utext="${breadcrumb.name}">Текущая страница</span>
+            </li>
+        </ol>
+    </nav>
+</div>
+</html>
+

@@ -8,7 +8,11 @@
     <title>Предложения - MinerHive</title>
     <meta name="Description" content="Все предложения от продавцов">
     
-    <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}" href="../assets/images/brand-logos/favicon.ico" type="image/x-icon">
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
+    
+    <!-- Favicon -->
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
     <script th:src="@{/bootstrap-theme/assets/libs/choices.js/public/assets/scripts/choices.min.js}" src="../assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
     <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" href="../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link th:href="@{/bootstrap-theme/assets/css/styles.min.css}" href="../assets/css/styles.min.css" rel="stylesheet">
@@ -951,5 +955,8 @@
             setupRowClickHandlers();
         });
     </script>
+
+    <!-- Cookie Consent Banner -->
+    <th:block th:replace="~{fragments/cookie-consent :: cookie-consent-banner}"></th:block>
 </body>
 </html>

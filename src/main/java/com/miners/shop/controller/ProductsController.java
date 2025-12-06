@@ -24,8 +24,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import jakarta.servlet.http.HttpServletRequest;
+import com.miners.shop.util.SeoUtil;
+import com.miners.shop.util.SchemaOrgUtil;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +182,7 @@ public class ProductsController {
      * По умолчанию сортирует по последнему обновлению предложений (самые свежие первыми)
      */
     @GetMapping("/products")
-    @Transactional(readOnly = true)
+    @Transactional
     public String products(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,  // Увеличено до 12 для карточек
@@ -186,7 +190,9 @@ public class ProductsController {
             @RequestParam(required = false) List<String> manufacturer, // Фильтр по производителям
             @RequestParam(required = false) List<String> series, // Фильтр по сериям
             @RequestParam(required = false) String search, // Поиск по названию, производителю или серии
+            HttpServletRequest request,
             Model model) {
+        long startTime = System.currentTimeMillis();
         try {
             Page<MinerDetail> minerDetailsPage = new org.springframework.data.domain.PageImpl<>(List.of());
             Pageable pageable = PageRequest.of(page, size);
@@ -197,6 +203,7 @@ public class ProductsController {
             // Получаем все MinerDetail с фильтрами (если есть)
             List<MinerDetail> filteredMinerDetails;
             
+            long filterStartTime = System.currentTimeMillis();
             // Если есть поисковый запрос, сначала фильтруем по нему
             if (search != null && !search.trim().isEmpty()) {
                 filteredMinerDetails = minerDetailRepository.findAllWithOffersBySearch(search.trim());
@@ -231,6 +238,10 @@ public class ProductsController {
                 }
             }
             
+            long filterEndTime = System.currentTimeMillis();
+            log.info("⏱️ [PRODUCTS] Время фильтрации MinerDetail: {} мс", filterEndTime - filterStartTime);
+            
+            long sortStartTime = System.currentTimeMillis();
             // Применяем сортировку в зависимости от параметра
             switch (sortBy) {
                 case "name":
@@ -298,6 +309,9 @@ public class ProductsController {
                     break;
             }
             
+            long sortEndTime = System.currentTimeMillis();
+            log.info("⏱️ [PRODUCTS] Время сортировки и пагинации: {} мс", sortEndTime - sortStartTime);
+            
             // Для сортировок "name" и "manufacturer" применяем пагинацию вручную
             if (!"latestOffer".equals(sortBy)) {
                 if (filteredMinerDetails != null && !filteredMinerDetails.isEmpty()) {
@@ -348,33 +362,71 @@ public class ProductsController {
             
             List<MinerDetail> minerDetails = minerDetailsPage.getContent();
             
-            // Для каждого MinerDetail находим все связанные Product и собираем их offers
-            Map<Long, List<Offer>> allOffersByMinerDetailId = new HashMap<>();
-            Map<Long, ProductOperationInfo> minerDetailOperationInfo = new HashMap<>();
+            long queryStartTime = System.currentTimeMillis();
             
+            // ОПТИМИЗАЦИЯ: Батч-загрузка всех данных вместо N+1 запросов
+            // Собираем все ID MinerDetail для батч-загрузки
+            List<Long> minerDetailIds = minerDetails.stream()
+                    .map(MinerDetail::getId)
+                    .toList();
+            
+            // Загружаем все Product для всех MinerDetail одним запросом
+            Map<Long, List<Product>> productsByMinerDetailId = new HashMap<>();
+            if (!minerDetailIds.isEmpty()) {
+                List<Product> allProducts = productRepository.findByMinerDetailIdIn(minerDetailIds);
+                // Группируем Product по minerDetailId
+                productsByMinerDetailId = allProducts.stream()
+                        .collect(java.util.stream.Collectors.groupingBy(
+                                p -> p.getMinerDetail() != null ? p.getMinerDetail().getId() : 0L
+                        ));
+            }
+            
+            // Собираем все ID Product для батч-загрузки offers
+            List<Long> allProductIds = productsByMinerDetailId.values().stream()
+                    .flatMap(List::stream)
+                    .map(Product::getId)
+                    .toList();
+            
+            // Загружаем все offers для всех Product одним запросом
+            Map<Long, List<Offer>> offersByProductId = new HashMap<>();
+            if (!allProductIds.isEmpty()) {
+                List<Offer> allOffers = offerRepository.findByProductIdIn(allProductIds);
+                // Инициализируем продавцов
+                allOffers.forEach(offer -> {
+                    if (offer.getSeller() != null) {
+                        offer.getSeller().getName();
+                    }
+                });
+                // Группируем offers по productId
+                offersByProductId = allOffers.stream()
+                        .collect(java.util.stream.Collectors.groupingBy(
+                                o -> o.getProduct() != null ? o.getProduct().getId() : 0L
+                        ));
+            }
+            
+            // Группируем offers по minerDetailId
+            Map<Long, List<Offer>> allOffersByMinerDetailId = new HashMap<>();
             for (MinerDetail minerDetail : minerDetails) {
-                // Получаем все Product, связанные с этим MinerDetail
-                List<Product> linkedProducts = productRepository.findByMinerDetailId(minerDetail.getId());
-                
-                // Собираем все ID связанных Product
-                List<Long> linkedProductIds = linkedProducts.stream()
-                        .map(Product::getId)
-                        .toList();
-                
-                // Загружаем все offers для всех связанных Product одним запросом
+                List<Product> linkedProducts = productsByMinerDetailId.getOrDefault(minerDetail.getId(), new java.util.ArrayList<>());
                 List<Offer> allMinerDetailOffers = new java.util.ArrayList<>();
-                if (!linkedProductIds.isEmpty()) {
-                    List<Offer> offers = offerRepository.findByProductIdIn(linkedProductIds);
-                    // Инициализируем продавцов
-                    offers.forEach(offer -> {
-                        if (offer.getSeller() != null) {
-                            offer.getSeller().getName();
-                        }
-                    });
-                    allMinerDetailOffers.addAll(offers);
+                
+                // Собираем все offers для всех Product этого MinerDetail
+                for (Product product : linkedProducts) {
+                    List<Offer> productOffers = offersByProductId.getOrDefault(product.getId(), new java.util.ArrayList<>());
+                    allMinerDetailOffers.addAll(productOffers);
                 }
                 
                 allOffersByMinerDetailId.put(minerDetail.getId(), allMinerDetailOffers);
+            }
+            
+            long queryEndTime = System.currentTimeMillis();
+            log.info("⏱️ [PRODUCTS] Время загрузки данных из БД: {} мс", queryEndTime - queryStartTime);
+            
+            // Вычисляем статистику для каждого MinerDetail
+            Map<Long, ProductOperationInfo> minerDetailOperationInfo = new HashMap<>();
+            
+            for (MinerDetail minerDetail : minerDetails) {
+                List<Offer> allMinerDetailOffers = allOffersByMinerDetailId.getOrDefault(minerDetail.getId(), new java.util.ArrayList<>());
                 
                 // Вычисляем статистику для MinerDetail (суммируем offers со всех связанных Product)
                 if (!allMinerDetailOffers.isEmpty()) {
@@ -469,6 +521,7 @@ public class ProductsController {
                 }
             }
             
+            long statsStartTime = System.currentTimeMillis();
             // Статистика
             long totalMinerDetails = minerDetailRepository.count();
             long totalProducts = productService.getTotalProducts();
@@ -488,12 +541,43 @@ public class ProductsController {
                     seriesToManufacturers.computeIfAbsent(seriesValue, k -> new java.util.HashSet<>()).add(manufacturerValue);
                 }
             }
+            long statsEndTime = System.currentTimeMillis();
+            log.info("⏱️ [PRODUCTS] Время получения статистики и фильтров: {} мс", statsEndTime - statsStartTime);
             
+            long slugStartTime = System.currentTimeMillis();
+            // ОПТИМИЗАЦИЯ: Генерируем slug батчем для записей, у которых его нет
+            // Делаем это до создания DTO, чтобы slug был доступен в шаблоне
+            List<MinerDetail> minerDetailsToSave = new java.util.ArrayList<>();
+            for (MinerDetail minerDetail : minerDetails) {
+                if (minerDetail.getSlug() == null || minerDetail.getSlug().trim().isEmpty()) {
+                    String slug = com.miners.shop.util.SlugUtil.generateSlug(minerDetail.getStandardName());
+                    // Проверяем уникальность
+                    int counter = 1;
+                    String uniqueSlug = slug;
+                    while (minerDetailRepository.existsBySlug(uniqueSlug)) {
+                        uniqueSlug = slug + "-" + counter;
+                        counter++;
+                    }
+                    minerDetail.setSlug(uniqueSlug);
+                    minerDetailsToSave.add(minerDetail);
+                }
+            }
+            
+            // Батч-сохранение всех slug
+            if (!minerDetailsToSave.isEmpty()) {
+                minerDetailRepository.saveAll(minerDetailsToSave);
+                log.info("Сохранено {} slug для MinerDetail", minerDetailsToSave.size());
+            }
+            long slugEndTime = System.currentTimeMillis();
+            log.info("⏱️ [PRODUCTS] Время генерации slug: {} мс", slugEndTime - slugStartTime);
+            
+            long dtoStartTime = System.currentTimeMillis();
             // Создаем DTO для передачи в шаблон
             List<com.miners.shop.dto.MinerDetailDTO> minerDetailDTOs = minerDetails.stream()
                     .map(com.miners.shop.dto.MinerDetailDTO::fromEntity)
                     .toList();
             
+            long imageStartTime = System.currentTimeMillis();
             // Для каждой MinerDetail добавляем URL изображения: сначала проверяем imageUrl из DTO, если нет - используем ImageUrlResolver
             Map<Long, String> imageUrls = new HashMap<>();
             minerDetailDTOs.forEach(dto -> {
@@ -505,6 +589,9 @@ public class ProductsController {
                 }
                 imageUrls.put(dto.getId(), imageUrl);
             });
+            long imageEndTime = System.currentTimeMillis();
+            log.info("⏱️ [PRODUCTS] Время создания DTO: {} мс", System.currentTimeMillis() - dtoStartTime);
+            log.info("⏱️ [PRODUCTS] Время разрешения изображений: {} мс", imageEndTime - imageStartTime);
             
             model.addAttribute("minerDetails", minerDetailDTOs);
             model.addAttribute("imageUrls", imageUrls);
@@ -533,40 +620,116 @@ public class ProductsController {
                 model.addAttribute("seriesToManufacturersJson", "{}");
             }
             
+            // SEO meta теги
+            model.addAttribute("pageTitle", "Каталог ASIC майнеров - Купить майнинг-оборудование | MinerHive");
+            model.addAttribute("pageDescription", "Каталог ASIC майнеров для майнинга криптовалют. Фильтры по производителю, хэшрейту, алгоритму. Сравнение цен и характеристик. Доставка по России.");
+            model.addAttribute("pageKeywords", "asic майнер купить, asics майнер, майнер для майнинга, купить майнер");
+            model.addAttribute("canonicalUrl", SeoUtil.generateCanonicalUrl("/products"));
+            model.addAttribute("ogImage", SeoUtil.getBaseUrl() + "/assets/images/logo/logo.png");
+            
+            // Schema.org разметка для каталога
+            List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            Map<String, String> home = new HashMap<>();
+            home.put("name", "Главная");
+            home.put("url", "/");
+            breadcrumbs.add(home);
+            Map<String, String> catalog = new HashMap<>();
+            catalog.put("name", "Каталог");
+            catalog.put("url", "/products");
+            breadcrumbs.add(catalog);
+            model.addAttribute("breadcrumbs", breadcrumbs);
+            model.addAttribute("breadcrumbSchema", SchemaOrgUtil.generateBreadcrumbSchema(breadcrumbs));
+            
+            long endTime = System.currentTimeMillis();
+            log.info("⏱️ [PRODUCTS] Общее время выполнения метода products: {} мс", endTime - startTime);
+            
             return "products-new";
         } catch (Exception e) {
             // Логируем ошибку для отладки
-            log.error("Ошибка при загрузке страницы товаров: {}", e.getMessage(), e);
+            long endTime = System.currentTimeMillis();
+            log.error("❌ [PRODUCTS] Ошибка при загрузке страницы товаров (время выполнения: {} мс): {}", 
+                    endTime - startTime, e.getMessage(), e);
             model.addAttribute("error", "Произошла ошибка при загрузке страницы: " + e.getMessage());
             return "error";
         }
     }
     
     /**
-     * Страница детальной информации о майнере (MinerDetail)
-     * Показывает все предложения всех связанных товаров (Product)
-     * @param id ID MinerDetail (не Product!)
+     * Страница детальной информации о майнере (MinerDetail) по ID (старый формат)
+     * Редиректит на новый URL со slug
+     * @param id ID MinerDetail
      */
-    @GetMapping("/products/{id}")
+    @GetMapping("/products/{id:\\d+}")
+    @Transactional(readOnly = true)
+    public String productDetailsById(
+            @PathVariable Long id,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
+        try {
+            Optional<MinerDetail> minerDetailOpt = minerDetailRepository.findById(id);
+            if (minerDetailOpt.isEmpty()) {
+                // Товар не найден - выбрасываем ResponseStatusException для обработки как 404
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND,
+                    "Товар не найден"
+                );
+            }
+            
+            MinerDetail minerDetail = minerDetailOpt.get();
+            
+            // Если есть slug, редиректим на него
+            if (minerDetail.getSlug() != null && !minerDetail.getSlug().isEmpty()) {
+                return "redirect:/products/" + minerDetail.getSlug();
+            }
+            
+            // Если slug нет, генерируем его и редиректим
+            String slug = com.miners.shop.util.SlugUtil.generateSlug(minerDetail.getStandardName());
+            // Проверяем уникальность
+            int counter = 1;
+            String uniqueSlug = slug;
+            while (minerDetailRepository.existsBySlug(uniqueSlug)) {
+                uniqueSlug = slug + "-" + counter;
+                counter++;
+            }
+            minerDetail.setSlug(uniqueSlug);
+            minerDetailRepository.save(minerDetail);
+            
+            return "redirect:/products/" + uniqueSlug;
+        } catch (Exception e) {
+            log.error("Ошибка при редиректе со старого URL: {}", e.getMessage(), e);
+            throw new RuntimeException("Ошибка при обработке запроса");
+        }
+    }
+    
+    /**
+     * Страница детальной информации о майнере (MinerDetail) по slug (новый формат)
+     * Показывает все предложения всех связанных товаров (Product)
+     * @param slug Slug MinerDetail
+     */
+    @GetMapping("/products/{slug:[a-z0-9-]+}")
     @Transactional(readOnly = true)
     public String productDetails(
-            @PathVariable Long id,
+            @PathVariable String slug,
             @RequestParam(required = false) String dateFilter, // today, 3days, week, month
             @RequestParam(required = false, defaultValue = "updatedAt") String sortBy, // Колонка для сортировки
             @RequestParam(required = false, defaultValue = "DESC") String sortDir, // Направление сортировки
             @RequestParam(required = false, defaultValue = "0") int page, // Страница
             @RequestParam(required = false, defaultValue = "10") int size, // По умолчанию 10 записей при первой загрузке // Количество записей на странице
+            HttpServletRequest request,
             Model model) {
+        // Получаем MinerDetail по slug
+        Optional<MinerDetail> minerDetailOpt = minerDetailRepository.findBySlug(slug);
+        
+        if (minerDetailOpt.isEmpty()) {
+            // Товар не найден - выбрасываем ResponseStatusException для обработки как 404
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Товар не найден"
+            );
+        }
+        
+        MinerDetail minerDetail = minerDetailOpt.get();
+        
         try {
-            // Получаем MinerDetail по ID (id теперь это ID MinerDetail, а не Product)
-            Optional<MinerDetail> minerDetailOpt = minerDetailRepository.findById(id);
-            
-            if (minerDetailOpt.isEmpty()) {
-                model.addAttribute("error", "Майнер не найден");
-                return "error";
-            }
-            
-            MinerDetail minerDetail = minerDetailOpt.get();
             
             // Устанавливаем URL изображения на основе standardName из MinerDetail
             // Используем imageUrl из MinerDetail, если указан, иначе используем ImageUrlResolver
@@ -603,7 +766,7 @@ public class ProductsController {
             Pageable pageable = PageRequest.of(page, size, sort);
             
             // Получаем ВСЕ предложения для ВСЕХ связанных товаров с пагинацией и фильтрацией
-            Page<Offer> offersPage = productService.getOffersByMinerDetailIdWithFilters(id, dateFrom, null, null, pageable);
+            Page<Offer> offersPage = productService.getOffersByMinerDetailIdWithFilters(minerDetail.getId(), dateFrom, null, null, pageable);
             List<Offer> offers = offersPage.getContent();
             
             // Разделяем предложения на продажи и покупки для статистики
@@ -616,7 +779,7 @@ public class ProductsController {
             
             // Для расчета минимальной цены нужно получить все продажи (не только на странице)
             // Фильтруем только предложения на продажу (SELL) с ценой больше 0
-            var allSellOffers = productService.getOffersByMinerDetailId(id).stream()
+            var allSellOffers = productService.getOffersByMinerDetailId(minerDetail.getId()).stream()
                     .filter(o -> o.getOperationType() != null && o.getOperationType() == OperationType.SELL)
                     .filter(o -> o.getPrice() != null && o.getPrice().compareTo(java.math.BigDecimal.ZERO) > 0)
                     .toList();
@@ -701,10 +864,52 @@ public class ProductsController {
             model.addAttribute("currentPage", page);
             model.addAttribute("pageSize", size);
             
+            // SEO meta теги
+            String productTitle = minerDetail.getStandardName() != null ? minerDetail.getStandardName() : "Майнер";
+            String manufacturer = minerDetail.getManufacturer() != null ? minerDetail.getManufacturer() : "";
+            String hashrate = minerDetail.getHashrate() != null ? minerDetail.getHashrate() : "";
+            String power = minerDetail.getPowerConsumption() != null ? minerDetail.getPowerConsumption() : "";
+            String offersCount = String.valueOf(offersPage.getTotalElements());
+            
+            model.addAttribute("pageTitle", productTitle + " - Купить " + productTitle + " | Цена, характеристики | MinerHive");
+            model.addAttribute("pageDescription", 
+                "Купить " + productTitle + " по выгодной цене. " +
+                (hashrate.isEmpty() ? "" : "Хэшрейт: " + hashrate + ". ") +
+                (power.isEmpty() ? "" : "Потребление: " + power + ". ") +
+                offersCount + " предложений от проверенных продавцов. Гарантия, доставка.");
+            model.addAttribute("pageKeywords", 
+                productTitle.toLowerCase() + ", " + manufacturer.toLowerCase() + ", купить " + productTitle.toLowerCase() + ", asic майнер");
+            model.addAttribute("canonicalUrl", SeoUtil.generateCanonicalUrl("/products/" + slug));
+            model.addAttribute("ogImage", imageUrl != null ? imageUrl : SeoUtil.getBaseUrl() + "/assets/images/logo/logo.png");
+            
+            // Schema.org разметка для товара
+            List<Offer> allOffers = productService.getOffersByMinerDetailId(minerDetail.getId());
+            model.addAttribute("productSchema", SchemaOrgUtil.generateProductSchema(minerDetail, allOffers, imageUrl));
+            
+            // Breadcrumbs
+            List<Map<String, String>> breadcrumbs = new ArrayList<>();
+            Map<String, String> home = new HashMap<>();
+            home.put("name", "Главная");
+            home.put("url", "/");
+            breadcrumbs.add(home);
+            Map<String, String> catalog = new HashMap<>();
+            catalog.put("name", "Каталог");
+            catalog.put("url", "/products");
+            breadcrumbs.add(catalog);
+            Map<String, String> productBreadcrumb = new HashMap<>();
+            productBreadcrumb.put("name", productTitle);
+            productBreadcrumb.put("url", "/products/" + slug);
+            breadcrumbs.add(productBreadcrumb);
+            model.addAttribute("breadcrumbs", breadcrumbs);
+            model.addAttribute("breadcrumbSchema", SchemaOrgUtil.generateBreadcrumbSchema(breadcrumbs));
+            
             return "product-details-new";
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            // Пробрасываем ResponseStatusException дальше для обработки в GlobalExceptionHandler
+            throw e;
         } catch (Exception e) {
             // Логируем ошибку для отладки
-            log.error("Ошибка при загрузке детальной страницы майнера ID={}: {}", id, e.getMessage(), e);
+            log.error("Ошибка при загрузке детальной страницы майнера slug={}: {}", slug, e.getMessage(), e);
             model.addAttribute("error", "Произошла ошибка при загрузке страницы: " + e.getMessage());
             return "error";
         }
@@ -712,7 +917,8 @@ public class ProductsController {
     
     /**
      * REST API endpoint для получения предложений всех товаров, связанных с MinerDetail, в JSON формате (для AJAX)
-     * @param id ID MinerDetail (не Product!)
+     * Поддерживает как ID, так и slug
+     * @param idOrSlug ID или slug MinerDetail (не Product!)
      * @param dateFilter Фильтр по дате: today, 3days, week, month
      * @param sortBy Колонка для сортировки
      * @param sortDir Направление сортировки: ASC или DESC
@@ -827,6 +1033,41 @@ public class ProductsController {
                     .body(response);
         } catch (Exception e) {
             log.error("Ошибка при получении предложений для MinerDetail ID={}: {}", id, e.getMessage(), e);
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Произошла ошибка при загрузке предложений: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
+    }
+    
+    /**
+     * REST API endpoint для получения предложений по slug
+     * @param slug Slug MinerDetail
+     */
+    @GetMapping(value = "/api/products/{slug:[a-z0-9-]+}/offers", produces = "application/json;charset=UTF-8")
+    @ResponseBody
+    @Transactional(readOnly = true)
+    public ResponseEntity<Map<String, Object>> getOffersJsonBySlug(
+            @PathVariable String slug,
+            @RequestParam(required = false) String dateFilter,
+            @RequestParam(required = false) String operationType,
+            @RequestParam(required = false) Boolean hasPrice,
+            @RequestParam(required = false, defaultValue = "updatedAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "DESC") String sortDir,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "20") int size) {
+        try {
+            Optional<MinerDetail> minerDetailOpt = minerDetailRepository.findBySlug(slug);
+            if (minerDetailOpt.isEmpty()) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("error", "Майнер не найден");
+                return ResponseEntity.status(404).body(error);
+            }
+            
+            MinerDetail minerDetail = minerDetailOpt.get();
+            // Используем существующий метод с ID
+            return getOffersJson(minerDetail.getId(), dateFilter, operationType, hasPrice, sortBy, sortDir, page, size);
+        } catch (Exception e) {
+            log.error("Ошибка при получении предложений для MinerDetail slug={}: {}", slug, e.getMessage(), e);
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Произошла ошибка при загрузке предложений: " + e.getMessage());
             return ResponseEntity.status(500).body(error);

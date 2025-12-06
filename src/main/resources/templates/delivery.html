@@ -5,7 +5,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Доставка - MinerHive</title>
-    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
+    
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
+    
+    <!-- Favicon -->
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
     <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" th:href="@{/assets/css/select2.min.css}" href="assets/css/select2.min.css">
     <link rel="stylesheet" th:href="@{/assets/css/slick.css}" href="assets/css/slick.css">
@@ -431,6 +436,9 @@
 </script>
 <noscript><div><img src="https://mc.yandex.ru/watch/105468809" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
 <!-- /Yandex.Metrika counter -->
+
+<!-- Cookie Consent Banner -->
+<th:block th:replace="~{fragments/cookie-consent :: cookie-consent-banner}"></th:block>
 
 </body>
 </html>

@@ -23,6 +23,16 @@ public interface MinerDetailRepository extends JpaRepository<MinerDetail, Long> 
     Optional<MinerDetail> findByStandardName(String standardName);
     
     /**
+     * Найти детальную запись по slug
+     */
+    Optional<MinerDetail> findBySlug(String slug);
+    
+    /**
+     * Проверить существование записи с указанным slug
+     */
+    boolean existsBySlug(String slug);
+    
+    /**
      * Найти детальные записи по производителю
      */
     List<MinerDetail> findByManufacturer(String manufacturer);

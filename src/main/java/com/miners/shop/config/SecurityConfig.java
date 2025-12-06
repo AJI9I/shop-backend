@@ -35,23 +35,23 @@ public class SecurityConfig {
             // Настройка доступа к страницам
             .authorizeHttpRequests(auth -> {
                 auth
-                    // Статические ресурсы (без авторизации)
-                    .requestMatchers("/img/**", "/assets/**", "/bootstrap-theme/**").permitAll()
+                    // Статические ресурсы (без авторизации) - ПЕРВЫМИ
+                    .requestMatchers("/img/**", "/assets/**", "/bootstrap-theme/**", "/favicon.ico", "/robots.txt", "/sitemap.xml").permitAll()
                     
                     // API эндпоинты (без авторизации)
                     .requestMatchers("/api/webhook/**", "/requests/api/**", "/api/products/**").permitAll()
                     
-                    // API эндпоинты для MinerDetails (требуют авторизации, проверяется через @PreAuthorize)
-                    .requestMatchers("/api/miner-details/**").authenticated()
-                    
                     // Страница входа и ошибок (без авторизации)
-                    .requestMatchers("/login", "/error", "/logout").permitAll()
+                    .requestMatchers("/login", "/error", "/error/**", "/logout").permitAll()
+                    
+                    // Общедоступные страницы (без авторизации) - ВАЖНО: должно быть перед /private
+                    .requestMatchers("/", "/products", "/products/**", "/about", "/delivery", "/services").permitAll()
                     
                     // Редиректы старых путей (требуют авторизации, так как ведут на /private/messages)
                     .requestMatchers("/messages", "/messages/**").authenticated()
                     
-                    // Общедоступные страницы (без авторизации) - ВАЖНО: должно быть перед anyRequest()
-                    .requestMatchers("/", "/products", "/products/**", "/about", "/delivery", "/services").permitAll()
+                    // API эндпоинты для MinerDetails (требуют авторизации, проверяется через @PreAuthorize)
+                    .requestMatchers("/api/miner-details/**").authenticated()
                     
                     // Страница /private доступна администраторам и менеджерам
                     .requestMatchers("/private").hasAnyRole("ADMIN", "MANAGER")
@@ -74,11 +74,15 @@ public class SecurityConfig {
                     // Предложения - доступны администраторам и менеджерам
                     .requestMatchers("/private/offers", "/private/offers/**").hasAnyRole("ADMIN", "MANAGER")
                     
+                    // Управление редиректами - только администраторам
+                    .requestMatchers("/private/redirects", "/private/redirects/**").hasRole("ADMIN")
+                    
                     // Остальные страницы /private - только администраторам
                     .requestMatchers("/private/**").hasRole("ADMIN")
                     
-                    // Все остальные страницы требуют авторизации
-                    .anyRequest().authenticated();
+                    // Все остальные страницы разрешены (для обработки 404 ошибок)
+                    // Spring Boot автоматически перенаправит несуществующие страницы на /error, который уже разрешен выше
+                    .anyRequest().permitAll();
             })
             
             // Настройка формы входа

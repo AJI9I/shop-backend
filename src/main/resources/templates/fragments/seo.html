@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="seo-head(pageTitle, pageDescription, pageKeywords, canonicalUrl, ogImage)">
+    <!-- Favicon -->
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
+    
+    <!-- Title -->
+    <title th:text="${pageTitle != null ? pageTitle : 'MinerHive - Интернет-магазин майнинг-оборудования'}">MinerHive</title>
+    
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
+    
+    <!-- Meta Description -->
+    <meta name="description" th:content="${pageDescription != null ? pageDescription : 'Купить майнер для майнинга криптовалют. Широкий выбор ASIC майнеров от Bitmain, MicroBT, Canaan. Новые и б/у майнеры с гарантией.'}">
+    
+    <!-- Meta Keywords -->
+    <meta name="keywords" th:if="${pageKeywords != null}" th:content="${pageKeywords}">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" th:href="${canonicalUrl != null ? canonicalUrl : 'https://minerhive.ru'}">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" th:content="${pageTitle != null ? pageTitle : 'MinerHive - Интернет-магазин майнинг-оборудования'}">
+    <meta property="og:description" th:content="${pageDescription != null ? pageDescription : 'Купить майнер для майнинга криптовалют. Широкий выбор ASIC майнеров от Bitmain, MicroBT, Canaan.'}">
+    <meta property="og:url" th:content="${canonicalUrl != null ? canonicalUrl : 'https://minerhive.ru'}">
+    <meta property="og:image" th:content="${ogImage != null ? ogImage : 'https://minerhive.ru/assets/images/logo/logo.png'}">
+    <meta property="og:site_name" content="MinerHive">
+    <meta property="og:locale" content="ru_RU">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" th:content="${pageTitle != null ? pageTitle : 'MinerHive - Интернет-магазин майнинг-оборудования'}">
+    <meta name="twitter:description" th:content="${pageDescription != null ? pageDescription : 'Купить майнер для майнинга криптовалют. Широкий выбор ASIC майнеров от Bitmain, MicroBT, Canaan.'}">
+    <meta name="twitter:image" th:content="${ogImage != null ? ogImage : 'https://minerhive.ru/assets/images/logo/logo.png'}">
+</div>
+</html>

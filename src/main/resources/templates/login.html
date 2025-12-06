@@ -6,8 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Вход в систему - MinerHive</title>
     
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
+    
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%232563eb'/><text x='50' y='70' font-size='60' fill='white' text-anchor='middle' font-family='Arial'>M</text></svg>" type="image/svg+xml">
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
     
     <!-- Bootstrap Css -->
     <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" rel="stylesheet">
@@ -122,6 +125,9 @@
 
     <!-- Bootstrap JS -->
     <script th:src="@{/bootstrap-theme/assets/libs/bootstrap/js/bootstrap.bundle.min.js}"></script>
+
+    <!-- Cookie Consent Banner -->
+    <th:block th:replace="~{fragments/cookie-consent :: cookie-consent-banner}"></th:block>
 </body>
 </html>
 

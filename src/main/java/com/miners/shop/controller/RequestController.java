@@ -59,6 +59,9 @@ public class RequestController {
                 return ResponseEntity.badRequest().body(error);
             }
             
+            // Валидация согласий (для административного интерфейса необязательна, но если переданы - проверяем)
+            // В публичном интерфейсе валидация обязательна
+            
             // Создаем заявку
             Request request = requestService.createRequest(createDTO);
             

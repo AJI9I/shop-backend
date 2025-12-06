@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="schema-org">
+    <!-- Schema.org Organization (для главной страницы) -->
+    <script type="application/ld+json" th:if="${organizationSchema != null}" th:utext="${organizationSchema}"></script>
+    
+    <!-- Schema.org WebSite (для главной страницы) -->
+    <script type="application/ld+json" th:if="${websiteSchema != null}" th:utext="${websiteSchema}"></script>
+    
+    <!-- Schema.org Product (для страницы товара) -->
+    <script type="application/ld+json" th:if="${productSchema != null}" th:utext="${productSchema}"></script>
+    
+    <!-- Schema.org BreadcrumbList -->
+    <script type="application/ld+json" th:if="${breadcrumbSchema != null}" th:utext="${breadcrumbSchema}"></script>
+</div>
+</html>

@@ -7,10 +7,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 /**
  * Утилита для поиска изображений товаров в папке /img/
  * На основе модели майнера генерирует URL к изображению
+ * Использует кэширование для оптимизации производительности
  */
 @Component
 @Slf4j
@@ -21,6 +24,12 @@ public class ImageUrlResolver {
     
     private final ResourceLoader resourceLoader;
     
+    // Кэш для результатов поиска изображений (ключ: модель, значение: URL)
+    private final Map<String, String> imageUrlCache = new ConcurrentHashMap<>();
+    
+    // Кэш для проверки существования файлов (ключ: имя файла, значение: существует ли)
+    private final Map<String, Boolean> fileExistsCache = new ConcurrentHashMap<>();
+    
     public ImageUrlResolver(ResourceLoader resourceLoader) {
         this.resourceLoader = resourceLoader;
     }
@@ -28,17 +37,21 @@ public class ImageUrlResolver {
     /**
      * Разрешает URL изображения для модели майнера
      * Ищет файл в папке /img/ на основе нормализованного названия модели
+     * Использует кэширование для оптимизации производительности
      * 
      * @param model Модель майнера (например: "S21 HYD", "Antminer S19")
      * @return URL изображения или null, если не найдено
      */
     public String resolveImageUrl(String model) {
         if (model == null || model.trim().isEmpty()) {
-            log.debug("Модель пуста, возвращаем null");
             return null;
         }
         
-        log.debug("Поиск изображения для модели: '{}'", model);
+        // Проверяем кэш
+        String cachedUrl = imageUrlCache.get(model);
+        if (cachedUrl != null) {
+            return cachedUrl;
+        }
         
         // Сначала пробуем точное совпадение с разными вариантами регистра
         // Для файла "Antminer-S21-Hyd.webp" пробуем разные варианты
@@ -48,17 +61,15 @@ public class ImageUrlResolver {
             model.toLowerCase().replaceAll("[^a-z0-9\\s]+", "").replaceAll("\\s+", "-").replaceAll("-+", "-").replaceAll("^-+|-+$", "") // "s21-hyd"
         };
         
-        log.debug("Варианты для поиска: {}", Arrays.toString(variants));
-        
         for (String variant : variants) {
             for (String ext : IMAGE_EXTENSIONS) {
                 String fileName = variant + ext;
-                log.debug("Проверяем файл: {}", fileName);
                 
-                // Проверяем существование файла
+                // Проверяем существование файла (с кэшированием)
                 if (fileExists(fileName)) {
                     String url = "/img/" + fileName;
-                    log.info("✅ Найдено изображение для модели '{}': {}", model, url);
+                    // Сохраняем в кэш
+                    imageUrlCache.put(model, url);
                     return url;
                 }
             }
@@ -67,7 +78,8 @@ public class ImageUrlResolver {
         // Если точного совпадения нет, пробуем найти частичное совпадение
         String partialMatch = findPartialMatch(model);
         if (partialMatch != null) {
-            log.info("✅ Найдено частичное совпадение изображения для модели '{}': {}", model, partialMatch);
+            // Сохраняем в кэш
+            imageUrlCache.put(model, partialMatch);
             return partialMatch;
         }
         
@@ -75,12 +87,14 @@ public class ImageUrlResolver {
         // Сначала пробуем найти любое изображение в папке /img/ как заглушку
         String fallbackImage = findAnyImageInFolder();
         if (fallbackImage != null) {
-            log.info("⚠️  Изображение для модели '{}' не найдено, используем заглушку: {}", model, fallbackImage);
+            // Сохраняем в кэш
+            imageUrlCache.put(model, fallbackImage);
             return fallbackImage;
         }
         
         // Если даже заглушки нет, возвращаем null - шаблон использует placeholder из темы
-        log.info("⚠️  Изображение для модели '{}' не найдено, возвращаем null (будет использован placeholder из темы)", model);
+        // Сохраняем null в кэш, чтобы не проверять снова
+        imageUrlCache.put(model, null);
         return null;
     }
     
@@ -148,15 +162,28 @@ public class ImageUrlResolver {
     
     /**
      * Проверяет существование файла в папке /img/
+     * Использует кэширование для оптимизации производительности
      */
     private boolean fileExists(String fileName) {
+        // Проверяем кэш
+        Boolean cached = fileExistsCache.get(fileName);
+        if (cached != null) {
+            return cached;
+        }
+        
+        // Проверяем существование файла
+        boolean exists = false;
         try {
             Resource resource = resourceLoader.getResource(IMG_DIR + fileName);
-            return resource.exists() && resource.isReadable();
+            exists = resource.exists() && resource.isReadable();
         } catch (Exception e) {
-            log.debug("Ошибка при проверке существования файла {}: {}", fileName, e.getMessage());
-            return false;
+            // Игнорируем ошибки, возвращаем false
+            exists = false;
         }
+        
+        // Сохраняем в кэш
+        fileExistsCache.put(fileName, exists);
+        return exists;
     }
     
     /**

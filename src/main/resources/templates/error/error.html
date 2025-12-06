@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ru" class="color-two">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO мета-теги (включая favicon) -->
+    <th:block th:replace="~{fragments/seo :: seo-head(${pageTitle}, ${pageDescription}, ${pageKeywords}, ${canonicalUrl}, ${ogImage})}"></th:block>
+    
+    <!-- Bootstrap -->
+    <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
+    <!-- select 2 -->
+    <link rel="stylesheet" th:href="@{/assets/css/select2.min.css}" href="assets/css/select2.min.css">
+    <!-- Slick -->
+    <link rel="stylesheet" th:href="@{/assets/css/slick.css}" href="assets/css/slick.css">
+    <!-- jQuery UI -->
+    <link rel="stylesheet" th:href="@{/assets/css/jquery-ui.css}" href="assets/css/jquery-ui.css">
+    <!-- Main css -->
+    <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
+    
+    <style>
+        .error-page {
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 0;
+        }
+        .error-content {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .error-code {
+            font-size: 120px;
+            font-weight: 700;
+            color: #dc3545;
+            line-height: 1;
+            margin-bottom: 20px;
+        }
+        .error-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #212529;
+        }
+        .error-message {
+            font-size: 18px;
+            color: #6c757d;
+            margin-bottom: 32px;
+        }
+        .error-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .error-actions .btn {
+            padding: 12px 24px;
+            font-size: 16px;
+        }
+        .product-card__thumb {
+            height: 250px !important;
+            max-height: 250px !important;
+            overflow: hidden !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background-color: #ffffff !important;
+        }
+        .product-card__thumb img {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Schema.org разметка -->
+    <div th:replace="~{fragments/schema-org :: schema-org}"></div>
+    
+<!--==================== Preloader Start ====================-->
+  <div class="preloader">
+    <img th:src="@{/assets/images/icon/preloader.gif}" src="assets/images/icon/preloader.gif" alt="">
+  </div>
+<!--==================== Preloader End ====================-->
+
+<!--==================== Overlay Start ====================-->
+<div class="overlay"></div>
+<!--==================== Overlay End ====================-->
+
+<!--==================== Sidebar Overlay Start ====================-->
+<div class="side-overlay"></div>
+<!--==================== Sidebar Overlay End ====================-->
+
+<!-- ==================== Scroll to Top Start ==================== -->
+<div class="progress-wrap">
+  <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+  </svg>
+</div>
+<!-- ==================== Scroll to Top End ==================== -->
+
+<!-- ==================== Search Box Start ==================== -->
+ <form action="#" class="search-box">
+  <button type="button" class="search-box__close position-absolute inset-block-start-0 inset-inline-end-0 m-16 w-48 h-48 border border-gray-100 rounded-circle flex-center text-white hover-text-gray-800 hover-bg-white text-2xl transition-1">
+    <i class="ph ph-x"></i>
+  </button>
+  <div class="container">
+    <div class="position-relative">
+      <input type="text" class="form-control py-16 px-24 text-xl rounded-pill pe-64" placeholder="Поиск майнеров...">
+      <button type="submit" class="w-48 h-48 bg-main-two-600 rounded-circle flex-center text-xl text-white position-absolute top-50 translate-middle-y inset-inline-end-0 me-8">
+        <i class="ph ph-magnifying-glass"></i>
+      </button>
+    </div>
+  </div>
+ </form>
+<!-- ==================== Search Box End ==================== -->
+
+<!-- ==================== Mobile Menu Start ==================== -->
+<div class="mobile-menu scroll-sm d-lg-none d-block">
+    <button type="button" class="close-button"> <i class="ph ph-x"></i> </button>
+    <div class="mobile-menu__inner">
+        <a th:href="@{/}" class="mobile-menu__logo">
+            <img th:src="@{/assets/images/logo/logo.png}" src="/assets/images/logo/logo.png" alt="MinerHive Logo">
+        </a>
+        <div class="mobile-menu__menu">
+            <!-- Nav Menu Start -->
+<ul class="nav-menu flex-align nav-menu--mobile">
+    <li class="nav-menu__item">
+        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/about}" class="nav-menu__link">О нас</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/delivery}" class="nav-menu__link">Доставка</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/services}" class="nav-menu__link">Услуги</a>
+    </li>
+</ul>
+<!-- Nav Menu End -->
+        </div>
+    </div>
+</div>
+<!-- ==================== Mobile Menu End ==================== -->
+
+    <!-- ======================= Header Top Start ========================= -->
+<div class="header-top bg-main-two-600 flex-between">
+    <div class="container container-lg">
+        <div class="flex-between flex-nowrap gap-8">
+            <ul class="flex-align flex-nowrap">
+                <li class="border-right-item"><a th:href="@{/about}" class="text-white text-sm hover-text-decoration-underline">О нас</a></li>
+                <li class="border-right-item"><a th:href="@{/delivery}" class="text-white text-sm hover-text-decoration-underline">Доставка</a></li>
+                <li class="border-right-item"><a th:href="@{/services}" class="text-white text-sm hover-text-decoration-underline">Услуги</a></li>
+            </ul>
+            <ul class="header-top__right flex-align flex-nowrap">
+                <li class="border-right-item">
+                    <a th:href="@{/products}" class="text-white text-sm py-8 flex-align gap-6"> 
+                        <span class="icon text-md d-flex"> <i class="ph ph-box"></i> </span> 
+                        <span class="hover-text-decoration-underline">Товары</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- ======================= Header Top End ========================= -->
+
+    <!-- ======================= Middle Header Two Start ========================= -->
+<header class="header-middle style-two bg-color-neutral">
+    <div class="container container-lg">
+        <nav class="header-inner flex-between">
+            <!-- Logo Start -->
+            <div class="logo">
+                <a th:href="@{/}" class="link">
+                    <img th:src="@{/assets/images/logo/logo-two.png}" src="/assets/images/logo/logo-two.png" alt="MinerHive Logo">
+                </a>
+            </div>
+            <!-- Logo End  -->
+
+            <!-- form Category Start -->
+            <div class="flex-align gap-16">
+                <form action="#" class="flex-align flex-wrap form-location-wrapper">
+                    <div class="search-category style-two d-flex h-48 search-form d-sm-flex d-none">
+                        <div class="search-form__wrapper position-relative">
+                            <input type="text" class="search-form__input common-input py-13 ps-16 pe-18 rounded-0 border-0" placeholder="Поиск майнеров...">
+                        </div>
+                        <button type="submit" class="bg-main-two-600 flex-center text-xl text-white flex-shrink-0 w-48 hover-bg-main-two-700 d-lg-flex d-none"><i class="ph ph-magnifying-glass"></i></button>
+                    </div>
+                </form>
+            </div>
+            <!-- form Category End -->
+             
+            <!-- Header Middle Right start -->
+            <div class="header-right flex-align d-lg-block d-none">
+                <div class="header-two-activities flex-align flex-wrap gap-32">
+                    <button type="button" class="flex-align search-icon d-lg-none d-flex gap-4 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-magnifying-glass"></i>
+                        </span>
+                    </button>
+                    <a th:href="@{/products}" class="flex-align flex-column gap-8 item-hover-two">
+                        <span class="text-2xl text-white d-flex position-relative item-hover__text">
+                            <i class="ph ph-box"></i>
+                        </span>
+                        <span class="text-md text-white item-hover__text d-none d-lg-flex">Товары</span>
+                    </a>
+                </div>
+            </div>
+            <!-- Header Middle Right End  -->
+        </nav>
+    </div>
+</header>
+<!-- ======================= Middle Header Two End ========================= -->
+
+    <!-- ==================== Header Start ==================== -->
+<header class="header bg-white border-bottom border-gray-100">
+    <div class="container container-lg">
+        <nav class="header-inner d-flex justify-content-between gap-8">
+            <!-- Menu Start  -->
+            <div class="header-menu d-lg-block d-none flex-grow-1">
+                <!-- Nav Menu Start -->
+<ul class="nav-menu flex-align">
+    <li class="nav-menu__item">
+        <a th:href="@{/}" class="nav-menu__link">Главная</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/products}" class="nav-menu__link">Товары</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/about}" class="nav-menu__link">О нас</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/delivery}" class="nav-menu__link">Доставка</a>
+    </li>
+    <li class="nav-menu__item">
+        <a th:href="@{/services}" class="nav-menu__link">Услуги</a>
+    </li>
+</ul>
+<!-- Nav Menu End -->
+            </div>
+        </nav>
+    </div>
+</header>
+<!-- ==================== Header End ==================== -->
+
+    <!-- Error Page -->
+    <section class="error-page">
+        <div class="container container-lg">
+            <div class="error-content">
+                <div class="error-code">500</div>
+                <h1 class="error-title">Внутренняя ошибка сервера</h1>
+                <p class="error-message">
+                    К сожалению, произошла непредвиденная ошибка. Мы уже работаем над её устранением.
+                </p>
+                <div class="error-actions">
+                    <a th:href="@{/}" class="btn btn-primary btn-lg">
+                        На главную
+                    </a>
+                    <a th:href="@{/products}" class="btn btn-outline-primary btn-lg">
+                        Каталог товаров
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Последние товары -->
+    <section class="product py-80" th:if="${latestProducts != null && !latestProducts.isEmpty()}">
+        <div class="container container-lg">
+            <div class="section-heading mb-40">
+                <h5 class="mb-0">Последние предложения</h5>
+            </div>
+            
+            <div class="list-grid-wrapper" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+                <div class="product-card h-100 p-16 border border-gray-100 hover-border-main-two-600 rounded-16 position-relative transition-2" 
+                     th:each="minerDetail : ${latestProducts}"
+                     th:with="stats=${minerStats != null ? minerStats.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}, productSlug=${minerDetail.slug != null and !#strings.isEmpty(minerDetail.slug) ? minerDetail.slug : minerDetail.id.toString()}">
+                    <a th:href="@{'/products/' + ${productSlug}}" class="product-card__thumb flex-center rounded-8 bg-white position-relative">
+                        <img th:if="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
+                             th:src="@{${imageUrl}}" 
+                             th:alt="${minerDetail.standardName != null ? minerDetail.standardName + ' - ASIC майнер' + (minerDetail.manufacturer != null ? ' ' + minerDetail.manufacturer : '') : 'ASIC майнер'}"
+                             alt="ASIC майнер"
+                             loading="lazy"
+                             onerror="this.onerror=null; this.src='/assets/images/thumbs/product-img1.png';">
+                        <img th:unless="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
+                             th:src="@{/assets/images/thumbs/product-img1.png}" 
+                             src="/assets/images/thumbs/product-img1.png" 
+                             th:alt="${minerDetail.standardName != null ? minerDetail.standardName + ' - ASIC майнер' + (minerDetail.manufacturer != null ? ' ' + minerDetail.manufacturer : '') : 'ASIC майнер'}"
+                             alt="ASIC майнер">
+                    </a>
+                    <div class="product-card__content mt-16">
+                        <h6 class="title text-lg fw-semibold mt-12 mb-8">
+                            <a th:href="@{'/products/' + ${productSlug}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
+                                Название майнера
+                            </a>
+                        </h6>
+                        <div class="flex-align mb-20 mt-16 gap-6">
+                            <span class="text-xs fw-medium text-gray-500" 
+                                  th:if="${stats != null && stats.containsKey('offersCount')}"
+                                  th:text="'Предложений: ' + ${stats.get('offersCount')}">0</span>
+                            <span class="text-xs fw-medium text-gray-500" th:if="${stats == null || !stats.containsKey('offersCount')}">Предложений: 0</span>
+                        </div>
+                        <div class="product-card__price my-20">
+                            <span class="text-heading text-md fw-semibold" 
+                                  th:if="${stats != null && stats.containsKey('minPrice') && stats.get('minPrice') != null}"
+                                  th:text="'от ' + ${#numbers.formatDecimal(stats.get('minPrice'), 0, 'COMMA', 0, 'POINT')} + ' ' + (${stats.containsKey('currency') ? stats.get('currency') : 'RUB'})">
+                                от 0 RUB
+                            </span>
+                            <span class="text-gray-400 text-md" th:if="${stats == null || !stats.containsKey('minPrice') || stats.get('minPrice') == null}">
+                                Цена не указана
+                            </span>
+                        </div>
+                        <a th:href="@{'/products/' + ${productSlug}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
+                            Подробнее <i class="ph ph-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<!-- ==================== Footer Start ==================== -->
+<footer class="footer py-80 bg-main-two-50">
+    <div class="container container-lg">
+        <div class="footer-wrapper">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-widget">
+                        <a th:href="@{/}" class="footer-logo mb-24 d-inline-block">
+                            <img th:src="@{/assets/images/logo/logo-two.png}" src="assets/images/logo/logo-two.png" alt="MinerHive Logo">
+                        </a>
+                        <p class="text-gray-600">Агрегатор предложений по майнинг-оборудованию по всей России</p>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-widget">
+                        <h6 class="footer-widget__title mb-24">Навигация</h6>
+                        <ul class="footer-menu">
+                            <li><a th:href="@{/}" class="text-gray-600 hover-text-main-two-600">Главная</a></li>
+                            <li><a th:href="@{/products}" class="text-gray-600 hover-text-main-two-600">Товары</a></li>
+                            <li><a th:href="@{/about}" class="text-gray-600 hover-text-main-two-600">О нас</a></li>
+                            <li><a th:href="@{/delivery}" class="text-gray-600 hover-text-main-two-600">Доставка</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-widget">
+                        <h6 class="footer-widget__title mb-24">Контакты</h6>
+                        <ul class="footer-menu">
+                            <li class="text-gray-600">Email: <a href="mailto:info@minerhive.ru" class="text-gray-600 hover-text-main-two-600">info@minerhive.ru</a></li>
+                            <li class="text-gray-600">Сайт: <a href="https://minerhive.ru" class="text-gray-600 hover-text-main-two-600" target="_blank">minerhive.ru</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- bottom Footer -->
+<div class="bottom-footer bg-color-one py-8">
+    <div class="container container-lg">
+        <div class="bottom-footer__inner flex-between flex-wrap gap-16 py-16">
+            <p class="bottom-footer__text">MinerHive &copy; 2025. Все права защищены</p>
+        </div>
+    </div>
+</div>
+<!-- ==================== Footer End ==================== -->
+  
+    
+    <!-- jQuery js -->
+    <script th:src="@{/assets/js/jquery-3.7.1.min.js}" src="assets/js/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap Bundle Js -->
+    <script th:src="@{/assets/js/boostrap.bundle.min.js}" src="assets/js/boostrap.bundle.min.js"></script>
+    <!-- Phosphor Icons -->
+    <script th:src="@{/assets/js/phosphor-icon.js}" src="assets/js/phosphor-icon.js"></script>
+    <!-- Select 2 -->
+    <script th:src="@{/assets/js/select2.min.js}" src="assets/js/select2.min.js"></script>
+    <!-- Slick js -->
+    <script th:src="@{/assets/js/slick.min.js}" src="assets/js/slick.min.js"></script>
+    <!-- jQuery UI -->
+    <script th:src="@{/assets/js/jquery-ui.js}" src="assets/js/jquery-ui.js"></script>
+    <!-- Main js -->
+    <script th:src="@{/assets/js/main.js}" src="assets/js/main.js"></script>
+
+    <!-- Cookie Consent Banner -->
+    <th:block th:replace="~{fragments/cookie-consent :: cookie-consent-banner}"></th:block>
+    </body>
+</html>

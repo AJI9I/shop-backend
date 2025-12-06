@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /private/
+Disallow: /api/
+Disallow: /login
+Disallow: /admin/
+
+Sitemap: https://minerhive.ru/sitemap.xml
+
+
+
+
+

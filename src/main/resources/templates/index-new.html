@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Title -->
-    <title th:text="'MinerHive - Интернет-магазин майнинг-оборудования'">MinerHive - Интернет-магазин майнинг-оборудования</title>
-    <!-- Favicon -->
-    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
-
+    
+    <!-- SEO мета-теги (включая favicon) -->
+    <th:block th:replace="~{fragments/seo :: seo-head(${pageTitle}, ${pageDescription}, ${pageKeywords}, ${canonicalUrl}, ${ogImage})}"></th:block>
+    
     <!-- Bootstrap -->
     <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
     <!-- select 2 -->
@@ -19,6 +18,7 @@
     <link rel="stylesheet" th:href="@{/assets/css/jquery-ui.css}" href="assets/css/jquery-ui.css">
     <!-- Main css -->
     <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
+    
     <!-- Custom styles для переопределения стилей темы -->
     <style>
         /* Предотвращаем перенос текста в ссылках header-top */
@@ -86,8 +86,10 @@
             }
         }
     </style>
-</head> 
+</head>
 <body>
+    <!-- Schema.org разметка -->
+    <div th:replace="~{fragments/schema-org :: schema-org}"></div>
     
 <!--==================== Preloader Start ====================-->
   <div class="preloader">
@@ -289,24 +291,25 @@
         <div class="list-grid-wrapper mb-80" th:if="${minersByManufacturer != null && minersByManufacturer.containsKey('Bitmain') && !#lists.isEmpty(minersByManufacturer.get('Bitmain'))}">
             <div class="product-card h-100 p-16 border border-gray-100 hover-border-main-two-600 rounded-16 position-relative transition-2" 
                  th:each="minerDetail : ${minersByManufacturer.get('Bitmain')}"
-                 th:with="stats=${minerStats != null ? minerStats.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}">
-                <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="height: 250px; max-height: 250px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #ffffff !important;">
+                 th:with="stats=${minerStats != null ? minerStats.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}, productSlug=${minerDetail.slug != null and !#strings.isEmpty(minerDetail.slug) ? minerDetail.slug : minerDetail.id.toString()}">
+                <a th:href="@{'/products/' + ${productSlug}}" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="height: 250px; max-height: 250px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #ffffff !important;">
                     <img th:if="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
                          th:src="@{${imageUrl}}" 
-                         th:alt="${minerDetail.standardName}"
-                         alt="Майнер"
+                         th:alt="${minerDetail.standardName != null ? minerDetail.standardName + ' - ASIC майнер' + (minerDetail.manufacturer != null ? ' ' + minerDetail.manufacturer : '') : 'ASIC майнер'}"
+                         alt="ASIC майнер"
+                         loading="lazy"
                          style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;"
                          onerror="this.onerror=null; this.src='/assets/images/thumbs/product-img1.png';">
                     <img th:unless="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
                          th:src="@{/assets/images/thumbs/product-img1.png}" 
                          src="/assets/images/thumbs/product-img1.png" 
-                         th:alt="${minerDetail.standardName}"
-                         alt="Майнер"
+                         th:alt="${minerDetail.standardName != null ? minerDetail.standardName + ' - ASIC майнер' + (minerDetail.manufacturer != null ? ' ' + minerDetail.manufacturer : '') : 'ASIC майнер'}"
+                         alt="ASIC майнер"
                          style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;">
                 </a>
                 <div class="product-card__content mt-16">
                     <h6 class="title text-lg fw-semibold mt-12 mb-8">
-                        <a th:href="@{'/products/' + ${minerDetail.id}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
+                        <a th:href="@{'/products/' + ${productSlug}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
                             Название майнера
                         </a>
                     </h6>
@@ -326,7 +329,7 @@
                             Цена не указана
                         </span>
                     </div>
-                    <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
+                    <a th:href="@{'/products/' + ${productSlug}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
                         Подробнее <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -345,24 +348,25 @@
         <div class="list-grid-wrapper mb-80" th:if="${minersByManufacturer != null && minersByManufacturer.containsKey('MicroBT') && !#lists.isEmpty(minersByManufacturer.get('MicroBT'))}">
             <div class="product-card h-100 p-16 border border-gray-100 hover-border-main-two-600 rounded-16 position-relative transition-2" 
                  th:each="minerDetail : ${minersByManufacturer.get('MicroBT')}"
-                 th:with="stats=${minerStats != null ? minerStats.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}">
-                <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="height: 250px; max-height: 250px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #ffffff !important;">
+                 th:with="stats=${minerStats != null ? minerStats.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}, productSlug=${minerDetail.slug != null and !#strings.isEmpty(minerDetail.slug) ? minerDetail.slug : minerDetail.id.toString()}">
+                <a th:href="@{'/products/' + ${productSlug}}" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="height: 250px; max-height: 250px; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #ffffff !important;">
                     <img th:if="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
                          th:src="@{${imageUrl}}" 
-                         th:alt="${minerDetail.standardName}"
-                         alt="Майнер"
+                         th:alt="${minerDetail.standardName != null ? minerDetail.standardName + ' - ASIC майнер' + (minerDetail.manufacturer != null ? ' ' + minerDetail.manufacturer : '') : 'ASIC майнер'}"
+                         alt="ASIC майнер"
+                         loading="lazy"
                          style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;"
                          onerror="this.onerror=null; this.src='/assets/images/thumbs/product-img1.png';">
                     <img th:unless="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
                          th:src="@{/assets/images/thumbs/product-img1.png}" 
                          src="/assets/images/thumbs/product-img1.png" 
-                         th:alt="${minerDetail.standardName}"
-                         alt="Майнер"
+                         th:alt="${minerDetail.standardName != null ? minerDetail.standardName + ' - ASIC майнер' + (minerDetail.manufacturer != null ? ' ' + minerDetail.manufacturer : '') : 'ASIC майнер'}"
+                         alt="ASIC майнер"
                          style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;">
                 </a>
                 <div class="product-card__content mt-16">
                     <h6 class="title text-lg fw-semibold mt-12 mb-8">
-                        <a th:href="@{'/products/' + ${minerDetail.id}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
+                        <a th:href="@{'/products/' + ${productSlug}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
                             Название майнера
                         </a>
                     </h6>
@@ -382,7 +386,7 @@
                             Цена не указана
                         </span>
                     </div>
-                    <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
+                    <a th:href="@{'/products/' + ${productSlug}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
                         Подробнее <i class="ph ph-arrow-right"></i>
                     </a>
                 </div>
@@ -437,6 +441,19 @@
                 </div>
                 <div class="col-xl-3 col-md-6 col-sm-6">
                     <div class="footer__item">
+                        <h6 class="footer__title mb-24">Юридическая информация</h6>
+                        <ul class="footer__list">
+                            <li><a th:href="@{/privacy-policy}" class="text-gray-600 hover-text-main-two-600">Политика конфиденциальности</a></li>
+                            <li><a th:href="@{/cookies-policy}" class="text-gray-600 hover-text-main-two-600">Политика cookies</a></li>
+                            <li><a th:href="@{/offer}" class="text-gray-600 hover-text-main-two-600">Публичная оферта</a></li>
+                            <li><a th:href="@{/user-agreement}" class="text-gray-600 hover-text-main-two-600">Пользовательское соглашение</a></li>
+                            <li><a th:href="@{/personal-data-consent}" class="text-gray-600 hover-text-main-two-600">Согласие на обработку данных</a></li>
+                            <li><a th:href="@{/company-details}" class="text-gray-600 hover-text-main-two-600">Реквизиты компании</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 col-sm-6">
+                    <div class="footer__item">
                         <h6 class="footer__title mb-24">Контакты</h6>
                         <ul class="footer__list">
                             <li class="text-gray-600">Email: ya@nismeria.com</li>
@@ -454,6 +471,11 @@
     <div class="container container-lg">
         <div class="bottom-footer__inner flex-between flex-wrap gap-16 py-16">
             <p class="bottom-footer__text">MinerHive &copy; 2025. Все права защищены</p>
+            <div class="d-flex gap-16 flex-wrap">
+                <a th:href="@{/privacy-policy}" class="text-gray-600 hover-text-main-two-600 text-sm">Политика конфиденциальности</a>
+                <a th:href="@{/cookies-policy}" class="text-gray-600 hover-text-main-two-600 text-sm">Cookies</a>
+                <a th:href="@{/offer}" class="text-gray-600 hover-text-main-two-600 text-sm">Оферта</a>
+            </div>
         </div>
     </div>
 </div>
@@ -489,6 +511,9 @@
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/105468809" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->
+
+    <!-- Cookie Consent Banner -->
+    <th:block th:replace="~{fragments/cookie-consent :: cookie-consent-banner}"></th:block>
 
     </body>
 </html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:fragment="cookie-consent-banner">
+    <!-- Cookie Consent Banner -->
+    <div id="cookieConsentBanner" class="cookie-consent-banner" style="display: none;">
+        <div class="cookie-consent-content">
+            <div class="cookie-consent-text">
+                <strong>Мы используем cookie-файлы</strong>
+                <p class="mb-0">
+                    Для повышения удобства сайта и персонализации сервисов мы используем cookie-файлы. 
+                    Оставаясь на сайте, вы даете свое согласие на использование cookie. 
+                    Вы можете запретить сохранение cookie в настройках своего браузера.
+                </p>
+                <p class="mb-0 mt-2">
+                    MinerHive.ru производит обработку персональных данных в соответствии с 
+                    <a th:href="@{/privacy-policy}" target="_blank" class="cookie-consent-link">Политикой обработки персональных данных</a>.
+                </p>
+            </div>
+            <button type="button" id="cookieConsentAccept" class="cookie-consent-btn">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <style>
+        .cookie-consent-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #ffffff;
+            border-top: 2px solid #e5e7eb;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .cookie-consent-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cookie-consent-text {
+            flex: 1;
+            min-width: 300px;
+            color: #1f2937;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .cookie-consent-text strong {
+            display: block;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #059669;
+        }
+
+        .cookie-consent-text p {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 4px 0;
+        }
+
+        .cookie-consent-link {
+            color: #059669;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .cookie-consent-link:hover {
+            color: #047857;
+            text-decoration: none;
+        }
+
+        .cookie-consent-btn {
+            background-color: #059669;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+
+        .cookie-consent-btn:hover {
+            background-color: #047857;
+        }
+
+        .cookie-consent-btn:active {
+            background-color: #065f46;
+        }
+
+        @media (max-width: 768px) {
+            .cookie-consent-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .cookie-consent-btn {
+                width: 100%;
+                margin-top: 12px;
+            }
+        }
+    </style>
+
+    <script>
+        (function() {
+            // Имя cookie для хранения согласия
+            const COOKIE_CONSENT_NAME = 'cookie_consent_accepted';
+            const COOKIE_CONSENT_VALUE = 'true';
+            const COOKIE_EXPIRY_DAYS = 365; // Срок действия cookie - 1 год
+
+            /**
+             * Установка cookie
+             */
+            function setCookie(name, value, days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = 'expires=' + date.toUTCString();
+                document.cookie = name + '=' + value + ';' + expires + ';path=/;SameSite=Lax';
+            }
+
+            /**
+             * Получение cookie
+             */
+            function getCookie(name) {
+                const nameEQ = name + '=';
+                const ca = document.cookie.split(';');
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+                }
+                return null;
+            }
+
+            /**
+             * Проверка, дал ли пользователь согласие
+             */
+            function hasConsent() {
+                return getCookie(COOKIE_CONSENT_NAME) === COOKIE_CONSENT_VALUE;
+            }
+
+            /**
+             * Показать баннер согласия
+             */
+            function showConsentBanner() {
+                const banner = document.getElementById('cookieConsentBanner');
+                if (banner) {
+                    banner.style.display = 'block';
+                }
+            }
+
+            /**
+             * Скрыть баннер согласия
+             */
+            function hideConsentBanner() {
+                const banner = document.getElementById('cookieConsentBanner');
+                if (banner) {
+                    banner.style.display = 'none';
+                }
+            }
+
+            /**
+             * Сохранить согласие и скрыть баннер
+             */
+            function acceptConsent() {
+                setCookie(COOKIE_CONSENT_NAME, COOKIE_CONSENT_VALUE, COOKIE_EXPIRY_DAYS);
+                hideConsentBanner();
+            }
+
+            /**
+             * Инициализация при загрузке страницы
+             */
+            function initCookieConsent() {
+                function setupBanner() {
+                    // Проверяем согласие
+                    if (!hasConsent()) {
+                        showConsentBanner();
+                    }
+
+                    // Обработчик кнопки согласия
+                    const acceptBtn = document.getElementById('cookieConsentAccept');
+                    if (acceptBtn) {
+                        // Удаляем старый обработчик, если есть
+                        acceptBtn.removeEventListener('click', acceptConsent);
+                        // Добавляем новый обработчик
+                        acceptBtn.addEventListener('click', acceptConsent);
+                    }
+                }
+
+                // Ждем полной загрузки DOM
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', setupBanner);
+                } else {
+                    // DOM уже загружен, но фрагмент может еще не отрендериться
+                    // Используем небольшую задержку для гарантии
+                    setTimeout(setupBanner, 100);
+                }
+            }
+
+            // Запускаем инициализацию
+            initCookieConsent();
+        })();
+    </script>
+</th:block>
+</html>
+
