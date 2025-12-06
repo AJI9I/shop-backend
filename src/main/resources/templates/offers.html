@@ -2,47 +2,34 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ru" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-menu-styles="light" data-toggled="close">
 
 <head>
-    <!-- Meta Data -->
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Предложения - MinerHive</title>
-    <meta name="Description" content="Все предложения от продавцов, отсортированные от последнего">
+    <meta name="Description" content="Все предложения от продавцов">
     
     <!-- Favicon -->
     <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}" href="../assets/images/brand-logos/favicon.ico" type="image/x-icon">
     
-    <!-- Choices JS -->
-    <script th:src="@{/bootstrap-theme/assets/libs/choices.js/public/assets/scripts/choices.min.js}" src="../assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
-    
     <!-- Bootstrap Css -->
     <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" href="../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
+    
     <!-- Style Css -->
     <link th:href="@{/bootstrap-theme/assets/css/styles.min.css}" href="../assets/css/styles.min.css" rel="stylesheet">
-
+    
     <!-- Icons Css -->
     <link th:href="@{/bootstrap-theme/assets/css/icons.css}" href="../assets/css/icons.css" rel="stylesheet">
-
+    
     <!-- Node Waves Css -->
     <link th:href="@{/bootstrap-theme/assets/libs/node-waves/waves.min.css}" href="../assets/libs/node-waves/waves.min.css" rel="stylesheet"> 
     
     <!-- Simplebar Css -->
     <link th:href="@{/bootstrap-theme/assets/libs/simplebar/simplebar.min.css}" href="../assets/libs/simplebar/simplebar.min.css" rel="stylesheet">
     
-    <!-- Color Picker Css -->
-    <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/flatpickr/flatpickr.min.css}" href="../assets/libs/flatpickr/flatpickr.min.css">
-    <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/@simonwep/pickr/themes/nano.min.css}" href="../assets/libs/@simonwep/pickr/themes/nano.min.css">
-
-    <!-- Choices Css -->
-    <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/choices.js/public/assets/styles/choices.min.css}" href="../assets/libs/choices.js/public/assets/styles/choices.min.css">
-    
-    <!-- Custom styles для таблицы предложений -->
     <style>
-        /* Восстановление прокрутки страницы - полная версия */
         html {
             overflow-x: hidden !important;
-            overflow-y: scroll !important; /* Всегда показываем полосу прокрутки */
+            overflow-y: scroll !important;
             height: 100% !important;
         }
         
@@ -54,7 +41,6 @@
             position: relative !important;
         }
         
-        /* Основной контейнер страницы должен прокручиваться */
         .page {
             overflow-x: hidden !important;
             overflow-y: visible !important;
@@ -62,7 +48,6 @@
             min-height: 100vh !important;
         }
         
-        /* Контент должен прокручиваться */
         .main-content, .app-content {
             overflow-x: hidden !important;
             overflow-y: visible !important;
@@ -70,58 +55,9 @@
             min-height: 100vh !important;
         }
         
-        /* Гарантируем, что body может прокручиваться даже с модальными окнами */
         body.modal-open {
             overflow-y: scroll !important;
             padding-right: 0 !important;
-        }
-        
-        /* Минимальные стили для модального окна - только то, что нужно */
-        /* Убираем все ограничения от родительских элементов */
-        body.modal-open .page,
-        body.modal-open .main-content,
-        body.modal-open .app-content {
-            overflow: visible !important;
-        }
-        
-        /* КРИТИЧЕСКИ ВАЖНО: Стили для модального окна, чтобы оно было видно */
-        /* Применяем только к открытому модальному окну */
-        #offerDetailsModal.show {
-            display: block !important;
-            opacity: 1 !important;
-            z-index: 1055 !important;
-        }
-        
-        /* Backdrop для модального окна - только когда модальное окно открыто */
-        body.modal-open .modal-backdrop {
-            z-index: 1050 !important;
-            background-color: rgba(0, 0, 0, 0.5) !important;
-        }
-        
-        /* Принудительно показываем стандартную полосу прокрутки */
-        ::-webkit-scrollbar {
-            width: 10px !important;
-            height: 10px !important;
-            display: block !important;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1 !important;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #888 !important;
-            border-radius: 5px !important;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555 !important;
-        }
-        
-        /* Для Firefox */
-        html {
-            scrollbar-width: thin !important;
-            scrollbar-color: #888 #f1f1f1 !important;
         }
         
         .offers-table {
@@ -139,15 +75,6 @@
             white-space: nowrap;
         }
         
-        .offers-table thead th.sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .offers-table thead th.sortable:hover {
-            background-color: #34495e;
-        }
-        
         .offers-table tbody td {
             padding: 8px 12px;
             vertical-align: middle;
@@ -162,442 +89,87 @@
             background-color: #f8f9fa;
         }
         
-        .sort-icon {
-            margin-left: 8px;
-            font-size: 0.75rem;
-        }
-        
-        /* Стили для кнопок фильтров */
-        .manufacturer-btn, .operation-type-btn {
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-        
-        .manufacturer-btn:hover, .operation-type-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .manufacturer-btn.active {
+        .manufacturer-btn.active, .operation-type-btn.active, .date-filter-btn.active, .series-filter-btn.active {
             background-color: #0d6efd;
             border-color: #0d6efd;
             color: #ffffff;
-            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
-        }
-        
-        .operation-type-btn.active {
-            background-color: #198754;
-            border-color: #198754;
-            color: #ffffff;
-            box-shadow: 0 2px 4px rgba(25, 135, 84, 0.3);
-        }
-        
-        .manufacturer-btn.active:hover, .operation-type-btn.active:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
         }
     </style>
-    
-    <!-- Fix for missing DOM elements - MUST be before other scripts -->
-    <script>
-        // Ensure all required DOM elements exist before scripts execute
-        (function() {
-            function ensureElements() {
-                // Ensure horizontal menu exists in the correct location
-                let horizontalMenu = document.querySelector('.horizontal-menu');
-                if (!horizontalMenu) {
-                    let headerCenter = document.querySelector('.main-header-center');
-                    if (!headerCenter) {
-                        // Find header-element or create it
-                        const headerContentLeft = document.querySelector('.header-content-left');
-                        if (headerContentLeft) {
-                            headerCenter = document.createElement('div');
-                            headerCenter.className = 'main-header-center d-none d-lg-block';
-                            headerCenter.style.display = 'none';
-                            const headerElement = headerContentLeft.querySelector('.header-element');
-                            if (headerElement) {
-                                headerElement.appendChild(headerCenter);
-                            } else {
-                                headerContentLeft.appendChild(headerCenter);
-                            }
-                        }
-                    }
-                    if (headerCenter) {
-                        horizontalMenu = document.createElement('nav');
-                        horizontalMenu.className = 'horizontal-menu';
-                        horizontalMenu.style.display = 'none';
-                        headerCenter.appendChild(horizontalMenu);
-                    }
-                }
-                
-                // Ensure loader element exists
-                let loader = document.getElementById('loader');
-                if (!loader) {
-                    loader = document.createElement('div');
-                    loader.id = 'loader';
-                    loader.style.display = 'none';
-                    if (document.body) {
-                        document.body.insertBefore(loader, document.body.firstChild);
-                    }
-                }
-                
-                // Ensure switcher-canvas exists with all required child elements
-                let switcherCanvas = document.getElementById('switcher-canvas');
-                if (!switcherCanvas) {
-                    switcherCanvas = document.createElement('div');
-                    switcherCanvas.className = 'offcanvas offcanvas-end';
-                    switcherCanvas.id = 'switcher-canvas';
-                    switcherCanvas.setAttribute('tabindex', '-1');
-                    switcherCanvas.setAttribute('aria-labelledby', 'offcanvasRightLabel');
-                    switcherCanvas.style.display = 'none';
-                    
-                    // Создаем минимальную структуру для switcher-canvas
-                    const switcherHeader = document.createElement('div');
-                    switcherHeader.className = 'offcanvas-header border-bottom';
-                    switcherHeader.innerHTML = '<h5 class="offcanvas-title text-default" id="offcanvasRightLabel">Switcher</h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>';
-                    
-                    const switcherBody = document.createElement('div');
-                    switcherBody.className = 'offcanvas-body';
-                    
-                    switcherCanvas.appendChild(switcherHeader);
-                    switcherCanvas.appendChild(switcherBody);
-                    
-                    if (document.body) {
-                        document.body.appendChild(switcherCanvas);
-                    }
-                } else {
-                    // Проверяем наличие необходимых дочерних элементов
-                    if (!switcherCanvas.querySelector('.offcanvas-header')) {
-                        const switcherHeader = document.createElement('div');
-                        switcherHeader.className = 'offcanvas-header border-bottom';
-                        switcherHeader.innerHTML = '<h5 class="offcanvas-title text-default" id="offcanvasRightLabel">Switcher</h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>';
-                        switcherCanvas.insertBefore(switcherHeader, switcherCanvas.firstChild);
-                    }
-                    if (!switcherCanvas.querySelector('.offcanvas-body')) {
-                        const switcherBody = document.createElement('div');
-                        switcherBody.className = 'offcanvas-body';
-                        switcherCanvas.appendChild(switcherBody);
-                    }
-                }
-                
-                // Создаем минимальные элементы для switcher, если их нет
-                const switcherBody = switcherCanvas.querySelector('.offcanvas-body');
-                if (switcherBody) {
-                    // Создаем элементы для tabs, если их нет
-                    if (!switcherBody.querySelector('#switcher-main-tab')) {
-                        const nav = document.createElement('nav');
-                        nav.className = 'border-bottom border-block-end-dashed';
-                        nav.innerHTML = '<div class="nav nav-tabs nav-justified" id="switcher-main-tab" role="tablist"></div>';
-                        switcherBody.appendChild(nav);
-                    }
-                }
-                
-                // Ensure header-sidebar exists
-                let headerSidebar = document.getElementById('header-sidebar');
-                if (!headerSidebar) {
-                    headerSidebar = document.createElement('div');
-                    headerSidebar.className = 'offcanvas offcanvas-end';
-                    headerSidebar.id = 'header-sidebar';
-                    headerSidebar.setAttribute('tabindex', '-1');
-                    headerSidebar.setAttribute('aria-labelledby', 'sidebarLabel');
-                    headerSidebar.style.display = 'none';
-                    if (document.body) {
-                        document.body.appendChild(headerSidebar);
-                    }
-                }
-                
-                // Создаем заглушки для элементов, которые могут понадобиться custom.js
-                // Элементы для custom.js:121 (appendChild)
-                if (document.body && !document.body.querySelector('.page')) {
-                    // Если нет элемента .page, скрипт может пытаться добавить в него что-то
-                    // Добавляем проверку, чтобы не было ошибок
-                }
-            }
-            
-            // Run when DOM is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', ensureElements);
-            } else {
-                // DOM already loaded
-                ensureElements();
-            }
-            
-            // Also run immediately to catch early script execution
-            if (document.body) {
-                ensureElements();
-            }
-        })();
-        
-        // Защита от ошибок в сторонних скриптах - перехватываем ошибки до их возникновения
-        window.addEventListener('error', function(e) {
-            // Игнорируем ошибки, связанные с отсутствующими элементами в сторонних скриптах
-            if (e.filename && (
-                e.filename.includes('custom-switcher.min.js') ||
-                e.filename.includes('custom.js')
-            )) {
-                if (e.message && (
-                    e.message.includes('null') ||
-                    e.message.includes('addEventListener') ||
-                    e.message.includes('appendChild')
-                )) {
-                    e.preventDefault();
-                    return true;
-                }
-            }
-        }, true);
-    </script>
-</head> 
+</head>
 
 <body>
-    <!-- Page Loader -->
-    <div id="loader">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-    <!-- Page Loader -->
-
-    <!-- Start Switcher -->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="switcher-canvas" aria-labelledby="offcanvasRightLabel">
-        <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title text-default" id="offcanvasRightLabel">Switcher</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <nav class="border-bottom border-block-end-dashed">
-                <div class="nav nav-tabs nav-justified" id="switcher-main-tab" role="tablist">
-                    <button class="nav-link active" id="switcher-home-tab" data-bs-toggle="tab" data-bs-target="#switcher-home"
-                        type="button" role="tab" aria-controls="switcher-home" aria-selected="true">Theme Styles</button>
-                    <button class="nav-link" id="switcher-profile-tab" data-bs-toggle="tab" data-bs-target="#switcher-profile"
-                        type="button" role="tab" aria-controls="switcher-profile" aria-selected="false">Theme Colors</button>
-                </div>
-            </nav>
-            <div class="tab-content" id="nav-tabContent">
-                <div class="tab-pane fade show active border-0" id="switcher-home" role="tabpanel" aria-labelledby="switcher-home-tab" tabindex="0">
-                    <div class="">
-                        <p class="switcher-style-head">Theme Color Mode:</p>
-                        <div class="row switcher-style gx-0">
-                            <div class="col-4">
-                                <div class="form-check switch-select">
-                                    <label class="form-check-label" for="switcher-light-theme">Light</label>
-                                    <input class="form-check-input" type="radio" name="theme-style" id="switcher-light-theme" checked>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="form-check switch-select">
-                                    <label class="form-check-label" for="switcher-dark-theme">Dark</label>
-                                    <input class="form-check-input" type="radio" name="theme-style" id="switcher-dark-theme">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade border-0" id="switcher-profile" role="tabpanel" aria-labelledby="switcher-profile-tab" tabindex="0">
-                        <div class="">
-                            <p class="switcher-style-head">Menu Colors:</p>
-                            <div class="d-flex switcher-style pb-2">
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-light" checked>
-                                    <label class="form-check-label" for="switcher-menu-light">Light</label>
-                                </div>
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-dark">
-                                    <label class="form-check-label" for="switcher-menu-dark">Dark</label>
-                                </div>
-                                <div class="form-check switch-select">
-                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-primary">
-                                    <label class="form-check-label" for="switcher-menu-primary">Primary</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="">
-                            <p class="switcher-style-head">Header Colors:</p>
-                            <div class="d-flex switcher-style pb-2">
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-light" checked>
-                                    <label class="form-check-label" for="switcher-header-light">Light</label>
-                                </div>
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-dark">
-                                    <label class="form-check-label" for="switcher-header-dark">Dark</label>
-                                </div>
-                            </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- End Switcher -->
-
-    <!-- Start::Off-canvas sidebar-->
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="header-sidebar" aria-labelledby="sidebarLabel">
-        <div class="offcanvas-header rounded-0">
-            <h5 class="fs-14 text-uppercase mb-0 fw-semibold" id="sidebarLabel">Меню</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body rounded-0 p-0">
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item"><a th:href="@{/private}" class="text-dark">Панель управления</a></li>
-                <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/messages}" class="text-dark">Сообщения</a></li>
-                <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/products/table}" class="text-dark">Таблица товаров</a></li>
-                <li class="list-group-item" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')"><a th:href="@{/private/offers}" class="text-dark">Предложения</a></li>
-                <li class="list-group-item"><a th:href="@{/private/requests}" class="text-dark">Заявки</a></li>
-                <li class="list-group-item"><a th:href="@{/private/miner-details}" class="text-dark">Детали майнеров</a></li>
-                <li class="list-group-item"><a th:href="@{/private/profitability}" class="text-dark">Калькулятор доходности</a></li>
-                <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/users}" class="text-dark">Пользователи</a></li>
-            </ul>
-        </div>
-    </div>
-    <!-- End::Off-canvas sidebar-->
-
     <div class="page">
-        <!-- app-header -->
         <header class="app-header">
-            <!-- Start::main-header-container -->
             <div class="main-header-container container-fluid">
-                <!-- Start::header-content-left -->
                 <div class="header-content-left">
-                    <!-- Start::header-element -->
                     <div class="header-element">
                         <div class="horizontal-logo">
-                            <a th:href="@{/}" class="header-logo">
-                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-logo.png}" src="../assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
-                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-logo.png}" src="../assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
-                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-white.png}" src="../assets/images/brand-logos/desktop-white.png" alt="logo" class="desktop-white">
-                                <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-white.png}" src="../assets/images/brand-logos/toggle-white.png" alt="logo" class="toggle-white">
+                            <a href="/" class="header-logo">
+                                <img src="/bootstrap-theme/assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
+                                <img src="/bootstrap-theme/assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
                             </a>
                         </div>
                     </div>
-                    <!-- End::header-element -->
-
-                    <!-- Start::header-element -->
                     <div class="header-element">
-                        <!-- Start::header-link -->
                         <a aria-label="Hide Sidebar" class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle" data-bs-toggle="sidebar" href="javascript:void(0);">
                             <i class="header-icon fe fe-align-left"></i>
                         </a>
-                        <!-- End::header-link -->
-                        <!-- Horizontal Menu Container (hidden, but needed for scripts) -->
-                        <div class="main-header-center d-none d-lg-block" style="display: none !important;">
-                            <nav class="horizontal-menu"></nav>
-                        </div>
                     </div>
-                    <!-- End::header-element -->
                 </div>
-                <!-- End::header-content-left -->
-
-                <!-- Start::header-content-right -->
                 <div class="header-content-right">
-                    <!-- Start::header-element -->
                     <div class="header-element header-sidebar">
-                        <!-- Start::header-link-->
                         <a href="javascript:void(0);" class="header-link" data-bs-toggle="offcanvas" data-bs-target="#header-sidebar">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                         </a>
-                        <!-- End::header-link-->
                     </div>
-                    <!-- End::header-element -->
-
-                    <!-- Start::header-element -->
-                    <div class="header-element">
-                        <!-- Start::header-link|switcher-icon -->
-                        <a href="javascript:void(0);" class="header-link switcher-icon" data-bs-toggle="offcanvas" data-bs-target="#switcher-canvas">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" width="24" height="24" viewBox="0 0 24 24"><path d="M12 16c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm0-6c1.084 0 2 .916 2 2s-.916 2-2 2-2-.916-2-2 .916-2 2-2z"></path><path d="m2.845 16.136 1 1.73c.531.917 1.809 1.261 2.73.73l.529-.306A8.1 8.1 0 0 0 9 19.402V20c0 1.103.897 2 2 2h2c1.103 0 2-.897 2-2v-.598a8.132 8.132 0 0 0 1.896-1.111l.529.306c.923.53 2.198.188 2.731-.731l.999-1.729a2.001 2.001 0 0 0-.731-2.732l-.505-.292a7.718 7.718 0 0 0 0-2.224l.505-.292a2.002 2.002 0 0 0 .731-2.732l-.999-1.729c-.531-.92-1.808-1.265-2.731-.732l-.529.306A8.1 8.1 0 0 0 15 4.598V4c0-1.103-.897-2-2-2h-2c-1.103 0-2 .897-2 2v.598a8.132 8.132 0 0 0-1.896 1.111l-.529-.306c-.924-.531-2.2-.187-2.731.732l-.999 1.729a2.001 2.001 0 0 0 .731 2.732l.505.292a7.683 7.683 0 0 0 0 2.223l-.505.292a2.003 2.003 0 0 0-.731 2.733zm3.326-2.758A5.703 5.703 0 0 1 6 12c0-.462.058-.926.17-1.378a.999.999 0 0 0-.47-1.108l-1.123-.65.998-1.729 1.145.662a.997.997 0 0 0 1.188-.142 6.071 6.071 0 0 1 2.384-1.399A1 1 0 0 0 11 5.3V4h2v1.3a1 1 0 0 0 .708.956 6.083 6.083 0 0 1 2.384 1.399.999.999 0 0 0 1.188.142l1.144-.661 1 1.729-1.124.649a1 1 0 0 0-.47 1.108c.112.452.17.916.17 1.378 0 .461-.058.925-.171 1.378a1 1 0 0 0 .471 1.108l1.123.649-.998 1.729-1.145-.661a.996.996 0 0 0-1.188.142 6.071 6.071 0 0 1-2.384 1.399A1 1 0 0 0 13 18.7l.002 1.3H11v-1.3a1 1 0 0 0-.708-.956 6.083 6.083 0 0 1-2.384-1.399.992.992 0 0 0-1.188-.141l-1.144.662-1-1.729 1.124-.651a1 1 0 0 0 .471-1.108z"></path></svg>
-                        </a>
-                        <!-- End::header-link|switcher-icon -->
-                    </div>
-                    <!-- End::header-element -->
-
-                    <!-- Start::header-element -->
                     <div class="header-element headerProfile-dropdown">
-                        <!-- Start::header-link|dropdown-toggle -->
                         <a href="javascript:void(0);" class="header-link dropdown-toggle" id="mainHeaderProfile" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                             <i class="fe fe-user fs-20"></i>
                         </a>
-                        <!-- End::header-link|dropdown-toggle -->
                         <ul class="main-header-dropdown dropdown-menu pt-0 header-profile-dropdown dropdown-menu-end main-profile-menu" aria-labelledby="mainHeaderProfile">
                             <li>
                                 <div class="main-header-profile bg-primary menu-header-content text-fixed-white">
                                     <div class="my-auto">
                                         <h6 class="mb-0 lh-1 text-fixed-white">
-                                            <span sec:authorize="hasRole('ADMIN')">Администратор</span>
-                                            <span sec:authorize="hasRole('MANAGER') and !hasRole('ADMIN')">Менеджер</span>
+                                            <span>Администратор</span>
                                         </h6>
                                         <span class="fs-11 op-7 lh-1">MinerHive</span>
                                     </div>
                                 </div>
                             </li>
-                            <li><a class="dropdown-item d-flex" th:href="@{/}"><i class="bx bx-home fs-18 me-2 op-7"></i>Главная</a></li>
-                            <li><a class="dropdown-item d-flex border-block-end" th:href="@{/logout}"><i class="bx bx-log-out fs-18 me-2 op-7"></i>Выход</a></li>
+                            <li><a class="dropdown-item d-flex" href="/"><i class="bx bx-home fs-18 me-2 op-7"></i>Главная</a></li>
+                            <li><a class="dropdown-item d-flex border-block-end" href="/logout"><i class="bx bx-log-out fs-18 me-2 op-7"></i>Выход</a></li>
                         </ul>
-                    </div>  
-                    <!-- End::header-element -->
+                    </div>
                 </div>
-                <!-- End::header-content-right -->
             </div>
-            <!-- End::main-header-container -->
         </header>
-        <!-- /app-header -->
 
-        <!-- Start::app-sidebar -->
         <aside class="app-sidebar sticky" id="sidebar">
-            <!-- Start::main-sidebar-header -->
             <div class="main-sidebar-header">
-                <a th:href="@{/}" class="header-logo">
-                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-logo.png}" src="../assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
-                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-logo.png}" src="../assets/images/brand-logos/toggle-logo.png" alt="logo" class="toggle-logo">
-                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-white.png}" src="../assets/images/brand-logos/desktop-white.png" alt="logo" class="desktop-white">
-                    <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-white.png}" src="../assets/images/brand-logos/toggle-white.png" alt="logo" class="toggle-white">
+                <a href="/" class="header-logo">
+                    <img src="/bootstrap-theme/assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
                 </a>
             </div>
-            <!-- End::main-sidebar-header -->
-
-            <!-- Start::main-sidebar -->
             <div class="main-sidebar" id="sidebar-scroll">
-                <!-- Start::nav -->
                 <nav class="main-menu-container nav nav-pills flex-column sub-open">
-                    <div class="slide-left" id="slide-left">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path> </svg>
-                    </div>
                     <ul class="main-menu">
-                        <!-- Start::slide__category -->
                         <li class="slide__category"><span class="category-name">Главное</span></li>
-                        <!-- End::slide__category -->
-
-                        <!-- Start::slide -->
                         <li class="slide">
-                            <a th:href="@{/private}" class="side-menu__item">
+                            <a href="/private" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5 5h4v6H5zm10 8h4v6h-4zM5 17h4v2H5zM15 5h4v2h-4z" opacity=".3"/><path d="M3 13h8V3H3v10zm2-8h4v6H5V5zm8 16h8V11h-8v10zm2-8h4v6h-4v-6zM13 3v6h8V3h-8zm6 4h-4V5h4v2zM3 21h8v-6H3v6zm2-4h4v2H5v-2z"/></svg>
                                 <span class="side-menu__label">Панель управления</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide__category -->
                         <li class="slide__category"><span class="category-name">Управление</span></li>
-                        <!-- End::slide__category -->
-
-                        <!-- Start::slide -->
-                        <li class="slide" sec:authorize="hasRole('ADMIN')">
-                            <a th:href="@{/private/messages}" class="side-menu__item">
+                        <li class="slide">
+                            <a href="/private/messages" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
                                 <span class="side-menu__label">Сообщения</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
-                        <li class="slide" sec:authorize="hasRole('ADMIN')">
-                            <a th:href="@{/private/products/table}" class="side-menu__item">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 5H5v14h14V5zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" opacity=".3"/><path d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm2 0h14v14H5V5zm2 5h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
-                                <span class="side-menu__label">Таблица товаров</span>
-                            </a>
-                        </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
-                        <li class="slide" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
-                            <a th:href="@{/private/offers}" class="side-menu__item active">
+                        <li class="slide">
+                            <a href="/private/offers" class="side-menu__item active">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24">
                                     <path d="M0 0h24v24H0V0z" fill="none"/>
                                     <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
@@ -605,75 +177,26 @@
                                 <span class="side-menu__label">Предложения</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
-                        <li class="slide">
-                            <a th:href="@{/private/requests}" class="side-menu__item">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-                                <span class="side-menu__label">Заявки</span>
-                            </a>
-                        </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
-                        <li class="slide">
-                            <a th:href="@{/private/miner-details}" class="side-menu__item">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
-                                <span class="side-menu__label">Детали майнеров</span>
-                            </a>
-                        </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
-                        <li class="slide">
-                            <a th:href="@{/private/profitability}" class="side-menu__item">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-                                <span class="side-menu__label">Калькулятор доходности</span>
-                            </a>
-                        </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide__category -->
-                        <li class="slide__category" sec:authorize="hasRole('ADMIN')"><span class="category-name">Администрирование</span></li>
-                        <!-- End::slide__category -->
-
-                        <!-- Start::slide -->
-                        <li class="slide" sec:authorize="hasRole('ADMIN')">
-                            <a th:href="@{/private/users}" class="side-menu__item">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-3.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                                <span class="side-menu__label">Пользователи</span>
-                            </a>
-                        </li>
-                        <!-- End::slide -->
                     </ul>
-                    <div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path> </svg></div>
                 </nav>
-                <!-- End::nav -->
             </div>
-            <!-- End::main-sidebar -->
         </aside>
-        <!-- End::app-sidebar -->
 
-        <!-- Start::app-content -->
         <div class="main-content app-content">
             <div class="container-fluid">
-                <!-- Page Header -->
                 <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
                     <div class="my-auto">
                         <h5 class="page-title fs-21 mb-1">Все предложения</h5>
                         <nav>
                             <ol class="breadcrumb mb-0">
-                                <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
-                                <li class="breadcrumb-item"><a th:href="@{/private}">Панель управления</a></li>
+                                <li class="breadcrumb-item"><a href="/">Главная</a></li>
+                                <li class="breadcrumb-item"><a href="/private">Панель управления</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Предложения</li>
                             </ol>
                         </nav>
                     </div>
                 </div>
-                <!-- Page Header Close -->
 
-                <!-- Start::row-1 -->
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="card custom-card">
@@ -681,102 +204,62 @@
                                 <div class="card-title">Все предложения от продавцов</div>
                             </div>
                             <div class="card-body">
-                                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <span th:text="${error}"></span>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
                                 
-                                <!-- Блок фильтров -->
+                                <!-- Фильтры -->
                                 <div class="card mb-3" style="background-color: #f8f9fa;">
                                     <div class="card-body">
                                         <h6 class="card-title mb-3">Фильтры</h6>
                                         
-                                        <!-- Фильтр по производителю -->
+                                        <!-- Производитель -->
                                         <div class="mb-3">
                                             <label class="form-label fw-semibold mb-2">Производитель</label>
                                             <div class="d-flex flex-wrap gap-2" id="manufacturerFilterContainer">
-                                                <button type="button" 
-                                                        class="btn btn-outline-primary manufacturer-btn" 
-                                                        data-manufacturer=""
-                                                        th:classappend="${selectedManufacturer == null || selectedManufacturer.isEmpty()} ? 'active'">
-                                                    Все производители
-                                                </button>
-                                                <button type="button" 
-                                                        th:each="manuf : ${manufacturers}"
-                                                        class="btn btn-outline-primary manufacturer-btn"
-                                                        th:data-manufacturer="${manuf}"
-                                                        th:text="${manuf}"
-                                                        th:classappend="${selectedManufacturer != null && selectedManufacturer.equals(manuf)} ? 'active'">
-                                            Производитель
-                                                </button>
+                                                <button type="button" class="btn btn-outline-primary manufacturer-btn active" data-manufacturer="">Все производители</button>
+                                                <button type="button" th:each="mfr : ${manufacturers}" class="btn btn-outline-primary manufacturer-btn" th:data-manufacturer="${mfr}" th:text="${mfr}"></button>
                                             </div>
                                         </div>
                                         
-                                        <!-- Фильтр по серии майнера (загружается динамически при выборе производителя) -->
+                                        <!-- Серия -->
                                         <div class="mb-3" id="seriesFilterContainer" style="display: none;">
                                             <label class="form-label fw-semibold mb-2">Серия майнера</label>
                                             <div class="d-flex flex-wrap gap-2" id="seriesFilterButtonsContainer">
-                                                <button type="button" 
-                                                        class="btn btn-outline-warning series-filter-btn" 
-                                                        data-series-filter=""
-                                                        id="allSeriesBtn">
-                                                    Все серии
-                                                </button>
-                                                <!-- Кнопки серий будут добавлены через JavaScript -->
+                                                <button type="button" class="btn btn-outline-warning series-filter-btn active" data-series-filter="" id="allSeriesBtn">Все серии</button>
                                             </div>
                                         </div>
                                         
-                                        <!-- Фильтр по типу операции (куплю/продам) -->
+                                        <!-- Тип операции -->
                                         <div class="mb-3">
                                             <label class="form-label fw-semibold mb-2">Тип операции</label>
                                             <div class="d-flex flex-wrap gap-2" id="operationTypeFilterContainer">
-                                                <button type="button" 
-                                                        class="btn btn-outline-success operation-type-btn" 
-                                                        data-operation-type=""
-                                                        th:classappend="${selectedOperationType == null || selectedOperationType.isEmpty()} ? 'active'">
-                                                    Все
-                                                </button>
-                                                <button type="button" 
-                                                        class="btn btn-outline-success operation-type-btn" 
-                                                        data-operation-type="SELL"
-                                                        th:classappend="${selectedOperationType != null && selectedOperationType.equals('SELL')} ? 'active'">
-                                                    Продам
-                                                </button>
-                                                <button type="button" 
-                                                        class="btn btn-outline-success operation-type-btn" 
-                                                        data-operation-type="BUY"
-                                                        th:classappend="${selectedOperationType != null && selectedOperationType.equals('BUY')} ? 'active'">
-                                                    Куплю
-                                                </button>
+                                                <button type="button" class="btn btn-outline-success operation-type-btn active" data-operation-type="">Все</button>
+                                                <button type="button" class="btn btn-outline-success operation-type-btn" data-operation-type="SELL">Продам</button>
+                                                <button type="button" class="btn btn-outline-success operation-type-btn" data-operation-type="BUY">Куплю</button>
                                             </div>
                                         </div>
                                         
-                                        <!-- Фильтр по дате (последние 10 дней) -->
+                                        <!-- Дата -->
                                         <div class="mb-2">
                                             <label class="form-label fw-semibold mb-2">Дата</label>
                                             <div class="d-flex flex-wrap gap-2" id="dateFilterContainer">
-                                                <button type="button" 
-                                                        class="btn btn-outline-info date-filter-btn" 
-                                                        data-date-filter=""
-                                                        th:classappend="${selectedDateFilter == null || selectedDateFilter.isEmpty()} ? 'active' : ''">
-                                                    Все даты
-                                                </button>
-                                                <!-- Кнопки будут добавлены через JavaScript -->
+                                                <button type="button" class="btn btn-outline-info date-filter-btn active" data-date-filter="">Все даты</button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Информация о количестве записей -->
+                                <!-- Информация о количестве и кнопка удаления -->
                                 <div class="mb-3 d-flex justify-content-between align-items-center">
                                     <div class="text-muted">
-                                        Показано 
-                                        <span id="currentCount" th:text="${offersPage.number * offersPage.size + #lists.size(offersPage.content)}">0</span> из 
-                                        <span id="totalCount" th:text="${offersPage.totalElements}">0</span>
+                                        Показано <span id="currentCount" th:text="${offersPage.numberOfElements}">0</span> из <span id="totalCount" th:text="${offersPage.totalElements}">0</span>
+                                    </div>
+                                    <div sec:authorize="hasRole('ADMIN')">
+                                        <button type="button" class="btn btn-danger" id="deleteSelectedBtn" disabled onclick="deleteSelectedOffers()">
+                                            <i class="fe fe-trash-2"></i> Удалить выбранные
+                                        </button>
                                     </div>
                                 </div>
                                 
-                                <!-- Таблица предложений -->
+                                <!-- Таблица -->
                                 <div class="table-responsive">
                                     <div id="loadingIndicator" class="text-center py-4" style="display: none;">
                                         <div class="spinner-border text-primary" role="status">
@@ -786,6 +269,9 @@
                                     <table class="table offers-table text-nowrap" id="offersTable">
                                         <thead>
                                             <tr>
+                                                <th sec:authorize="hasRole('ADMIN')" style="width: 40px;">
+                                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
+                                                </th>
                                                 <th>ID</th>
                                                 <th>Товар</th>
                                                 <th>Майнер детали</th>
@@ -801,83 +287,62 @@
                                             </tr>
                                         </thead>
                                         <tbody id="offersTableBody">
-                                            <tr th:if="${#lists.isEmpty(offers)}">
-                                                <td colspan="12" class="text-center py-24 text-muted">
-                                                    Предложения не найдены
+                                            <tr class="offer-row" th:each="offer : ${offers}" th:data-offer-id="${offer.id}">
+                                                <td sec:authorize="hasRole('ADMIN')">
+                                                    <input type="checkbox" class="offer-checkbox" th:data-offer-id="${offer.id}" onchange="updateDeleteButton()">
                                                 </td>
-                                            </tr>
-                                            <tr th:each="offer : ${offers}" 
-                                                class="offer-row" 
-                                                th:attr="data-offer-id=${offer.id}"
-                                                style="cursor: pointer;">
-                                                <td th:text="${offer.id}">1</td>
+                                                <td th:text="${offer.id}"></td>
                                                 <td>
-                                                    <span th:if="${offer.product != null}" th:text="${offer.product.model}">Модель</span>
-                                                    <span th:unless="${offer.product != null}" class="text-muted">-</span>
+                                                    <span th:text="${offer.product != null ? offer.product.model : '-'}"></span>
                                                 </td>
                                                 <td>
-                                                    <span th:if="${offer.product != null && offer.product.minerDetail != null}" 
-                                                          th:text="${offer.product.minerDetail.standardName}">Майнер детали</span>
-                                                    <span th:unless="${offer.product != null && offer.product.minerDetail != null}" 
-                                                          class="text-muted">-</span>
+                                                    <span th:text="${offer.product != null && offer.product.minerDetail != null ? offer.product.minerDetail.standardName : '-'}"></span>
                                                 </td>
                                                 <td>
-                                                    <span th:if="${offer.seller != null && offer.seller.phone != null}" th:text="${offer.seller.phone}">Телефон</span>
-                                                    <span th:if="${offer.seller == null || offer.seller.phone == null}">
-                                                        <span th:if="${offer.sellerPhone != null}" th:text="${offer.sellerPhone}">Телефон</span>
-                                                        <span th:unless="${offer.sellerPhone != null}" class="text-muted">-</span>
+                                                    <span th:text="${offer.seller != null ? offer.seller.phone : (offer.sellerPhone != null ? offer.sellerPhone : '-')}"></span>
+                                                </td>
+                                                <td th:text="${offer.operationType != null ? offer.operationType : '-'}">SELL</td>
+                                                <td>
+                                                    <span th:if="${offer.price != null && offer.price.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                                                        <span th:text="${#numbers.formatDecimal(offer.price, 0, 2)}"></span>
+                                                        <span th:text="${offer.currency != null ? offer.currency : 'RUB'}"></span>
                                                     </span>
+                                                    <span th:if="${offer.price == null || offer.price.compareTo(T(java.math.BigDecimal).ZERO) == 0}" class="text-muted">-</span>
+                                                </td>
+                                                <td th:text="${offer.quantity != null ? offer.quantity : '-'}"></td>
+                                                <td>
+                                                    <span th:if="${offer.hashrate != null && !offer.hashrate.isEmpty()}" th:text="${offer.hashrate}"></span>
+                                                    <span th:if="${offer.hashrate == null || offer.hashrate.isEmpty()}" class="text-muted">-</span>
                                                 </td>
                                                 <td>
-                                                    <span th:text="${offer.operationType}">SELL</span>
+                                                    <span th:if="${offer.condition != null && !offer.condition.isEmpty()}" th:text="${offer.condition}"></span>
+                                                    <span th:if="${offer.condition == null || offer.condition.isEmpty()}" class="text-muted">-</span>
                                                 </td>
                                                 <td>
-                                                    <span th:if="${offer.price != null}">
-                                                        <span th:text="${#numbers.formatDecimal(offer.price, 0, 'COMMA', 2, 'POINT')}">0</span>
-                                                        <span th:text="${offer.currency != null ? offer.currency : 'u'}">u</span>
-                                                    </span>
-                                                    <span th:unless="${offer.price != null}" class="text-muted">-</span>
-                                                </td>
-                                                <td th:text="${offer.quantity}">0</td>
-                                                <td>
-                                                    <span th:if="${offer.hashrate != null && !offer.hashrate.isEmpty()}" th:utext="${offer.hashrate}">-</span>
-                                                    <span th:unless="${offer.hashrate != null && !offer.hashrate.isEmpty()}" class="text-muted">-</span>
+                                                    <span th:if="${offer.location != null && !offer.location.isEmpty()}" th:text="${offer.location}"></span>
+                                                    <span th:if="${offer.location == null || offer.location.isEmpty()}"></span>
                                                 </td>
                                                 <td>
-                                                    <span th:if="${offer.condition != null}" th:utext="${offer.condition}">-</span>
-                                                    <span th:unless="${offer.condition != null}" class="text-muted">-</span>
+                                                    <span th:if="${offer.notes != null && !offer.notes.isEmpty()}" th:text="${offer.notes}"></span>
+                                                    <span th:if="${offer.notes == null || offer.notes.isEmpty()}" class="text-muted">-</span>
                                                 </td>
-                                                <td>
-                                                    <span th:if="${offer.location != null}" th:utext="${offer.location}">-</span>
-                                                    <span th:unless="${offer.location != null}" class="text-muted">-</span>
-                                                </td>
-                                                <td>
-                                                    <span th:if="${offer.notes != null && !offer.notes.isEmpty()}" th:utext="${offer.notes}">-</span>
-                                                    <span th:unless="${offer.notes != null && !offer.notes.isEmpty()}" class="text-muted">-</span>
-                                                </td>
-                                                <td th:text="${#temporals.format(offer.createdAt, 'dd.MM.yyyy HH:mm')}">01.01.2024 00:00</td>
+                                                <td th:text="${#temporals.format(offer.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                                 
                                 <!-- Пагинация -->
-                                <nav id="paginationNav" th:if="${offersPage.totalPages > 1}" class="mt-3" aria-label="Навигация по страницам">
+                                <nav id="paginationNav" class="mt-3" aria-label="Навигация по страницам">
                                     <ul class="pagination justify-content-center" id="paginationContainer">
-                                        <li class="page-item" th:classappend="${offersPage.first} ? 'disabled'">
-                                            <a class="page-link" 
-                                               th:href="@{/private/offers(page=${offersPage.number - 1}, size=${pageSize}, manufacturer=${selectedManufacturer}, operationType=${selectedOperationType})}">Предыдущая</a>
+                                        <li class="page-item" th:classappend="${offersPage.first} ? 'disabled' : ''">
+                                            <a class="page-link" th:href="@{/private/offers(page=${offersPage.number - 1}, size=${pageSize}, manufacturer=${selectedManufacturer}, operationType=${selectedOperationType}, dateFilter=${selectedDateFilter})}">Предыдущая</a>
                                         </li>
-                                        <li th:each="pageNum : ${#numbers.sequence(0, offersPage.totalPages - 1)}" 
-                                            class="page-item" 
-                                            th:classappend="${pageNum == offersPage.number} ? 'active'">
-                                            <a class="page-link" 
-                                               th:href="@{/private/offers(page=${pageNum}, size=${pageSize}, manufacturer=${selectedManufacturer}, operationType=${selectedOperationType})}"
-                                               th:text="${pageNum + 1}">1</a>
+                                        <li class="page-item" th:each="i : ${#numbers.sequence(0, offersPage.totalPages - 1)}" th:classappend="${i == offersPage.number} ? 'active' : ''">
+                                            <a class="page-link" th:href="@{/private/offers(page=${i}, size=${pageSize}, manufacturer=${selectedManufacturer}, operationType=${selectedOperationType}, dateFilter=${selectedDateFilter})}" th:text="${i + 1}"></a>
                                         </li>
-                                        <li class="page-item" th:classappend="${offersPage.last} ? 'disabled'">
-                                            <a class="page-link" 
-                                               th:href="@{/private/offers(page=${offersPage.number + 1}, size=${pageSize}, manufacturer=${selectedManufacturer}, operationType=${selectedOperationType})}">Следующая</a>
+                                        <li class="page-item" th:classappend="${offersPage.last} ? 'disabled' : ''">
+                                            <a class="page-link" th:href="@{/private/offers(page=${offersPage.number + 1}, size=${pageSize}, manufacturer=${selectedManufacturer}, operationType=${selectedOperationType}, dateFilter=${selectedDateFilter})}">Следующая</a>
                                         </li>
                                     </ul>
                                 </nav>
@@ -885,22 +350,37 @@
                         </div>
                     </div>
                 </div>
-                <!-- row closed -->
             </div>
         </div>
-        <!-- End::app-content -->
 
-        <!-- Footer Start -->
         <footer class="footer mt-auto py-3 bg-white text-center">
             <div class="container">
                 <span class="text-muted">© 2025 <a href="javascript:void(0);" class="text-dark fw-semibold">MinerHive</a>. Все права защищены.</span>
             </div>
         </footer>
-        <!-- Footer End -->
     </div>
-    <!-- End::page -->
 
-    <!-- Модальное окно для отображения полной информации о предложении - ПЕРЕМЕЩЕНО ЗА ПРЕДЕЛЫ .page -->
+    <!-- Off-canvas sidebar -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="header-sidebar" aria-labelledby="sidebarLabel">
+        <div class="offcanvas-header rounded-0">
+            <h5 class="fs-14 text-uppercase mb-0 fw-semibold" id="sidebarLabel">Меню</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body rounded-0 p-0">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><a href="/private" class="text-dark">Панель управления</a></li>
+                <li class="list-group-item"><a href="/private/messages" class="text-dark">Сообщения</a></li>
+                <li class="list-group-item"><a href="/private/products/table" class="text-dark">Таблица товаров</a></li>
+                <li class="list-group-item"><a href="/private/offers" class="text-dark">Предложения</a></li>
+                <li class="list-group-item"><a href="/private/requests" class="text-dark">Заявки</a></li>
+                <li class="list-group-item"><a href="/private/miner-details" class="text-dark">Детали майнеров</a></li>
+                <li class="list-group-item"><a href="/private/profitability" class="text-dark">Калькулятор доходности</a></li>
+                <li class="list-group-item"><a href="/private/users" class="text-dark">Пользователи</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Модальное окно -->
     <div class="modal fade" id="offerDetailsModal" tabindex="-1" aria-labelledby="offerDetailsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
@@ -913,7 +393,7 @@
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Загрузка...</span>
                         </div>
-                            </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
@@ -921,93 +401,21 @@
             </div>
         </div>
     </div>
-    <!-- End Модальное окно -->
 
-    <!-- Scroll To Top -->
-    <div class="scrollToTop">
-        <span class="arrow"><i class="las la-angle-double-up"></i></span>
-                </div>
-    <div id="responsive-overlay"></div>
-    <!-- End Scroll To Top -->
+    <!-- Scripts -->
+    <script src="/bootstrap-theme/assets/libs/@popperjs/core/umd/popper.min.js"></script>
+    <script src="/bootstrap-theme/assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/bootstrap-theme/assets/js/defaultmenu.min.js"></script>
+    <script src="/bootstrap-theme/assets/libs/node-waves/waves.min.js"></script>
+    <script src="/bootstrap-theme/assets/js/sticky.js"></script>
+    <script src="/bootstrap-theme/assets/libs/simplebar/simplebar.min.js"></script>
+    <script src="/bootstrap-theme/assets/js/simplebar.js"></script>
+    <script src="/bootstrap-theme/assets/js/custom.js"></script>
+    <script src="/bootstrap-theme/assets/js/main.js"></script>
 
-
-    <!-- Popper JS -->
-    <script th:src="@{/bootstrap-theme/assets/libs/@popperjs/core/umd/popper.min.js}" src="../assets/libs/@popperjs/core/umd/popper.min.js"></script>
-
-    <!-- Bootstrap JS -->
-    <script th:src="@{/bootstrap-theme/assets/libs/bootstrap/js/bootstrap.bundle.min.js}" src="../assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Defaultmenu JS -->
-    <script th:src="@{/bootstrap-theme/assets/js/defaultmenu.min.js}" src="../assets/js/defaultmenu.min.js"></script>
-
-    <!-- Node Waves JS-->
-    <script th:src="@{/bootstrap-theme/assets/libs/node-waves/waves.min.js}" src="../assets/libs/node-waves/waves.min.js"></script>
-
-    <!-- Sticky JS -->
-    <script th:src="@{/bootstrap-theme/assets/js/sticky.js}" src="../assets/js/sticky.js"></script>
-
-    <!-- Simplebar JS -->
-    <script th:src="@{/bootstrap-theme/assets/libs/simplebar/simplebar.min.js}" src="../assets/libs/simplebar/simplebar.min.js"></script>
-    <script th:src="@{/bootstrap-theme/assets/js/simplebar.js}" src="../assets/js/simplebar.js"></script>
-
-    <!-- Color Picker JS -->
-    <script th:src="@{/bootstrap-theme/assets/libs/@simonwep/pickr/pickr.es5.min.js}" src="../assets/libs/@simonwep/pickr/pickr.es5.min.js"></script>
-    
-    <!-- Custom-Switcher JS -->
-    <script th:src="@{/bootstrap-theme/assets/js/custom-switcher.min.js}" src="../assets/js/custom-switcher.min.js"></script>
-    
-    <!-- Защита от ошибок в custom-switcher -->
+    <!-- JavaScript для страницы -->
     <script>
-        // Обработка ошибок для custom-switcher.min.js
-        window.addEventListener('error', function(e) {
-            if (e.message && e.message.includes('addEventListener')) {
-                // Игнорируем ошибки addEventListener, если элемент не найден
-                e.preventDefault();
-                return true;
-            }
-        }, true);
-    </script>
-
-    <!-- Custom JS -->
-    <script th:src="@{/bootstrap-theme/assets/js/custom.js}" src="../assets/js/custom.js"></script>
-    
-    <!-- Защита от ошибок в custom.js -->
-    <script>
-        // Обработка ошибок для custom.js
-        window.addEventListener('error', function(e) {
-            if (e.message && (e.message.includes('appendChild') || e.message.includes('null'))) {
-                // Игнорируем ошибки appendChild, если элемент null
-                e.preventDefault();
-                return true;
-            }
-        }, true);
-        
-        // Защита от ошибок appendChild
-        if (typeof Node !== 'undefined') {
-            const originalAppendChild = Node.prototype.appendChild;
-            Node.prototype.appendChild = function(child) {
-                if (!this || this === null || this === undefined) {
-                    console.warn('appendChild called on null/undefined element');
-                    return child;
-                }
-                try {
-                    return originalAppendChild.call(this, child);
-                } catch (e) {
-                    console.warn('Error in appendChild:', e.message);
-                    return child;
-                }
-            };
-        }
-    </script>
-    
-    <!-- Main Theme Js - Loaded at the end to ensure DOM elements are ready -->
-    <script th:src="@{/bootstrap-theme/assets/js/main.js}" src="../assets/js/main.js"></script>
-
-    <!-- JavaScript для страницы предложений -->
-    <script>
-        // AJAX обновление таблицы при изменении фильтров
         document.addEventListener('DOMContentLoaded', function() {
-            
             const offersTableBody = document.getElementById('offersTableBody');
             const loadingIndicator = document.getElementById('loadingIndicator');
             const currentCount = document.getElementById('currentCount');
@@ -1016,30 +424,25 @@
             let currentPage = 0;
             const pageSize = 50;
             let filterTimeout;
-            let isLoading = false; // Флаг для предотвращения множественных запросов
+            let isLoading = false;
             let selectedManufacturer = '';
             let selectedOperationType = '';
-            let selectedDateFilter = /*[[${selectedDateFilter != null ? selectedDateFilter : ''}]]*/ '';
+            let selectedDateFilter = '';
             let selectedSeries = '';
             
-            // Генерация кнопок дат для последних 10 дней
+            // Генерация кнопок дат
             function generateDateButtons() {
                 const dateFilterContainer = document.getElementById('dateFilterContainer');
                 if (!dateFilterContainer) return;
                 
                 const today = new Date();
-                // Используем значение из переменной
                 const selectedDate = selectedDateFilter;
                 
-                // Создаем кнопки для последних 10 дней (включая сегодня)
                 for (let i = 0; i < 10; i++) {
                     const date = new Date(today);
                     date.setDate(today.getDate() - i);
-                    
-                    const dateStr = date.toISOString().split('T')[0]; // Формат YYYY-MM-DD
+                    const dateStr = date.toISOString().split('T')[0];
                     const day = date.getDate();
-                    
-                    // Сегодня - показываем "Сегодня", остальные - число дня
                     const buttonText = i === 0 ? 'Сегодня' : day.toString();
                     
                     const button = document.createElement('button');
@@ -1048,32 +451,26 @@
                     button.setAttribute('data-date-filter', dateStr);
                     button.textContent = buttonText;
                     
-                    // Отмечаем активной кнопку, если она соответствует выбранной дате
                     if (selectedDate === dateStr) {
                         button.classList.add('active');
                         selectedDateFilter = dateStr;
                     }
                     
-                    // Добавляем кнопку после "Все даты"
                     dateFilterContainer.appendChild(button);
                 }
             }
             
-            // Функция получения текущих значений фильтров
+            // Получение значений фильтров
             function getFilterValues() {
-                // Получаем активную кнопку производителя
                 const activeManufacturerBtn = document.querySelector('.manufacturer-btn.active');
                 selectedManufacturer = activeManufacturerBtn ? (activeManufacturerBtn.dataset.manufacturer || '') : '';
                 
-                // Получаем активную кнопку типа операции
                 const activeOperationTypeBtn = document.querySelector('.operation-type-btn.active');
                 selectedOperationType = activeOperationTypeBtn ? (activeOperationTypeBtn.dataset.operationType || '') : '';
                 
-                // Получаем активную кнопку даты
                 const activeDateBtn = document.querySelector('.date-filter-btn.active');
                 selectedDateFilter = activeDateBtn ? (activeDateBtn.dataset.dateFilter || '') : '';
                 
-                // Получаем активную кнопку серии
                 const activeSeriesBtn = document.querySelector('.series-filter-btn.active');
                 selectedSeries = activeSeriesBtn ? (activeSeriesBtn.dataset.seriesFilter || '') : '';
                 
@@ -1085,27 +482,23 @@
                 };
             }
             
-            // Функция загрузки серий по производителю
+            // Загрузка серий
             function loadSeriesByManufacturer(manufacturer) {
                 const seriesFilterContainer = document.getElementById('seriesFilterContainer');
                 const seriesFilterButtonsContainer = document.getElementById('seriesFilterButtonsContainer');
                 
-                // Если производитель не выбран, скрываем фильтр серий
                 if (!manufacturer || manufacturer.trim() === '') {
                     if (seriesFilterContainer) {
                         seriesFilterContainer.style.display = 'none';
                     }
-                    // Сбрасываем выбранную серию
                     selectedSeries = '';
-                        return;
-                    }
-                    
-                // Показываем контейнер серий
+                    return;
+                }
+                
                 if (seriesFilterContainer) {
                     seriesFilterContainer.style.display = 'block';
                 }
                 
-                // Очищаем старые кнопки серий (кроме "Все серии")
                 if (seriesFilterButtonsContainer) {
                     const allSeriesBtn = document.getElementById('allSeriesBtn');
                     seriesFilterButtonsContainer.innerHTML = '';
@@ -1113,7 +506,6 @@
                         allSeriesBtn.classList.add('active');
                         seriesFilterButtonsContainer.appendChild(allSeriesBtn);
                     } else {
-                        // Создаем кнопку "Все серии", если её нет
                         const btn = document.createElement('button');
                         btn.type = 'button';
                         btn.className = 'btn btn-outline-warning series-filter-btn active';
@@ -1124,23 +516,15 @@
                     }
                 }
                 
-                // Загружаем серии через AJAX
                 fetch(`/private/offers/series?manufacturer=${encodeURIComponent(manufacturer)}`, {
                     method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Ошибка загрузки серий');
-                    }
+                    if (!response.ok) throw new Error('Ошибка загрузки серий');
                     return response.json();
                 })
                 .then(series => {
-                    console.log('Загружено серий:', series.length);
-                    
-                    // Добавляем кнопки для каждой серии
                     if (seriesFilterButtonsContainer) {
                         series.forEach(serie => {
                             const button = document.createElement('button');
@@ -1157,68 +541,43 @@
                 });
             }
             
-            // Функция загрузки данных через AJAX
+            // Загрузка данных
             function loadOffers(page = 0) {
-                // Предотвращаем множественные одновременные запросы
-                if (isLoading) {
-                    console.log('Запрос уже выполняется, пропускаем...');
-                    return;
-                }
+                if (isLoading) return;
                 
                 isLoading = true;
                 currentPage = page;
-                
+                window.currentPage = page; // Обновляем глобальную переменную
                 const filters = getFilterValues();
                 
-                console.log('Загрузка предложений. Фильтры:', filters);
-            
-                // Показываем индикатор загрузки
                 if (loadingIndicator) loadingIndicator.style.display = 'block';
                 if (offersTableBody) offersTableBody.style.opacity = '0.5';
                 
-                // Формируем URL с параметрами
                 const url = new URL('/private/offers/ajax', window.location.origin);
                 url.searchParams.append('page', page);
                 url.searchParams.append('size', pageSize);
-                if (filters.manufacturer) {
-                    url.searchParams.append('manufacturer', filters.manufacturer);
-                }
-                if (filters.operationType) {
-                    url.searchParams.append('operationType', filters.operationType);
-                }
-                if (filters.dateFilter) {
-                    url.searchParams.append('dateFilter', filters.dateFilter);
-                }
-                if (filters.series) {
-                    url.searchParams.append('series', filters.series);
-                }
+                if (filters.manufacturer) url.searchParams.append('manufacturer', filters.manufacturer);
+                if (filters.operationType) url.searchParams.append('operationType', filters.operationType);
+                if (filters.dateFilter) url.searchParams.append('dateFilter', filters.dateFilter);
+                if (filters.series) url.searchParams.append('series', filters.series);
                 
-                console.log('Отправка AJAX запроса:', url.toString());
-                
-                // Отправляем AJAX запрос
                 fetch(url.toString(), {
                     method: 'GET',
-                headers: {
-                        'Accept': 'application/json'
-                    }
+                    headers: { 'Accept': 'application/json' }
                 })
                 .then(response => {
-                    console.log('Получен ответ, статус:', response.status);
                     if (!response.ok) {
                         return response.text().then(text => {
-                            console.error('Ошибка ответа. Текст:', text);
                             throw new Error('Ошибка загрузки данных: ' + response.status);
                         });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    // Обновляем тело таблицы
                     if (offersTableBody) {
                         offersTableBody.innerHTML = data.html || '<tr><td colspan="12" class="text-center py-24 text-muted">Предложения не найдены</td></tr>';
                     }
                     
-                    // Обновляем счетчики
                     if (currentCount && totalCount) {
                         const start = data.currentPage * data.pageSize + 1;
                         const end = start + data.numberOfElements - 1;
@@ -1226,61 +585,56 @@
                         totalCount.textContent = data.totalElements;
                     }
                     
-                    // Обновляем пагинацию
                     updatePagination(data);
-                    
-                    // Переустанавливаем обработчики кликов для новых строк
                     setupRowClickHandlers();
+                    updateDeleteButton();
                     
-                    // Скрываем индикатор загрузки
+                    // Сбрасываем чекбокс "Выбрать все"
+                    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = false;
+                    }
+                    
                     if (loadingIndicator) loadingIndicator.style.display = 'none';
                     if (offersTableBody) offersTableBody.style.opacity = '1';
-                    isLoading = false; // Разблокируем запросы
-            })
-            .catch(error => {
+                    isLoading = false;
+                })
+                .catch(error => {
                     console.error('Ошибка загрузки предложений:', error);
                     if (offersTableBody) {
                         offersTableBody.innerHTML = '<tr><td colspan="12" class="text-center py-24 text-danger">Ошибка загрузки данных</td></tr>';
                     }
                     if (loadingIndicator) loadingIndicator.style.display = 'none';
                     if (offersTableBody) offersTableBody.style.opacity = '1';
-                    isLoading = false; // Разблокируем запросы даже при ошибке
+                    isLoading = false;
                 });
             }
             
-            // Функция обновления пагинации
+            // Обновление пагинации
             function updatePagination(data) {
                 const paginationNav = document.getElementById('paginationNav');
                 const paginationContainer = document.getElementById('paginationContainer');
                 
-                if (!paginationNav || !paginationContainer) {
-                    return;
-                }
+                if (!paginationNav || !paginationContainer) return;
                 
-                // Скрываем пагинацию, если страниц 1 или меньше
                 if (data.totalPages <= 1) {
                     paginationNav.style.display = 'none';
                     return;
                 }
                 
-                // Показываем пагинацию
                 paginationNav.style.display = 'block';
-                
                 let paginationHTML = '';
                 
-                // Кнопка "Предыдущая"
                 paginationHTML += '<li class="page-item' + (data.currentPage === 0 ? ' disabled' : '') + '">';
                 paginationHTML += '<a class="page-link" href="javascript:void(0);" onclick="loadOffers(' + (data.currentPage - 1) + ')">Предыдущая</a>';
                 paginationHTML += '</li>';
                 
-                // Номера страниц
                 for (let i = 0; i < data.totalPages; i++) {
                     paginationHTML += '<li class="page-item' + (i === data.currentPage ? ' active' : '') + '">';
                     paginationHTML += '<a class="page-link" href="javascript:void(0);" onclick="loadOffers(' + i + ')">' + (i + 1) + '</a>';
                     paginationHTML += '</li>';
                 }
                 
-                // Кнопка "Следующая"
                 paginationHTML += '<li class="page-item' + (data.currentPage >= data.totalPages - 1 ? ' disabled' : '') + '">';
                 paginationHTML += '<a class="page-link" href="javascript:void(0);" onclick="loadOffers(' + (data.currentPage + 1) + ')">Следующая</a>';
                 paginationHTML += '</li>';
@@ -1288,166 +642,230 @@
                 paginationContainer.innerHTML = paginationHTML;
             }
             
-            // Обработчик клика на кнопку производителя
+            // Обработчики фильтров
             function handleManufacturerClick(event) {
                 event.preventDefault();
-                event.stopPropagation(); // Останавливаем всплытие события
+                event.stopPropagation();
+                if (isLoading) return;
                 
-                // Если уже идет загрузка, игнорируем клик
-                if (isLoading) {
-                    console.log('Загрузка выполняется, игнорируем клик');
-                return;
-            }
-            
-                // Убираем активное состояние у всех кнопок производителя
-                document.querySelectorAll('.manufacturer-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Добавляем активное состояние к нажатой кнопке
+                document.querySelectorAll('.manufacturer-btn').forEach(btn => btn.classList.remove('active'));
                 event.currentTarget.classList.add('active');
-                
-                // Получаем выбранного производителя
                 const selectedManufacturerValue = event.currentTarget.dataset.manufacturer || '';
                 
-                // Загружаем серии для выбранного производителя (асинхронно, не блокируя)
                 setTimeout(() => {
                     loadSeriesByManufacturer(selectedManufacturerValue);
                 }, 0);
                 
-                // Сбрасываем выбранную серию при смене производителя
                 selectedSeries = '';
-                document.querySelectorAll('.series-filter-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
+                document.querySelectorAll('.series-filter-btn').forEach(btn => btn.classList.remove('active'));
                 const allSeriesBtn = document.getElementById('allSeriesBtn');
-                if (allSeriesBtn) {
-                    allSeriesBtn.classList.add('active');
-                }
+                if (allSeriesBtn) allSeriesBtn.classList.add('active');
                 
-                // Загружаем данные с новой фильтрацией (с дебаунсом)
                 onFilterChange();
             }
             
-            // Обработчик клика на кнопку серии
             function handleSeriesClick(event) {
                 event.preventDefault();
-                event.stopPropagation(); // Останавливаем всплытие события
+                event.stopPropagation();
+                if (isLoading) return;
                 
-                // Если уже идет загрузка, игнорируем клик
-                if (isLoading) {
-                    console.log('Загрузка выполняется, игнорируем клик');
-                    return;
-                }
-                
-                // Находим кнопку (может быть кликнут сам элемент или его дочерний элемент)
                 const button = event.target.closest('.series-filter-btn');
-                if (!button) {
-                    return;
-                }
-            
-                // Убираем активное состояние у всех кнопок серии
-                document.querySelectorAll('.series-filter-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
+                if (!button) return;
                 
-                // Добавляем активное состояние к нажатой кнопке
+                document.querySelectorAll('.series-filter-btn').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                
-                // Загружаем данные с новой фильтрацией (с дебаунсом)
                 onFilterChange();
             }
             
-            // Обработчик клика на кнопку типа операции
             function handleOperationTypeClick(event) {
                 event.preventDefault();
-                event.stopPropagation(); // Останавливаем всплытие события
+                event.stopPropagation();
+                if (isLoading) return;
                 
-                // Если уже идет загрузка, игнорируем клик
-                if (isLoading) {
-                    console.log('Загрузка выполняется, игнорируем клик');
-                    return;
-                }
-                
-                // Убираем активное состояние у всех кнопок типа операции
-                document.querySelectorAll('.operation-type-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Добавляем активное состояние к нажатой кнопке
+                document.querySelectorAll('.operation-type-btn').forEach(btn => btn.classList.remove('active'));
                 event.currentTarget.classList.add('active');
-                
-                // Загружаем данные с новой фильтрацией (с дебаунсом)
                 onFilterChange();
             }
             
-            // Обработчик клика на кнопку даты
             function handleDateFilterClick(event) {
                 event.preventDefault();
-                event.stopPropagation(); // Останавливаем всплытие события
+                event.stopPropagation();
+                if (isLoading) return;
                 
-                // Если уже идет загрузка, игнорируем клик
-                if (isLoading) {
-                    console.log('Загрузка выполняется, игнорируем клик');
-                    return;
-                }
-                
-                // Находим кнопку (может быть кликнут сам элемент или его дочерний элемент)
                 const button = event.target.closest('.date-filter-btn');
-                if (!button) {
-                    return; // Если кнопка не найдена, выходим
-                }
+                if (!button) return;
                 
-                // Убираем активное состояние у всех кнопок даты
-                document.querySelectorAll('.date-filter-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Добавляем активное состояние к нажатой кнопке
+                document.querySelectorAll('.date-filter-btn').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
-                
-                // Обновляем выбранную дату
                 selectedDateFilter = button.dataset.dateFilter || '';
-                
-                console.log('Выбрана дата для фильтра:', selectedDateFilter);
-                
-                // Загружаем данные с новой фильтрацией (с дебаунсом)
                 onFilterChange();
             }
             
-            // Дебаунс для фильтров (чтобы не отправлять запрос при каждом изменении)
             function onFilterChange() {
-                // Если уже идет загрузка, не добавляем новый таймер
                 if (isLoading) {
-                    console.log('Загрузка уже выполняется, отменяем предыдущий таймер');
                     clearTimeout(filterTimeout);
                     return;
                 }
                 
                 clearTimeout(filterTimeout);
                 filterTimeout = setTimeout(() => {
-                    loadOffers(0); // Сбрасываем на первую страницу при изменении фильтров
-                }, 500); // Увеличиваем задержку до 500мс для уменьшения количества запросов
+                    loadOffers(0);
+                }, 500);
             }
             
-            // Генерируем кнопки дат при загрузке страницы
+            // Показать детали предложения
+            function showOfferDetails(offerId) {
+                console.log('Открываем модальное окно для предложения ID:', offerId);
+                
+                const modalElement = document.getElementById('offerDetailsModal');
+                const modalContent = document.getElementById('offerDetailsContent');
+                
+                if (!modalElement || !modalContent) {
+                    console.error('Модальное окно не найдено!');
+                    return;
+                }
+                
+                modalContent.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
+                
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+                
+                const requestUrl = `/private/offers/${offerId}/details`;
+                
+                fetch(requestUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error('Ошибка загрузки данных: ' + response.status);
+                        });
+                    }
+                    const contentType = response.headers.get('Content-Type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        return response.text().then(text => {
+                            throw new Error('Сервер вернул не JSON ответ');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let html = '<div class="container-fluid">';
+                    html += '<h6 class="mb-3">Информация о предложении</h6>';
+                    html += '<div class="table-responsive mb-4">';
+                    html += '<table class="table table-bordered table-sm">';
+                    html += '<tr><th class="w-25">ID предложения</th><td>' + escapeHtml(String(data.offer?.id || '-')) + '</td></tr>';
+                    html += '<tr><th>Товар</th><td>' + escapeHtml(String(data.offer?.productModel || '-')) + '</td></tr>';
+                    html += '<tr><th>Производитель</th><td>' + escapeHtml(String(data.offer?.manufacturer || '-')) + '</td></tr>';
+                    html += '<tr><th>Мощность</th><td>' + escapeHtml(String(data.offer?.hashrate || '-')) + '</td></tr>';
+                    html += '<tr><th>Продавец (телефон)</th><td>' + escapeHtml(String(data.offer?.sellerPhone || '-')) + '</td></tr>';
+                    html += '<tr><th>Тип операции</th><td>' + escapeHtml(String(data.offer?.operationType || '-')) + '</td></tr>';
+                    html += '<tr><th>Цена</th><td>' + escapeHtml(String(data.offer?.price ? data.offer.price + ' ' + (data.offer.currency || 'u') : '-')) + '</td></tr>';
+                    html += '<tr><th>Количество</th><td>' + escapeHtml(String(data.offer?.quantity || '-')) + '</td></tr>';
+                    html += '<tr><th>Состояние</th><td>' + escapeHtml(String(data.offer?.condition || '-')) + '</td></tr>';
+                    html += '<tr><th>Локация</th><td>' + escapeHtml(String(data.offer?.location || '-')) + '</td></tr>';
+                    html += '<tr><th>Примечание</th><td>' + escapeHtml(String(data.offer?.notes || '-')) + '</td></tr>';
+                    html += '<tr><th>Дата создания</th><td>' + escapeHtml(String(data.offer?.createdAt || '-')) + '</td></tr>';
+                    html += '<tr><th>Дата обновления</th><td>' + escapeHtml(String(data.offer?.updatedAt || '-')) + '</td></tr>';
+                    html += '<tr><th>Источник (чат)</th><td>' + escapeHtml(String(data.offer?.sourceChatName || '-')) + '</td></tr>';
+                    html += '</table></div>';
+                    
+                    if (data.sourceMessage) {
+                        html += '<hr class="my-4"><h6 class="mb-3">Исходное сообщение из WhatsApp</h6>';
+                        html += '<div class="table-responsive"><table class="table table-bordered table-sm">';
+                        html += '<tr><th class="w-25">ID сообщения</th><td>' + escapeHtml(String(data.sourceMessage.messageId || '-')) + '</td></tr>';
+                        html += '<tr><th>Чат</th><td>' + escapeHtml(String(data.sourceMessage.chatName || '-')) + '</td></tr>';
+                        html += '<tr><th>Тип чата</th><td>' + escapeHtml(String(data.sourceMessage.chatType || '-')) + '</td></tr>';
+                        html += '<tr><th>Отправитель</th><td>' + escapeHtml(String(data.sourceMessage.senderName || '-')) + '</td></tr>';
+                        html += '<tr><th>Телефон отправителя</th><td>' + escapeHtml(String(data.sourceMessage.senderPhoneNumber || '-')) + '</td></tr>';
+                        html += '<tr><th>Дата сообщения</th><td>' + escapeHtml(String(data.sourceMessage.timestamp || '-')) + '</td></tr>';
+                        html += '<tr><th>Текст сообщения</th><td><pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto; background-color: #f8f9fa; padding: 10px; border-radius: 4px;">' +
+                                (data.sourceMessage.content ? escapeHtml(String(data.sourceMessage.content)) : '-') + '</pre></td></tr>';
+                        if (data.sourceMessage.hasMedia) {
+                            html += '<tr><th>Медиа</th><td>Да (тип: ' + escapeHtml(String(data.sourceMessage.messageType || '-')) + ')</td></tr>';
+                        }
+                        html += '</table></div>';
+                    } else {
+                        html += '<hr class="my-4"><div class="alert alert-warning">Исходное сообщение не найдено</div>';
+                    }
+                    
+                    html += '</div>';
+                    modalContent.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке деталей предложения:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных: ' + escapeHtml(error.message) + '</div>';
+                });
+            }
+            
+            function escapeHtml(text) {
+                if (!text) return '';
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+            
+            // Обработчик клика на строку
+            function setupRowClickHandlers() {
+                const tbody = document.querySelector('#offersTable tbody');
+                if (!tbody) return;
+                
+                if (tbody._offerClickHandler) {
+                    tbody.removeEventListener('click', tbody._offerClickHandler);
+                }
+                
+                tbody._offerClickHandler = function(e) {
+                    const target = e.target;
+                    
+                    if (target.tagName === 'BUTTON' || 
+                        target.tagName === 'A' || 
+                        target.tagName === 'INPUT' ||
+                        target.closest('button') || 
+                        target.closest('a') ||
+                        target.closest('input') ||
+                        target.closest('.page-link') ||
+                        target.closest('.manufacturer-btn') ||
+                        target.closest('.operation-type-btn') ||
+                        target.closest('.date-filter-btn') ||
+                        target.closest('.series-filter-btn') ||
+                        target.closest('.offer-checkbox')) {
+                        return;
+                    }
+                    
+                    const row = target.closest('.offer-row');
+                    if (row) {
+                        const offerId = row.dataset.offerId;
+                        if (offerId) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showOfferDetails(offerId);
+                        }
+                    }
+                };
+                
+                tbody.addEventListener('click', tbody._offerClickHandler, false);
+            }
+            
+            // Инициализация
             generateDateButtons();
             
-            // Добавляем обработчики кликов для всех кнопок производителя
             document.querySelectorAll('.manufacturer-btn').forEach(btn => {
                 btn.addEventListener('click', handleManufacturerClick);
             });
             
-            // Добавляем обработчики кликов для всех кнопок типа операции
             document.querySelectorAll('.operation-type-btn').forEach(btn => {
                 btn.addEventListener('click', handleOperationTypeClick);
             });
             
-            // Добавляем обработчики кликов для всех кнопок даты (включая динамически созданные)
-            // Используем делегирование событий на контейнерах фильтров
             const dateFilterContainer = document.getElementById('dateFilterContainer');
-            const seriesFilterContainer = document.getElementById('seriesFilterButtonsContainer');
-            
             if (dateFilterContainer) {
                 dateFilterContainer.addEventListener('click', function(e) {
                     const dateBtn = e.target.closest('.date-filter-btn');
@@ -1459,6 +877,7 @@
                 });
             }
             
+            const seriesFilterContainer = document.getElementById('seriesFilterButtonsContainer');
             if (seriesFilterContainer) {
                 seriesFilterContainer.addEventListener('click', function(e) {
                     const seriesBtn = e.target.closest('.series-filter-btn');
@@ -1470,457 +889,91 @@
                 });
             }
             
-            // Делаем функцию loadOffers доступной глобально для пагинации
             window.loadOffers = loadOffers;
-            
-            // Обработчик клика на строку таблицы
-            function setupRowClickHandlers() {
-                const table = document.getElementById('offersTable');
-                if (!table) return;
-                
-                // Используем делегирование событий на tbody для работы с динамически добавленными строками
-                const tbody = table.querySelector('tbody');
-                if (!tbody) return;
-                
-                // Удаляем старый обработчик, если он был
-                if (tbody._offerClickHandler) {
-                    tbody.removeEventListener('click', tbody._offerClickHandler);
-                }
-                
-                // Создаем новый обработчик
-                tbody._offerClickHandler = function(e) {
-                    // Игнорируем клики на интерактивные элементы
-                    const target = e.target;
-                    
-                    // Проверяем, не кликнули ли мы на интерактивный элемент
-                    if (target.tagName === 'BUTTON' || 
-                        target.tagName === 'A' || 
-                        target.closest('button') || 
-                        target.closest('a') ||
-                        target.closest('.page-link') ||
-                        target.closest('.manufacturer-btn') ||
-                        target.closest('.operation-type-btn') ||
-                        target.closest('.date-filter-btn') ||
-                        target.closest('.series-filter-btn')) {
-                        return;
-                    }
-                    
-                    // Ищем строку предложения
-                    const row = target.closest('.offer-row');
-                    if (row) {
-                        const offerId = row.dataset.offerId;
-                        if (offerId) {
-                            // Останавливаем всплытие события, чтобы другие обработчики не сработали
-                            e.preventDefault();
-                            e.stopPropagation();
-                            e.stopImmediatePropagation();
-                            
-                            // Открываем модальное окно
-                            console.log('Открываем модальное окно для предложения ID:', offerId);
-                            showOfferDetails(offerId);
-                        } else {
-                            console.warn('Не найден ID предложения в строке');
-                        }
-                    }
-                };
-                
-                // Привязываем обработчик с capture: false, чтобы он срабатывал после других обработчиков
-                tbody.addEventListener('click', tbody._offerClickHandler, false);
-            }
-            
-            // Функция показа детальной информации о предложении
-            function showOfferDetails(offerId) {
-                console.log('🎯 [OFFER_DETAILS] ========== НАЧАЛО showOfferDetails ==========');
-                console.log('🎯 [OFFER_DETAILS] ID предложения:', offerId);
-                
-                const modalElement = document.getElementById('offerDetailsModal');
-                const modalContent = document.getElementById('offerDetailsContent');
-                
-                if (!modalElement || !modalContent) {
-                    console.error('❌ [OFFER_DETAILS] Модальное окно или его содержимое не найдено!');
-                    console.error('❌ [OFFER_DETAILS] modalElement:', modalElement);
-                    console.error('❌ [OFFER_DETAILS] modalContent:', modalContent);
-                    return;
-                }
-                
-                console.log('✅ [OFFER_DETAILS] Элементы модального окна найдены');
-                console.log('🔍 [OFFER_DETAILS] Расположение модального окна в DOM:', {
-                    parentElement: modalElement.parentElement ? modalElement.parentElement.tagName : 'нет родителя',
-                    isInBody: modalElement.parentElement === document.body || modalElement.closest('body') !== null,
-                    isInPage: modalElement.closest('.page') !== null,
-                    computedStyles: {
-                        display: window.getComputedStyle(modalElement).display,
-                        visibility: window.getComputedStyle(modalElement).visibility,
-                        opacity: window.getComputedStyle(modalElement).opacity,
-                        zIndex: window.getComputedStyle(modalElement).zIndex,
-                        position: window.getComputedStyle(modalElement).position
-                    }
-                });
-                
-                // Показываем индикатор загрузки
-                console.log('⏳ [OFFER_DETAILS] Показываем индикатор загрузки');
-                modalContent.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
-                
-                console.log('🔧 [OFFER_DETAILS] Создаем экземпляр Bootstrap Modal');
-                const modal = new bootstrap.Modal(modalElement);
-                console.log('✅ [OFFER_DETAILS] Экземпляр Bootstrap Modal создан:', modal);
-                
-                // Проверяем состояние модального окна до открытия
-                console.log('🔍 [OFFER_DETAILS] Состояние модального окна ДО открытия:', {
-                    hasClassShow: modalElement.classList.contains('show'),
-                    display: window.getComputedStyle(modalElement).display,
-                    visibility: window.getComputedStyle(modalElement).visibility,
-                    zIndex: window.getComputedStyle(modalElement).zIndex
-                });
-                
-                console.log('🚀 [OFFER_DETAILS] Открываем модальное окно');
-                modal.show();
-                
-                // Проверяем состояние модального окна после открытия
-                setTimeout(function() {
-                    console.log('🔍 [OFFER_DETAILS] Состояние модального окна ПОСЛЕ открытия (через 100мс):', {
-                        hasClassShow: modalElement.classList.contains('show'),
-                        display: window.getComputedStyle(modalElement).display,
-                        visibility: window.getComputedStyle(modalElement).visibility,
-                        zIndex: window.getComputedStyle(modalElement).zIndex,
-                        bodyHasModalOpen: document.body.classList.contains('modal-open'),
-                        backdropExists: document.querySelector('.modal-backdrop') !== null
-                    });
-                }, 100);
-                
-                // Загружаем детальную информацию
-                const requestUrl = `/private/offers/${offerId}/details`;
-                console.log('🌐 [OFFER_DETAILS] Отправка fetch запроса на URL:', requestUrl);
-                console.log('🌐 [OFFER_DETAILS] Полный URL:', window.location.origin + requestUrl);
-                
-                const fetchStartTime = performance.now();
-                console.log('⏱️ [OFFER_DETAILS] Время начала fetch запроса:', fetchStartTime);
-                
-                console.log('🌐 [OFFER_DETAILS] Начинаем fetch запрос...');
-                
-                // Добавляем обработчик ошибок для всего промиса
-                let fetchPromise;
-                try {
-                    fetchPromise = fetch(requestUrl, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        credentials: 'same-origin'
-                    });
-                    console.log('🌐 [OFFER_DETAILS] Fetch промис создан:', fetchPromise);
-                    console.log('🌐 [OFFER_DETAILS] Тип промиса:', typeof fetchPromise);
-                    console.log('🌐 [OFFER_DETAILS] Промис является Promise:', fetchPromise instanceof Promise);
-                } catch (error) {
-                    console.error('❌ [OFFER_DETAILS] Ошибка при создании fetch запроса:', error);
-                    console.error('❌ [OFFER_DETAILS] Тип ошибки:', error.constructor.name);
-                    console.error('❌ [OFFER_DETAILS] Сообщение:', error.message);
-                    console.error('❌ [OFFER_DETAILS] Stack:', error.stack);
-                    modalContent.innerHTML = '<div class="alert alert-danger">Ошибка создания запроса: ' + escapeHtml(error.message) + '</div>';
-                    return;
-                }
-                
-                // Добавляем таймаут для диагностики
-                const timeoutId = setTimeout(function() {
-                    const elapsed = performance.now() - fetchStartTime;
-                    console.warn('⚠️ [OFFER_DETAILS] Fetch запрос выполняется более 10 секунд! Время:', elapsed.toFixed(2), 'мс');
-                    console.warn('⚠️ [OFFER_DETAILS] Это может указывать на проблему с сетью или сервером');
-                }, 10000);
-                
-                fetchPromise
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    console.log('✅ [OFFER_DETAILS] Fetch промис разрешен, получен response');
-                    return response;
-                })
-                .catch(error => {
-                    clearTimeout(timeoutId);
-                    const fetchTime = performance.now() - fetchStartTime;
-                    console.error('❌ [OFFER_DETAILS] Ошибка сети при выполнении fetch за', fetchTime.toFixed(2), 'мс');
-                    console.error('❌ [OFFER_DETAILS] Тип ошибки:', error.constructor.name);
-                    console.error('❌ [OFFER_DETAILS] Сообщение:', error.message);
-                    console.error('❌ [OFFER_DETAILS] Stack:', error.stack);
-                    console.error('❌ [OFFER_DETAILS] Полный объект ошибки:', error);
-                    throw error;
-                })
-                .then(response => {
-                    const fetchTime = performance.now() - fetchStartTime;
-                    console.log('📥 [OFFER_DETAILS] Получен ответ от сервера за', fetchTime.toFixed(2), 'мс');
-                    console.log('📥 [OFFER_DETAILS] Статус:', response.status, response.statusText);
-                    console.log('📥 [OFFER_DETAILS] Content-Type:', response.headers.get('Content-Type'));
-                    console.log('📥 [OFFER_DETAILS] URL ответа:', response.url);
-                    console.log('📥 [OFFER_DETAILS] Все заголовки ответа:', Object.fromEntries(response.headers.entries()));
-                    
-                    if (!response.ok) {
-                        console.error('❌ [OFFER_DETAILS] Ошибка ответа сервера:', response.status, response.statusText);
-                        return response.text().then(text => {
-                            console.error('❌ [OFFER_DETAILS] Текст ошибки от сервера (первые 500 символов):', text.substring(0, 500));
-                            throw new Error('Ошибка загрузки данных: ' + response.status + ' - ' + text.substring(0, 200));
-                        });
-                    }
-                    
-                    const contentType = response.headers.get('Content-Type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        console.warn('⚠️ [OFFER_DETAILS] Content-Type не JSON:', contentType);
-                        return response.text().then(text => {
-                            console.error('❌ [OFFER_DETAILS] Ответ не JSON, текст ответа (первые 500 символов):', text.substring(0, 500));
-                            throw new Error('Сервер вернул не JSON ответ. Content-Type: ' + contentType);
-                        });
-                    }
-                    
-                    console.log('✅ [OFFER_DETAILS] Ответ валиден, парсим JSON...');
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('✅ [OFFER_DETAILS] Данные получены успешно');
-                    console.log('📋 [OFFER_DETAILS] Полный объект данных:', data);
-                    console.log('📋 [OFFER_DETAILS] Структура данных:', {
-                        hasOffer: !!data.offer,
-                        hasSourceMessage: !!data.sourceMessage,
-                        offerKeys: data.offer ? Object.keys(data.offer) : [],
-                        sourceMessageKeys: data.sourceMessage ? Object.keys(data.sourceMessage) : [],
-                        allKeys: Object.keys(data)
-                    });
-                    
-                    if (data.offer) {
-                        console.log('📋 [OFFER_DETAILS] Данные предложения (offer):', {
-                            id: data.offer.id,
-                            productModel: data.offer.productModel,
-                            manufacturer: data.offer.manufacturer,
-                            hashrate: data.offer.hashrate,
-                            sellerPhone: data.offer.sellerPhone,
-                            operationType: data.offer.operationType,
-                            price: data.offer.price,
-                            currency: data.offer.currency,
-                            quantity: data.offer.quantity,
-                            condition: data.offer.condition,
-                            location: data.offer.location,
-                            notes: data.offer.notes,
-                            createdAt: data.offer.createdAt,
-                            updatedAt: data.offer.updatedAt,
-                            sourceChatName: data.offer.sourceChatName
-                        });
-                    }
-                    
-                    if (data.sourceMessage) {
-                        console.log('📋 [OFFER_DETAILS] Данные исходного сообщения (sourceMessage):', {
-                            id: data.sourceMessage.id,
-                            messageId: data.sourceMessage.messageId,
-                            chatId: data.sourceMessage.chatId,
-                            chatName: data.sourceMessage.chatName,
-                            chatType: data.sourceMessage.chatType,
-                            senderId: data.sourceMessage.senderId,
-                            senderName: data.sourceMessage.senderName,
-                            senderPhoneNumber: data.sourceMessage.senderPhoneNumber,
-                            content: data.sourceMessage.content ? data.sourceMessage.content.substring(0, 200) + '...' : null,
-                            contentLength: data.sourceMessage.content ? data.sourceMessage.content.length : 0,
-                            timestamp: data.sourceMessage.timestamp,
-                            hasMedia: data.sourceMessage.hasMedia,
-                            messageType: data.sourceMessage.messageType,
-                            isForwarded: data.sourceMessage.isForwarded,
-                            isUpdate: data.sourceMessage.isUpdate,
-                            originalMessageId: data.sourceMessage.originalMessageId,
-                            createdAt: data.sourceMessage.createdAt
-                        });
-                    } else {
-                        console.log('⚠️ [OFFER_DETAILS] Исходное сообщение отсутствует (sourceMessage: null)');
-                    }
-                    
-                    // Формируем HTML с детальной информацией
-                    let html = '<div class="container-fluid">';
-                    
-                    // Информация о предложении
-                    html += '<h6 class="mb-3">Информация о предложении</h6>';
-                    html += '<div class="table-responsive mb-4">';
-                    html += '<table class="table table-bordered table-sm">';
-                    html += '<tr><th class="w-25">ID предложения</th><td>' + escapeHtml(String(data.offer.id || '-')) + '</td></tr>';
-                    html += '<tr><th>Товар</th><td>' + escapeHtml(String(data.offer.productModel || '-')) + '</td></tr>';
-                    html += '<tr><th>Производитель</th><td>' + escapeHtml(String(data.offer.manufacturer || '-')) + '</td></tr>';
-                    html += '<tr><th>Мощность</th><td>' + escapeHtml(String(data.offer.hashrate || '-')) + '</td></tr>';
-                    html += '<tr><th>Продавец (телефон)</th><td>' + escapeHtml(String(data.offer.sellerPhone || '-')) + '</td></tr>';
-                    html += '<tr><th>Тип операции</th><td>' + escapeHtml(String(data.offer.operationType || '-')) + '</td></tr>';
-                    html += '<tr><th>Цена</th><td>' + escapeHtml(String(data.offer.price ? data.offer.price + ' ' + (data.offer.currency || 'u') : '-')) + '</td></tr>';
-                    html += '<tr><th>Количество</th><td>' + escapeHtml(String(data.offer.quantity || '-')) + '</td></tr>';
-                    html += '<tr><th>Состояние</th><td>' + escapeHtml(String(data.offer.condition || '-')) + '</td></tr>';
-                    html += '<tr><th>Локация</th><td>' + escapeHtml(String(data.offer.location || '-')) + '</td></tr>';
-                    html += '<tr><th>Примечание</th><td>' + escapeHtml(String(data.offer.notes || '-')) + '</td></tr>';
-                    html += '<tr><th>Дата создания</th><td>' + escapeHtml(String(data.offer.createdAt || '-')) + '</td></tr>';
-                    html += '<tr><th>Дата обновления</th><td>' + escapeHtml(String(data.offer.updatedAt || '-')) + '</td></tr>';
-                    html += '<tr><th>Источник (чат)</th><td>' + escapeHtml(String(data.offer.sourceChatName || '-')) + '</td></tr>';
-                    html += '</table>';
-                    html += '</div>';
-                    
-                    // Исходное сообщение из WhatsApp
-                    if (data.sourceMessage) {
-                        html += '<hr class="my-4">';
-                        html += '<h6 class="mb-3">Исходное сообщение из WhatsApp</h6>';
-                        html += '<div class="table-responsive">';
-                        html += '<table class="table table-bordered table-sm">';
-                        html += '<tr><th class="w-25">ID сообщения</th><td>' + escapeHtml(String(data.sourceMessage.messageId || '-')) + '</td></tr>';
-                        html += '<tr><th>Чат</th><td>' + escapeHtml(String(data.sourceMessage.chatName || '-')) + '</td></tr>';
-                        html += '<tr><th>Тип чата</th><td>' + escapeHtml(String(data.sourceMessage.chatType || '-')) + '</td></tr>';
-                        html += '<tr><th>Отправитель</th><td>' + escapeHtml(String(data.sourceMessage.senderName || '-')) + '</td></tr>';
-                        html += '<tr><th>Телефон отправителя</th><td>' + escapeHtml(String(data.sourceMessage.senderPhoneNumber || '-')) + '</td></tr>';
-                        html += '<tr><th>Дата сообщения</th><td>' + escapeHtml(String(data.sourceMessage.timestamp || '-')) + '</td></tr>';
-                        html += '<tr><th>Текст сообщения</th><td><pre class="mb-0" style="white-space: pre-wrap; word-wrap: break-word; max-height: 300px; overflow-y: auto; background-color: #f8f9fa; padding: 10px; border-radius: 4px;">' + 
-                                (data.sourceMessage.content ? escapeHtml(String(data.sourceMessage.content)) : '-') + '</pre></td></tr>';
-                        if (data.sourceMessage.hasMedia) {
-                            html += '<tr><th>Медиа</th><td>Да (тип: ' + escapeHtml(String(data.sourceMessage.messageType || '-')) + ')</td></tr>';
-                        }
-                        html += '</table>';
-                        html += '</div>';
-                    } else {
-                        html += '<hr class="my-4">';
-                        html += '<div class="alert alert-warning">Исходное сообщение не найдено</div>';
-                    }
-                    
-                    html += '</div>';
-                    
-                    const totalTime = performance.now() - fetchStartTime;
-                    console.log('⏱️ [OFFER_DETAILS] Общее время обработки:', totalTime.toFixed(2), 'мс');
-                    console.log('📝 [OFFER_DETAILS] Обновление содержимого модального окна');
-                    modalContent.innerHTML = html;
-                    console.log('✅ [OFFER_DETAILS] ========== КОНЕЦ showOfferDetails (успешно) ==========');
-                })
-                .catch(error => {
-                    const totalTime = performance.now() - fetchStartTime;
-                    console.error('❌ [OFFER_DETAILS] ========== ОШИБКА в showOfferDetails ==========');
-                    console.error('❌ [OFFER_DETAILS] Время до ошибки:', totalTime.toFixed(2), 'мс');
-                    console.error('❌ [OFFER_DETAILS] Тип ошибки:', error.constructor.name);
-                    console.error('❌ [OFFER_DETAILS] Сообщение ошибки:', error.message);
-                    console.error('❌ [OFFER_DETAILS] Stack trace:', error.stack);
-                    console.error('❌ [OFFER_DETAILS] Полный объект ошибки:', error);
-                    modalContent.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных: ' + escapeHtml(error.message) + '</div>';
-                    console.error('❌ [OFFER_DETAILS] ========== КОНЕЦ обработки ошибки ==========');
-                });
-            }
-            
-            
-            // Экранирование HTML для безопасного вывода (оптимизированная версия)
-            function escapeHtml(text) {
-                if (!text) return '';
-                // Используем быстрый способ экранирования через replace
-                return String(text)
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/"/g, '&quot;')
-                    .replace(/'/g, '&#039;');
-            }
-            
-            // Настраиваем обработчики клика на строки
             setupRowClickHandlers();
-            
-            // ТЕСТОВАЯ ФУНКЦИЯ для проверки модального окна (можно вызвать из консоли: testModal())
-            window.testModal = function() {
-                const modalElement = document.getElementById('offerDetailsModal');
-                const modalContent = document.getElementById('offerDetailsContent');
-                if (!modalElement || !modalContent) {
-                    alert('Модальное окно не найдено!');
-                    return;
-                }
-                
-                modalContent.innerHTML = '<div class="alert alert-success"><h5>ТЕСТ: Модальное окно работает!</h5><p>Если вы видите это сообщение, значит модальное окно отображается корректно.</p></div>';
-                
-                // Просто открываем модальное окно, как в products-table.html
-                const modal = new bootstrap.Modal(modalElement);
-                modal.show();
-            };
-            
-            // Инициализация: если есть фильтры в URL, они уже применены на сервере
-            // Если нужно перезагрузить данные при первой загрузке, раскомментируйте:
-            // loadOffers(0);
         });
         
-        // Принудительно восстанавливаем прокрутку страницы с кастомной полосой
-        (function() {
-            function restoreScrollbar() {
-                // Устанавливаем прокрутку для html - ВСЕГДА показываем полосу прокрутки
-                document.documentElement.style.overflowY = 'scroll'; // scroll = всегда видна полоса
-                document.documentElement.style.overflowX = 'hidden';
-                document.documentElement.style.height = '100%';
-                
-                // Устанавливаем прокрутку для body
-                document.body.style.overflowY = 'auto';
-                document.body.style.overflowX = 'hidden';
-                document.body.style.height = 'auto';
-                document.body.style.minHeight = '100vh';
-                document.body.style.position = 'relative';
-                document.body.style.maxHeight = 'none';
-                
-                // Обновляем контейнеры
-                const containers = document.querySelectorAll('.page, .main-content, .app-content');
-                containers.forEach(function(container) {
-                    container.style.overflowY = 'visible';
-                    container.style.overflowX = 'hidden';
-                    container.style.height = 'auto';
-                    container.style.minHeight = '100vh';
-                    container.style.maxHeight = 'none';
-                });
-                
-                // Убираем modal-open класс, если он блокирует прокрутку
-                if (document.body.classList.contains('modal-open')) {
-                    document.body.style.overflowY = 'scroll'; // Все равно показываем прокрутку
-                    document.body.style.paddingRight = '';
-                }
-                
-                // Удаляем кастомные скроллбары Simplebar, если они используются
-                const simplebarElements = document.querySelectorAll('[data-simplebar]');
-                simplebarElements.forEach(function(el) {
-                    el.removeAttribute('data-simplebar');
-                    el.style.overflowY = 'auto';
-                });
-            }
-            
-            // Выполняем сразу
-            restoreScrollbar();
-            
-            // Выполняем после загрузки DOM
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', restoreScrollbar);
-            }
-            
-            // Выполняем после полной загрузки страницы
-            window.addEventListener('load', function() {
-                restoreScrollbar();
-                // Повторяем несколько раз для гарантии
-                setTimeout(restoreScrollbar, 50);
-                setTimeout(restoreScrollbar, 100);
-                setTimeout(restoreScrollbar, 300);
-                setTimeout(restoreScrollbar, 500);
-                setTimeout(restoreScrollbar, 1000);
+        // Функция для переключения выбора всех чекбоксов
+        window.toggleSelectAll = function(checkbox) {
+            const checkboxes = document.querySelectorAll('.offer-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
             });
+            updateDeleteButton();
+        };
+        
+        // Функция для обновления состояния кнопки удаления
+        window.updateDeleteButton = function() {
+            const deleteBtn = document.getElementById('deleteSelectedBtn');
+            if (!deleteBtn) return;
             
-            // Выполняем при изменении размера окна
-            window.addEventListener('resize', restoreScrollbar);
-            
-            // Наблюдаем за изменениями DOM, чтобы перехватывать попытки скрыть прокрутку
-            if (typeof MutationObserver !== 'undefined') {
-                const observer = new MutationObserver(function(mutations) {
-                    mutations.forEach(function(mutation) {
-                        if (mutation.type === 'attributes' && 
-                            (mutation.attributeName === 'style' || mutation.attributeName === 'class')) {
-                            const target = mutation.target;
-                            if (target === document.body || target === document.documentElement ||
-                                target.classList && target.classList.contains('page')) {
-                                restoreScrollbar();
-                            }
-                        }
-                    });
-                });
-                
-                observer.observe(document.body, {
-                    attributes: true,
-                    attributeFilter: ['style', 'class']
-                });
-                
-                observer.observe(document.documentElement, {
-                    attributes: true,
-                    attributeFilter: ['style', 'class']
-                });
+            const checkedBoxes = document.querySelectorAll('.offer-checkbox:checked');
+            deleteBtn.disabled = checkedBoxes.length === 0;
+        };
+        
+        // Функция для удаления выбранных предложений
+        window.deleteSelectedOffers = function() {
+            const checkedBoxes = document.querySelectorAll('.offer-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('Выберите предложения для удаления');
+                return;
             }
-        })();
+            
+            const offerIds = Array.from(checkedBoxes).map(cb => cb.dataset.offerId);
+            const count = offerIds.length;
+            
+            if (!confirm(`Вы уверены, что хотите удалить ${count} предложение(й)?`)) {
+                return;
+            }
+            
+            const deleteBtn = document.getElementById('deleteSelectedBtn');
+            if (deleteBtn) {
+                deleteBtn.disabled = true;
+                deleteBtn.innerHTML = '<i class="fe fe-loader"></i> Удаление...';
+            }
+            
+            fetch('/private/offers/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ offerIds: offerIds })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error('Ошибка удаления: ' + response.status);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(`Успешно удалено предложений: ${data.deletedCount}`);
+                    // Перезагружаем текущую страницу
+                    const page = (typeof window.currentPage !== 'undefined' && window.currentPage !== null) ? window.currentPage : 0;
+                    if (typeof window.loadOffers === 'function') {
+                        window.loadOffers(page);
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    alert('Ошибка удаления: ' + (data.message || 'Неизвестная ошибка'));
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при удалении предложений:', error);
+                alert('Ошибка удаления: ' + error.message);
+            })
+            .finally(() => {
+                if (deleteBtn) {
+                    deleteBtn.disabled = false;
+                    deleteBtn.innerHTML = '<i class="fe fe-trash-2"></i> Удалить выбранные';
+                }
+            });
+        }
     </script>
 
 </body>

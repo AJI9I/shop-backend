@@ -15,11 +15,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -257,15 +262,38 @@ public class PrivateController {
         long initTime = System.currentTimeMillis() - initStartTime;
         log.info("Инициализация связанных сущностей заняла {} мс", initTime);
         
+        // Проверяем, является ли пользователь администратором
+        boolean isAdmin = false;
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getAuthorities() != null) {
+                isAdmin = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(auth -> auth.equals("ROLE_ADMIN"));
+            }
+        } catch (Exception e) {
+            log.warn("Ошибка при проверке роли администратора: {}", e.getMessage());
+        }
+        
         // Формируем HTML таблицы
         long htmlStartTime = System.currentTimeMillis();
         StringBuilder html = new StringBuilder();
         
+        int colspan = isAdmin ? 13 : 12; // Если есть чекбокс, то на 1 колонку больше
+        
         if (offersPage.getContent().isEmpty()) {
-            html.append("<tr><td colspan=\"12\" class=\"text-center py-24 text-muted\">Предложения не найдены</td></tr>");
+            html.append("<tr><td colspan=\"").append(colspan).append("\" class=\"text-center py-24 text-muted\">Предложения не найдены</td></tr>");
         } else {
             for (Offer offer : offersPage.getContent()) {
                 html.append("<tr class=\"offer-row\" data-offer-id=\"").append(offer.getId()).append("\" style=\"cursor: pointer;\">");
+                
+                // Чекбокс только для администратора
+                if (isAdmin) {
+                    html.append("<td>");
+                    html.append("<input type=\"checkbox\" class=\"offer-checkbox\" data-offer-id=\"").append(offer.getId()).append("\" onchange=\"updateDeleteButton()\">");
+                    html.append("</td>");
+                }
+                
                 html.append("<td>").append(offer.getId()).append("</td>");
                 html.append("<td>");
                 if (offer.getProduct() != null) {
@@ -643,6 +671,64 @@ public class PrivateController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(series);
+    }
+    
+    /**
+     * Удаление предложений (только для администратора)
+     */
+    @PostMapping(value = "/private/offers/delete", produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteOffers(@RequestBody Map<String, Object> request) {
+        log.info("Запрос на удаление предложений от администратора");
+        
+        try {
+            @SuppressWarnings("unchecked")
+            List<Long> offerIds = (List<Long>) request.get("offerIds");
+            
+            if (offerIds == null || offerIds.isEmpty()) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("message", "Не указаны ID предложений для удаления");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            log.info("Удаление предложений: {}", offerIds);
+            
+            int deletedCount = 0;
+            for (Long offerId : offerIds) {
+                try {
+                    if (offerRepository.existsById(offerId)) {
+                        offerRepository.deleteById(offerId);
+                        deletedCount++;
+                        log.info("Предложение с ID {} удалено", offerId);
+                    } else {
+                        log.warn("Предложение с ID {} не найдено", offerId);
+                    }
+                } catch (Exception e) {
+                    log.error("Ошибка при удалении предложения с ID {}: {}", offerId, e.getMessage(), e);
+                }
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("deletedCount", deletedCount);
+            response.put("requestedCount", offerIds.size());
+            
+            log.info("Удалено предложений: {} из {}", deletedCount, offerIds.size());
+            
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(response);
+                    
+        } catch (Exception e) {
+            log.error("Ошибка при удалении предложений: {}", e.getMessage(), e);
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Ошибка при удалении: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
     }
 }
 

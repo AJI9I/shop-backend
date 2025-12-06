@@ -20,11 +20,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -618,6 +622,7 @@ public class ProductsController {
             @RequestParam(required = false, defaultValue = "0") int page, // Страница
             @RequestParam(required = false, defaultValue = "10") int size, // По умолчанию 10 записей при первой загрузке // Количество записей на странице
             HttpServletRequest request,
+            HttpServletResponse response,
             Model model) {
         try {
             // Пытаемся определить, это ID или slug
@@ -637,8 +642,12 @@ public class ProductsController {
             }
             
             if (minerDetailOpt.isEmpty()) {
-                model.addAttribute("error", "Майнер не найден");
-                return "error";
+                log.warn("Майнер не найден: idOrSlug={}", idOrSlug);
+                // Устанавливаем статус 404 в запросе для обработки CustomErrorController
+                request.setAttribute(RequestDispatcher.ERROR_STATUS_CODE, HttpStatus.NOT_FOUND.value());
+                request.setAttribute(RequestDispatcher.ERROR_REQUEST_URI, request.getRequestURI());
+                // Перенаправляем на /error для обработки CustomErrorController
+                return "forward:/error";
             }
             
             MinerDetail minerDetail = minerDetailOpt.get();
@@ -833,6 +842,9 @@ public class ProductsController {
             model.addAttribute("ogImage", ogImageUrl);
             
             return "product-details-new";
+        } catch (ResponseStatusException e) {
+            // Пробрасываем ResponseStatusException дальше для обработки GlobalExceptionHandler
+            throw e;
         } catch (Exception e) {
             // Логируем ошибку для отладки
             log.error("Ошибка при загрузке детальной страницы майнера idOrSlug={}: {}", idOrSlug, e.getMessage(), e);
