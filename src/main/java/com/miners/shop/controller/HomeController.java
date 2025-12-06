@@ -10,6 +10,7 @@ import com.miners.shop.repository.OfferRepository;
 import com.miners.shop.repository.ProductRepository;
 import com.miners.shop.service.WhatsAppMessageService;
 import com.miners.shop.util.ImageUrlResolver;
+import com.miners.shop.util.SchemaOrgUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -100,6 +101,10 @@ public class HomeController {
         model.addAttribute("minersByManufacturer", minersByManufacturer);
         model.addAttribute("minerStats", minerStats);
         model.addAttribute("imageUrls", imageUrls);
+        
+        // Schema.org разметка для главной страницы
+        model.addAttribute("organizationSchema", SchemaOrgUtil.generateOrganizationSchema());
+        model.addAttribute("websiteSchema", SchemaOrgUtil.generateWebSiteSchema());
         
         return "index-new";
     }
