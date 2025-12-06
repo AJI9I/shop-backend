@@ -1,9 +1,13 @@
 package com.miners.shop.controller;
 
+import com.miners.shop.dto.CompanyMinerDTO;
 import com.miners.shop.dto.MinerDetailDTO;
+import com.miners.shop.entity.CompanyMiner;
 import com.miners.shop.entity.MinerDetail;
 import com.miners.shop.entity.Product;
+import com.miners.shop.repository.CompanyMinerRepository;
 import com.miners.shop.repository.ProductRepository;
+import com.miners.shop.service.CompanyMinerService;
 import com.miners.shop.service.ImageUploadService;
 import com.miners.shop.service.MinerDetailExcelService;
 import com.miners.shop.service.MinerDetailService;
@@ -37,6 +41,8 @@ public class MinerDetailController {
     private final ProductRepository productRepository;
     private final MinerDetailExcelService excelService;
     private final ImageUploadService imageUploadService;
+    private final CompanyMinerRepository companyMinerRepository;
+    private final CompanyMinerService companyMinerService;
     
     /**
      * Страница со списком всех детальных записей (таблица с основными параметрами)
@@ -514,9 +520,25 @@ public class MinerDetailController {
         // Получаем список связанных товаров (Product)
         List<Product> linkedProducts = minerDetail.getProducts();
         
+        // Проверяем наличие CompanyMiner для этого MinerDetail
+        Optional<CompanyMiner> companyMinerOpt = companyMinerRepository.findByMinerDetailId(id);
+        boolean hasCompanyMiner = companyMinerOpt.isPresent();
+        CompanyMinerDTO.CompanyMinerInfo companyMinerInfo = null;
+        Long companyMinerId = null;
+        
+        if (hasCompanyMiner) {
+            companyMinerInfo = companyMinerService.getCompanyMinerByMinerDetailId(id)
+                    .orElse(null);
+            if (companyMinerInfo != null) {
+                companyMinerId = companyMinerInfo.id();
+            }
+        }
+        
         model.addAttribute("minerDetail", dto);
         model.addAttribute("linkedProducts", linkedProducts);
         model.addAttribute("linkedProductsCount", linkedProducts != null ? linkedProducts.size() : 0);
+        model.addAttribute("hasCompanyMiner", hasCompanyMiner);
+        model.addAttribute("companyMinerId", companyMinerId);
         
         return "miner-details/view";
     }
