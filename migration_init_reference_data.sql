@@ -63,3 +63,4 @@ WHERE NOT EXISTS (SELECT 1 FROM hashrate_units WHERE abbreviation = 'GSol/s');
 
 
 
+

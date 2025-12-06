@@ -20,3 +20,4 @@ public interface CompanyMinerCustomFieldRepository extends JpaRepository<Company
 
 
 
+

@@ -543,6 +543,13 @@ public class ProductsController {
                 model.addAttribute("seriesToManufacturersJson", "{}");
             }
             
+            // SEO мета-теги
+            model.addAttribute("pageTitle", "Каталог товаров - MinerHive");
+            model.addAttribute("pageDescription", "Каталог ASIC майнеров для майнинга криптовалют. Bitmain, MicroBT, Canaan. Фильтры по производителю, серии, поиск.");
+            model.addAttribute("pageKeywords", "каталог майнеров, ASIC майнеры, купить майнер, Bitmain, MicroBT");
+            model.addAttribute("canonicalUrl", SeoUtil.generateCanonicalUrl(request));
+            model.addAttribute("ogImage", "https://minerhive.ru/assets/images/logo/logo.png");
+            
             return "products-new";
         } catch (Exception e) {
             // Логируем ошибку для отладки
@@ -747,6 +754,27 @@ public class ProductsController {
             productBreadcrumb.put("url", "/products/" + slug);
             breadcrumbs.add(productBreadcrumb);
             model.addAttribute("breadcrumbSchema", SchemaOrgUtil.generateBreadcrumbSchema(breadcrumbs));
+            
+            // SEO мета-теги
+            String pageTitle = minerDetail.getStandardName() != null 
+                    ? "Майнер " + minerDetail.getStandardName() + " - MinerHive"
+                    : "Майнер - MinerHive";
+            String pageDescription = minerDetail.getDescription() != null && !minerDetail.getDescription().isEmpty()
+                    ? minerDetail.getDescription()
+                    : "Купить " + (minerDetail.getStandardName() != null ? minerDetail.getStandardName() : "майнер") + " для майнинга криптовалют. ASIC майнер от " + (minerDetail.getManufacturer() != null ? minerDetail.getManufacturer() : "производителя") + ".";
+            String slug = minerDetail.getSlug() != null && !minerDetail.getSlug().isEmpty() 
+                    ? minerDetail.getSlug() 
+                    : String.valueOf(minerDetail.getId());
+            String canonicalUrl = SeoUtil.generateCanonicalUrl("/products/" + slug);
+            String ogImageUrl = imageUrl != null && !imageUrl.isEmpty() 
+                    ? (imageUrl.startsWith("http") ? imageUrl : "https://minerhive.ru" + imageUrl)
+                    : "https://minerhive.ru/assets/images/logo/logo.png";
+            
+            model.addAttribute("pageTitle", pageTitle);
+            model.addAttribute("pageDescription", pageDescription);
+            model.addAttribute("pageKeywords", (minerDetail.getStandardName() != null ? minerDetail.getStandardName() : "") + ", майнер, ASIC, " + (minerDetail.getManufacturer() != null ? minerDetail.getManufacturer() : "") + ", купить майнер");
+            model.addAttribute("canonicalUrl", canonicalUrl);
+            model.addAttribute("ogImage", ogImageUrl);
             
             return "product-details-new";
         } catch (Exception e) {

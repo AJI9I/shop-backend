@@ -36,3 +36,4 @@ public interface CompanyMinerRepository extends JpaRepository<CompanyMiner, Long
 
 
 
+
