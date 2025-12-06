@@ -12,6 +12,8 @@ import com.miners.shop.repository.CompanyMinerRepository;
 import com.miners.shop.service.CompanyMinerService;
 import com.miners.shop.service.ProductService;
 import com.miners.shop.util.SchemaOrgUtil;
+import com.miners.shop.util.SeoUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -193,6 +195,7 @@ public class ProductsController {
             @RequestParam(required = false) List<String> manufacturer, // Фильтр по производителям
             @RequestParam(required = false) List<String> series, // Фильтр по сериям
             @RequestParam(required = false) String search, // Поиск по названию, производителю или серии
+            HttpServletRequest request,
             Model model) {
         try {
             Page<MinerDetail> minerDetailsPage = new org.springframework.data.domain.PageImpl<>(List.of());
@@ -563,6 +566,7 @@ public class ProductsController {
             @RequestParam(required = false, defaultValue = "DESC") String sortDir, // Направление сортировки
             @RequestParam(required = false, defaultValue = "0") int page, // Страница
             @RequestParam(required = false, defaultValue = "10") int size, // По умолчанию 10 записей при первой загрузке // Количество записей на странице
+            HttpServletRequest request,
             Model model) {
         try {
             // Получаем MinerDetail по ID (id теперь это ID MinerDetail, а не Product)
