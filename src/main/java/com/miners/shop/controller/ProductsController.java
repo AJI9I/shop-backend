@@ -721,6 +721,29 @@ public class ProductsController {
             model.addAttribute("useCompanyMiner", useCompanyMiner);
             model.addAttribute("companyMiner", companyMinerInfo);
             
+            // Schema.org разметка для страницы товара
+            String productSchema = SchemaOrgUtil.generateProductSchema(minerDetail, offers, imageUrl);
+            model.addAttribute("productSchema", productSchema);
+            
+            // Breadcrumb schema
+            java.util.List<java.util.Map<String, String>> breadcrumbs = new java.util.ArrayList<>();
+            java.util.Map<String, String> homeBreadcrumb = new java.util.HashMap<>();
+            homeBreadcrumb.put("name", "Главная");
+            homeBreadcrumb.put("url", "/");
+            breadcrumbs.add(homeBreadcrumb);
+            java.util.Map<String, String> productsBreadcrumb = new java.util.HashMap<>();
+            productsBreadcrumb.put("name", "Товары");
+            productsBreadcrumb.put("url", "/products");
+            breadcrumbs.add(productsBreadcrumb);
+            java.util.Map<String, String> productBreadcrumb = new java.util.HashMap<>();
+            productBreadcrumb.put("name", minerDetail.getStandardName() != null ? minerDetail.getStandardName() : "Майнер");
+            String slug = minerDetail.getSlug() != null && !minerDetail.getSlug().isEmpty() 
+                    ? minerDetail.getSlug() 
+                    : String.valueOf(minerDetail.getId());
+            productBreadcrumb.put("url", "/products/" + slug);
+            breadcrumbs.add(productBreadcrumb);
+            model.addAttribute("breadcrumbSchema", SchemaOrgUtil.generateBreadcrumbSchema(breadcrumbs));
+            
             return "product-details-new";
         } catch (Exception e) {
             // Логируем ошибку для отладки
