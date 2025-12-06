@@ -62,12 +62,59 @@ public class HomeController {
         List<MinerDetail> bitmainMinerDetails = minerDetailRepository.findAllWithOffersByManufacturers(List.of("Bitmain"));
         List<MinerDetail> microbtMinerDetails = minerDetailRepository.findAllWithOffersByManufacturers(List.of("MicroBT"));
         
-        // Функция для подсчета количества предложений и сортировки
+        // ОПТИМИЗАЦИЯ: Загружаем все данные одним запросом вместо N+1
+        List<MinerDetail> allMinerDetails = new java.util.ArrayList<>();
+        allMinerDetails.addAll(bitmainMinerDetails);
+        allMinerDetails.addAll(microbtMinerDetails);
+        
+        // Собираем все ID MinerDetail
+        List<Long> minerDetailIds = allMinerDetails.stream()
+                .map(MinerDetail::getId)
+                .toList();
+        
+        // Загружаем все Product для всех MinerDetail одним запросом
+        List<Product> allProducts = minerDetailIds.isEmpty() 
+                ? List.of() 
+                : productRepository.findByMinerDetailIdIn(minerDetailIds);
+        
+        // Собираем все ID Product
+        List<Long> allProductIds = allProducts.stream()
+                .map(Product::getId)
+                .toList();
+        
+        // Загружаем все offers для всех Product одним запросом
+        List<Offer> allOffers = allProductIds.isEmpty() 
+                ? List.of() 
+                : offerRepository.findByProductIdIn(allProductIds);
+        
+        // Группируем offers по productId
+        Map<Long, List<Offer>> offersByProductId = allOffers.stream()
+                .collect(Collectors.groupingBy(
+                        o -> o.getProduct() != null ? o.getProduct().getId() : null,
+                        Collectors.toList()
+                ));
+        
+        // Группируем Product по minerDetailId
+        Map<Long, List<Product>> productsByMinerDetailId = allProducts.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getMinerDetail() != null ? p.getMinerDetail().getId() : null,
+                        Collectors.toList()
+                ));
+        
+        // Группируем offers по minerDetailId
+        Map<Long, List<Offer>> offersByMinerDetailId = new HashMap<>();
+        for (Product product : allProducts) {
+            if (product.getMinerDetail() != null) {
+                Long minerDetailId = product.getMinerDetail().getId();
+                List<Offer> productOffers = offersByProductId.getOrDefault(product.getId(), List.of());
+                offersByMinerDetailId.computeIfAbsent(minerDetailId, k -> new java.util.ArrayList<>())
+                        .addAll(productOffers);
+            }
+        }
+        
+        // Функция для подсчета количества предложений (использует предзагруженные данные)
         java.util.function.Function<MinerDetail, Integer> countOffers = minerDetail -> {
-            List<Product> linkedProducts = productRepository.findByMinerDetailId(minerDetail.getId());
-            List<Long> productIds = linkedProducts.stream().map(Product::getId).toList();
-            if (productIds.isEmpty()) return 0;
-            List<Offer> offers = offerRepository.findByProductIdIn(productIds);
+            List<Offer> offers = offersByMinerDetailId.getOrDefault(minerDetail.getId(), List.of());
             return offers.size();
         };
         
@@ -91,11 +138,16 @@ public class HomeController {
         Map<Long, Map<String, Object>> minerStats = new HashMap<>();
         Map<Long, String> imageUrls = new HashMap<>();
         
+        // Используем предзагруженные данные для обработки
         for (MinerDetail minerDetail : topBitmain) {
-            processMinerDetail(minerDetail, minerStats, imageUrls);
+            processMinerDetailOptimized(minerDetail, minerStats, imageUrls, 
+                    productsByMinerDetailId.getOrDefault(minerDetail.getId(), List.of()),
+                    offersByMinerDetailId.getOrDefault(minerDetail.getId(), List.of()));
         }
         for (MinerDetail minerDetail : topMicroBT) {
-            processMinerDetail(minerDetail, minerStats, imageUrls);
+            processMinerDetailOptimized(minerDetail, minerStats, imageUrls,
+                    productsByMinerDetailId.getOrDefault(minerDetail.getId(), List.of()),
+                    offersByMinerDetailId.getOrDefault(minerDetail.getId(), List.of()));
         }
         
         model.addAttribute("totalMessages", totalMessages);
@@ -120,22 +172,21 @@ public class HomeController {
     }
     
     /**
+     * ОПТИМИЗИРОВАННАЯ версия обработки MinerDetail с предзагруженными данными
      * Обрабатывает MinerDetail и вычисляет статистику (минимальная цена, количество предложений)
      * Ищет минимальную цену сначала за последние 24 часа, если нет - за все время
      * Не показывает цену 0
      */
-    private void processMinerDetail(MinerDetail minerDetail, Map<Long, Map<String, Object>> minerStats, Map<Long, String> imageUrls) {
-        List<Product> linkedProducts = productRepository.findByMinerDetailId(minerDetail.getId());
-        List<Long> productIds = linkedProducts.stream().map(Product::getId).toList();
-        
+    private void processMinerDetailOptimized(MinerDetail minerDetail, 
+                                             Map<Long, Map<String, Object>> minerStats, 
+                                             Map<Long, String> imageUrls,
+                                             List<Product> linkedProducts,
+                                             List<Offer> allOffers) {
         BigDecimal minPrice = null;
-        int totalOffersCount = 0;
+        int totalOffersCount = allOffers.size();
         String currency = "RUB";
         
-        if (!productIds.isEmpty()) {
-            List<Offer> allOffers = offerRepository.findByProductIdIn(productIds);
-            totalOffersCount = allOffers.size();
-            
+        if (!allOffers.isEmpty()) {
             // Фильтруем только предложения на продажу (SELL)
             List<Offer> sellOffers = allOffers.stream()
                     .filter(offer -> offer.getOperationType() == OperationType.SELL)
@@ -191,10 +242,6 @@ public class HomeController {
         }
         imageUrls.put(minerDetail.getId(), imageUrl);
     }
-    
-    /**
-     * API endpoint для получения сообщений в JSON формате (для AJAX обновления)
-     */
     @GetMapping(value = "/api/messages", produces = "application/json;charset=UTF-8")
     public ResponseEntity<?> getMessagesJson(
             @RequestParam(defaultValue = "0") int page,

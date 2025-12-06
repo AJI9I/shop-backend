@@ -444,8 +444,8 @@
                 <div class="list-grid-wrapper" th:if="${minerDetailsPage.totalElements > 0}">
                     <div class="product-card h-100 p-16 border border-gray-100 hover-border-main-two-600 rounded-16 position-relative transition-2" 
                          th:each="minerDetail : ${minerDetails}" 
-                         th:with="minerInfo=${minerDetailOperationInfo != null ? minerDetailOperationInfo.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}">
-                        <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="background-color: #ffffff !important;">
+                         th:with="minerInfo=${minerDetailOperationInfo != null ? minerDetailOperationInfo.get(minerDetail.id) : null}, imageUrl=${imageUrls != null ? imageUrls.get(minerDetail.id) : null}, productSlug=${productSlugs != null ? productSlugs.get(minerDetail.id) : minerDetail.id.toString()}">
+                        <a th:href="@{'/products/' + ${productSlug}}" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="background-color: #ffffff !important;">
                             <img th:if="${imageUrl != null && !#strings.isEmpty(imageUrl)}" 
                                  th:src="@{${imageUrl}}" 
                                  th:alt="${minerDetail.standardName}"
@@ -459,7 +459,7 @@
                         </a>
                         <div class="product-card__content mt-16">
                             <h6 class="title text-lg fw-semibold mt-12 mb-8">
-                                <a th:href="@{'/products/' + ${minerDetail.id}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
+                                <a th:href="@{'/products/' + ${productSlug}}" class="link text-line-2" tabindex="0" th:utext="${minerDetail.standardName}">
                                     Название майнера
                                 </a>
                             </h6>
@@ -480,7 +480,7 @@
                                     Цена не указана
                                 </span>
                             </div>
-                            <a th:href="@{'/products/' + ${minerDetail.id}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
+                            <a th:href="@{'/products/' + ${productSlug}}" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium" tabindex="0">
                                 Подробнее <i class="ph ph-arrow-right"></i>
                             </a>
                         </div>
@@ -489,7 +489,7 @@
                 <!-- Grid End -->
 
                 <!-- Pagination Start (скрыта, используется бесконечная прокрутка) -->
-                <ul class="pagination flex-center flex-wrap gap-16 mt-40" style="display: none;" th:if="${minerDetailsPage.totalPages > 1}">
+                <ul class="pagination flex-center flex-wrap gap-16 mt-40" th:if="${minerDetailsPage.totalPages > 1}" style="display: none;">
                     <li class="page-item" th:classappend="${minerDetailsPage.first} ? 'disabled'">
                         <a class="page-link h-64 w-64 flex-center text-xxl rounded-8 fw-medium text-neutral-600 border border-gray-100 hover-bg-main-two-600 hover-text-white hover-border-main-two-600 pagination-link" 
                            th:attr="data-page=${minerDetailsPage.number - 1}"
@@ -755,14 +755,16 @@
                 const currency = info.currency || 'RUB';
                 const standardName = (minerDetail.standardName || 'Название майнера').replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 const manufacturer = minerDetail.manufacturer ? (minerDetail.manufacturer.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')) : '';
+                // Используем slug, если он есть, иначе id
+                const productSlug = (minerDetail.slug && minerDetail.slug.trim() !== '') ? minerDetail.slug : minerDetail.id;
                 
                 let html = '<div class="product-card h-100 p-16 border border-gray-100 hover-border-main-two-600 rounded-16 position-relative transition-2">';
-                html += '<a href="/products/' + minerDetail.id + '" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="background-color: #ffffff !important;">';
+                html += '<a href="/products/' + productSlug + '" class="product-card__thumb flex-center rounded-8 bg-white position-relative" style="background-color: #ffffff !important;">';
                 html += '<img src="' + imageUrl + '" alt="' + standardName + '" onerror="this.onerror=null; this.src=\'/assets/images/thumbs/product-img1.png\';">';
                 html += '</a>';
                 html += '<div class="product-card__content mt-16">';
                 html += '<h6 class="title text-lg fw-semibold mt-12 mb-8">';
-                html += '<a href="/products/' + minerDetail.id + '" class="link text-line-2">' + standardName + '</a>';
+                html += '<a href="/products/' + productSlug + '" class="link text-line-2">' + standardName + '</a>';
                 html += '</h6>';
                 html += '<div class="flex-align mb-20 mt-16 gap-6">';
                 html += '<span class="text-xs fw-medium text-gray-500">Предложений: ' + totalOffers + '</span>';
@@ -779,7 +781,7 @@
                     html += '<span class="text-gray-400 text-md">Цена не указана</span>';
                 }
                 html += '</div>';
-                html += '<a href="/products/' + minerDetail.id + '" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium">';
+                html += '<a href="/products/' + productSlug + '" class="product-card__cart btn bg-gray-50 text-heading hover-bg-main-two-600 hover-text-white py-11 px-24 rounded-8 flex-center gap-8 fw-medium">';
                 html += 'Подробнее <i class="ph ph-arrow-right"></i>';
                 html += '</a>';
                 html += '</div>';
@@ -1088,6 +1090,21 @@
                 });
             }
             
+            // Обработчик клика на пагинацию
+            document.querySelectorAll('.pagination-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = parseInt(this.getAttribute('data-page'));
+                    if (!isNaN(page) && page >= 0) {
+                        currentPage = page;
+                        totalLoaded = 0;
+                        loadProducts(page, false);
+                        // Прокручиваем вверх страницы
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            });
+            
             // Инициализация фильтрации серий при загрузке страницы
             filterSeriesByManufacturers();
             
@@ -1112,27 +1129,25 @@
                 if (productsContainer && productsContainer.children.length > 0) {
                     // Подсчитываем уже загруженные товары с сервера
                     totalLoaded = productsContainer.children.length;
-                    // Проверяем, есть ли еще страницы (смотрим на пагинацию)
-                    const pagination = document.querySelector('.pagination');
-                    if (pagination && pagination.children.length > 0) {
-                        // Если есть пагинация, значит есть еще страницы
-                        hasMorePages = true;
-                        // Предполагаем, что мы на странице 0 (первая загрузка была с сервера)
-                        currentPage = 0;
-                        // Получаем общее количество элементов из счетчика результатов или из пагинации
-                        const resultsCounter = document.querySelector('.flex-between.gap-16.flex-wrap.mb-40 > span');
-                        if (resultsCounter) {
-                            const counterText = resultsCounter.textContent || '';
-                            const totalMatch = counterText.match(/из (\d+) результатов/);
-                            if (totalMatch) {
-                                totalElements = parseInt(totalMatch[1]) || 0;
-                            }
+                    // Получаем общее количество элементов из счетчика результатов
+                    const resultsCounter = document.querySelector('.flex-between.gap-16.flex-wrap.mb-40 > span');
+                    if (resultsCounter) {
+                        const counterText = resultsCounter.textContent || '';
+                        const totalMatch = counterText.match(/из (\d+) результатов/);
+                        if (totalMatch) {
+                            totalElements = parseInt(totalMatch[1]) || 0;
+                            // Проверяем, есть ли еще страницы (если загружено меньше, чем всего)
+                            hasMorePages = totalLoaded < totalElements;
+                        } else {
+                            // Если не удалось определить общее количество, предполагаем, что есть еще страницы
+                            hasMorePages = true;
                         }
                     } else {
-                        // Если нет пагинации, значит больше нет страниц
-                        hasMorePages = false;
-                        totalElements = totalLoaded;
+                        // Если нет счетчика, предполагаем, что есть еще страницы
+                        hasMorePages = true;
                     }
+                    // Предполагаем, что мы на странице 0 (первая загрузка была с сервера)
+                    currentPage = 0;
                 } else {
                     // Если нет товаров на странице, загружаем через AJAX
                     currentPage = 0;
@@ -1159,6 +1174,9 @@
     <noscript><div><img src="https://mc.yandex.ru/watch/105468809" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->
 
+    <!-- Schema.org разметка -->
+    <div th:replace="~{fragments/schema-org :: schema-org}"></div>
+    
     <!-- Cookie Consent Banner -->
     <th:block th:replace="~{fragments/cookie-consent :: cookie-consent-banner}"></th:block>
 

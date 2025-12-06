@@ -1,10 +1,12 @@
 package com.miners.shop.config;
 
+import com.miners.shop.controller.RedirectInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.Ordered;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -20,8 +22,22 @@ import java.nio.file.Paths;
 @Slf4j
 public class WebConfig implements WebMvcConfigurer {
     
+    private final RedirectInterceptor redirectInterceptor;
+    
     @Value("${app.upload.dir:uploads/img/miner-details}")
     private String uploadDir;
+    
+    public WebConfig(RedirectInterceptor redirectInterceptor) {
+        this.redirectInterceptor = redirectInterceptor;
+    }
+    
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        // Регистрируем RedirectInterceptor с высоким приоритетом
+        // чтобы он обрабатывал запросы до других обработчиков
+        registry.addInterceptor(redirectInterceptor)
+                .order(Ordered.HIGHEST_PRECEDENCE);
+    }
     
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

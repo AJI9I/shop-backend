@@ -59,5 +59,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
      */
     @Query("SELECT p FROM Product p WHERE p.minerDetail.id = :minerDetailId")
     List<Product> findByMinerDetailId(@Param("minerDetailId") Long minerDetailId);
+    
+    /**
+     * Находит все товары, связанные с несколькими MinerDetail по их ID (оптимизация для избежания N+1)
+     */
+    @Query("SELECT p FROM Product p WHERE p.minerDetail.id IN :minerDetailIds")
+    List<Product> findByMinerDetailIdIn(@Param("minerDetailIds") List<Long> minerDetailIds);
 }
 

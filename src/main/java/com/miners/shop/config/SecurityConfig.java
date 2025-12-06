@@ -50,6 +50,10 @@ public class SecurityConfig {
                     // Общедоступные страницы (без авторизации) - ВАЖНО: должно быть перед anyRequest()
                     .requestMatchers("/", "/products", "/products/**", "/about", "/delivery", "/services").permitAll()
                     
+                    // Юридические документы (без авторизации)
+                    .requestMatchers("/cookies-policy", "/privacy-policy", "/personal-data-consent", 
+                                     "/public-offer", "/offer", "/user-agreement", "/company-details").permitAll()
+                    
                     // Страница /private доступна администраторам и менеджерам
                     .requestMatchers("/private").hasAnyRole("ADMIN", "MANAGER")
                     
