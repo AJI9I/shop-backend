@@ -11,6 +11,8 @@ import com.miners.shop.repository.ProductRepository;
 import com.miners.shop.service.WhatsAppMessageService;
 import com.miners.shop.util.ImageUrlResolver;
 import com.miners.shop.util.SchemaOrgUtil;
+import com.miners.shop.util.SeoUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -48,6 +50,7 @@ public class HomeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size,
             @RequestParam(required = false) String chatType,
+            HttpServletRequest request,
             Model model) {
         
         // Статистика сообщений
@@ -105,6 +108,13 @@ public class HomeController {
         // Schema.org разметка для главной страницы
         model.addAttribute("organizationSchema", SchemaOrgUtil.generateOrganizationSchema());
         model.addAttribute("websiteSchema", SchemaOrgUtil.generateWebSiteSchema());
+        
+        // SEO мета-теги
+        model.addAttribute("pageTitle", "MinerHive - Интернет-магазин майнинг-оборудования");
+        model.addAttribute("pageDescription", "Купить майнер для майнинга криптовалют. Широкий выбор ASIC майнеров от Bitmain, MicroBT, Canaan. Новые и б/у майнеры с гарантией.");
+        model.addAttribute("pageKeywords", "майнер, ASIC майнер, купить майнер, Bitmain, MicroBT, майнинг, криптовалюта");
+        model.addAttribute("canonicalUrl", SeoUtil.generateCanonicalUrl(request));
+        model.addAttribute("ogImage", "https://minerhive.ru/assets/images/logo/logo.png");
         
         return "index-new";
     }
