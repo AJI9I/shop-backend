@@ -1,13 +1,10 @@
 package com.miners.shop.config;
 
-import com.miners.shop.controller.RedirectInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.Ordered;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -22,9 +19,6 @@ import java.nio.file.Paths;
 @Order(Ordered.LOWEST_PRECEDENCE)
 @Slf4j
 public class WebConfig implements WebMvcConfigurer {
-    
-    @Autowired
-    private RedirectInterceptor redirectInterceptor;
     
     @Value("${app.upload.dir:uploads/img/miner-details}")
     private String uploadDir;
@@ -123,24 +117,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/bootstrapTheme/HTML/dist/")
                 .setCachePeriod(31536000)  // 1 год
                 .resourceChain(true);
-        
-        // Раздаем robots.txt и sitemap.xml из resources/static
-        // Кэширование на 1 день для SEO файлов
-        registry.addResourceHandler("/robots.txt", "/sitemap.xml")
-                .addResourceLocations("classpath:/static/")
-                .setCachePeriod(86400)  // 1 день в секундах
-                .resourceChain(true);
-        
-        // Раздаем favicon файлы из resources/favIco
-        // Кэширование на 1 год для favicon
-        registry.addResourceHandler("/favicon.ico")
-                .addResourceLocations("classpath:/favIco/favicon.ico")
-                .setCachePeriod(31536000)  // 1 год в секундах
-                .resourceChain(true);
-        registry.addResourceHandler("/favicon/**")
-                .addResourceLocations("classpath:/favIco/")
-                .setCachePeriod(31536000)  // 1 год в секундах
-                .resourceChain(true);
     }
     
     @Override
@@ -148,13 +124,6 @@ public class WebConfig implements WebMvcConfigurer {
         // Устанавливаем низкий приоритет для статических ресурсов
         // чтобы контроллеры обрабатывались первыми
         registry.setOrder(Ordered.LOWEST_PRECEDENCE);
-    }
-    
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        // Добавляем интерцептор для обработки редиректов
-        registry.addInterceptor(redirectInterceptor)
-                .order(Ordered.HIGHEST_PRECEDENCE);
     }
 }
 

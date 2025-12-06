@@ -9,8 +9,11 @@
     <title>Детали майнеров - MinerHive</title>
     <meta name="Description" content="Управление деталями майнеров">
     
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
+    
     <!-- Favicon -->
-    <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}" href="../assets/images/brand-logos/favicon.ico" type="image/x-icon">
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
     
     <!-- Choices JS -->
     <script th:src="@{/bootstrap-theme/assets/libs/choices.js/public/assets/scripts/choices.min.js}" src="../assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
@@ -126,6 +129,20 @@
         .miner-details-table tbody tr.inactive-row {
             opacity: 0.6;
             background-color: #f8f9fa;
+        }
+        
+        .miner-details-table thead th.sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .miner-details-table thead th.sortable:hover {
+            background-color: #34495e;
+        }
+        
+        .sort-icon {
+            margin-left: 8px;
+            font-size: 0.75rem;
         }
     </style>
     
@@ -666,25 +683,59 @@
                                 
                                 <!-- Таблица с основными параметрами -->
                                 <div class="table-responsive">
-                                    <table class="table miner-details-table text-nowrap" id="minerDetailsTable">
+                                    <table class="table miner-details-table text-nowrap">
                                         <thead>
                                             <tr>
-                                                <th class="sortable" data-sort="id">ID <i class="fe fe-arrow-up-down ms-1"></i></th>
-                                                <th class="sortable" data-sort="name">Название <i class="fe fe-arrow-up-down ms-1"></i></th>
-                                                <th class="sortable" data-sort="manufacturer">Производитель <i class="fe fe-arrow-up-down ms-1"></i></th>
-                                                <th class="sortable" data-sort="series">Серия <i class="fe fe-arrow-up-down ms-1"></i></th>
-                                                <th class="sortable" data-sort="hashrate">Хэшрейт <i class="fe fe-arrow-up-down ms-1"></i></th>
-                                                <th class="sortable" data-sort="algorithm">Алгоритм <i class="fe fe-arrow-up-down ms-1"></i></th>
-                                                <th class="sortable" data-sort="power">Потребление <i class="fe fe-arrow-up-down ms-1"></i></th>
-                                                <th class="sortable text-center" data-sort="products">Количество товаров <i class="fe fe-arrow-up-down ms-1"></i></th>
+                                                <th class="sortable" th:classappend="${sortBy == 'id'} ? 'sortable'" th:attr="data-sort=id">
+                                                    ID
+                                                    <span class="sort-icon" th:if="${sortBy == 'id'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'standardName'} ? 'sortable'" th:attr="data-sort=standardName">
+                                                    Название
+                                                    <span class="sort-icon" th:if="${sortBy == 'standardName'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'manufacturer'} ? 'sortable'" th:attr="data-sort=manufacturer">
+                                                    Производитель
+                                                    <span class="sort-icon" th:if="${sortBy == 'manufacturer'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'series'} ? 'sortable'" th:attr="data-sort=series">
+                                                    Серия
+                                                    <span class="sort-icon" th:if="${sortBy == 'series'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'hashrate'} ? 'sortable'" th:attr="data-sort=hashrate">
+                                                    Хэшрейт
+                                                    <span class="sort-icon" th:if="${sortBy == 'hashrate'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'productCount'} ? 'sortable'" th:attr="data-sort=productCount">
+                                                    Количество товаров
+                                                    <span class="sort-icon" th:if="${sortBy == 'productCount'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
+                                                <th class="sortable" th:classappend="${sortBy == 'powerConsumption'} ? 'sortable'" th:attr="data-sort=powerConsumption">
+                                                    Потребление
+                                                    <span class="sort-icon" th:if="${sortBy == 'powerConsumption'}">
+                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
+                                                    </span>
+                                                </th>
                                                 <th class="text-center">Активность</th>
                                                 <th class="text-center">Действия</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody id="minerDetailsTableBody">
                                             <!-- Пустое состояние -->
                                             <tr th:if="${minerDetails == null || minerDetails.isEmpty()}">
-                                                <td colspan="10" class="text-center py-24 text-muted">
+                                                <td colspan="9" class="text-center py-24 text-muted">
                                                     Детальные записи майнеров отсутствуют
                                                 </td>
                                             </tr>
@@ -695,10 +746,10 @@
                                                 th:attr="data-active=${detail.active != null ? detail.active : true}"
                                                 class="miner-detail-row">
                                                 <!-- ID -->
-                                                <td th:text="${detail.id}" th:attr="data-sort-value=${detail.id}">ID</td>
+                                                <td th:text="${detail.id}">ID</td>
                                                 
                                                 <!-- Стандартизированное название -->
-                                                <td th:attr="data-sort-value=${detail.standardName ?: ''}">
+                                                <td>
                                                     <a th:href="@{/private/miner-details/{id}(id=${detail.id})}" 
                                                        class="text-primary hover-text-decoration-underline fw-semibold"
                                                        th:utext="${detail.standardName}">
@@ -707,24 +758,21 @@
                                                 </td>
                                                 
                                                 <!-- Производитель -->
-                                                <td th:utext="${detail.manufacturer} ?: '-'" th:attr="data-sort-value=${detail.manufacturer ?: ''}">Производитель</td>
+                                                <td th:utext="${detail.manufacturer} ?: '-'">Производитель</td>
                                                 
                                                 <!-- Серия -->
-                                                <td th:utext="${detail.series} ?: '-'" th:attr="data-sort-value=${detail.series ?: ''}">Серия</td>
+                                                <td th:utext="${detail.series} ?: '-'">Серия</td>
                                                 
                                                 <!-- Хэшрейт -->
-                                                <td th:utext="${detail.hashrate} ?: '-'" th:attr="data-sort-value=${detail.hashrate ?: ''}">Хэшрейт</td>
-                                                
-                                                <!-- Алгоритм -->
-                                                <td th:utext="${detail.algorithm} ?: '-'" th:attr="data-sort-value=${detail.algorithm ?: ''}">Алгоритм</td>
-                                                
-                                                <!-- Потребление -->
-                                                <td th:utext="${detail.powerConsumption} ?: '-'" th:attr="data-sort-value=${detail.powerConsumption ?: ''}">Потребление</td>
+                                                <td th:utext="${detail.hashrate} ?: '-'">Хэшрейт</td>
                                                 
                                                 <!-- Количество товаров -->
-                                                <td class="text-center" th:attr="data-sort-value=${productCounts != null ? productCounts.get(detail.id) : 0}">
-                                                    <span class="badge bg-primary" th:text="${productCounts != null ? productCounts.get(detail.id) : 0}">0</span>
+                                                <td>
+                                                    <span class="badge bg-info" th:text="${productCounts != null ? (productCounts.get(detail.id) ?: 0) : (detail.productIds != null ? detail.productIds.size() : 0)}">0</span>
                                                 </td>
+                                                
+                                                <!-- Потребление -->
+                                                <td th:utext="${detail.powerConsumption} ?: '-'">Потребление</td>
                                                 
                                                 <!-- Активность -->
                                                 <td class="text-center">
@@ -1267,115 +1315,149 @@
             
             // Применяем фильтр при загрузке страницы
             window.applyActiveFilter();
-            
-            // Инициализация сортировки таблицы
-            initTableSorting();
         });
         
-        // Функция инициализации сортировки таблицы
-        function initTableSorting() {
-            const table = document.getElementById('minerDetailsTable');
-            if (!table) return;
-            
-            const headers = table.querySelectorAll('thead th.sortable');
-            let currentSortColumn = null;
-            let currentSortDirection = 'asc';
-            
-            headers.forEach((header, index) => {
-                header.style.cursor = 'pointer';
-                header.addEventListener('click', function() {
-                    const sortType = this.dataset.sort;
-                    if (!sortType) return;
-                    
-                    // Определяем направление сортировки
-                    if (currentSortColumn === index) {
-                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        currentSortColumn = index;
-                        currentSortDirection = 'asc';
-                    }
-                    
-                    // Обновляем визуальные индикаторы
-                    headers.forEach((h, i) => {
-                        const icon = h.querySelector('i');
-                        if (i === index) {
-                            if (icon) {
-                                icon.className = currentSortDirection === 'asc' 
-                                    ? 'fe fe-arrow-up ms-1' 
-                                    : 'fe fe-arrow-down ms-1';
-                            }
-                        } else {
-                            if (icon) {
-                                icon.className = 'fe fe-arrow-up-down ms-1';
-                            }
-                        }
-                    });
-                    
-                    // Сортируем таблицу
-                    sortTable(table, index, currentSortDirection, sortType);
-                });
+        // Обработка сортировки по столбцам (AJAX)
+        let currentSortBy = 'id';
+        let currentSortDir = 'ASC';
+        
+        function updateSortIcons(sortBy, sortDir) {
+            document.querySelectorAll('.miner-details-table thead th.sortable').forEach(header => {
+                const iconSpan = header.querySelector('.sort-icon');
+                const headerSort = header.getAttribute('data-sort');
+                
+                if (iconSpan) {
+                    iconSpan.remove();
+                }
+                
+                if (headerSort === sortBy) {
+                    const newIconSpan = document.createElement('span');
+                    newIconSpan.className = 'sort-icon';
+                    const icon = document.createElement('i');
+                    icon.className = sortDir === 'ASC' ? 'fe fe-arrow-up' : 'fe fe-arrow-down';
+                    newIconSpan.appendChild(icon);
+                    header.appendChild(newIconSpan);
+                }
             });
         }
         
-        // Функция сортировки таблицы
-        function sortTable(table, columnIndex, direction, sortType) {
-            const tbody = table.querySelector('tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr:not([style*="display: none"])'));
+        function loadMinerDetailsTable(sortBy, sortDir) {
+            const tbody = document.querySelector('.miner-details-table tbody');
+            if (!tbody) return;
             
-            // Сохраняем скрытые строки
-            const hiddenRows = Array.from(tbody.querySelectorAll('tr[style*="display: none"]'));
+            // Показываем индикатор загрузки
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Загрузка...</span></div></td></tr>';
             
-            rows.sort((a, b) => {
-                const aCell = a.cells[columnIndex];
-                const bCell = b.cells[columnIndex];
+            const url = `/private/miner-details/api/list?sortBy=${sortBy}&sortDir=${sortDir}`;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error('Ошибка загрузки данных: ' + response.status);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                currentSortBy = data.sortBy || sortBy;
+                currentSortDir = data.sortDir || sortDir;
                 
-                if (!aCell || !bCell) return 0;
+                updateSortIcons(currentSortBy, currentSortDir);
                 
-                let aValue, bValue;
+                const minerDetails = data.minerDetails || [];
+                const productCounts = data.productCounts || {};
                 
-                // Получаем значение для сортировки
-                if (aCell.dataset.sortValue !== undefined) {
-                    aValue = aCell.dataset.sortValue;
-                    bValue = bCell.dataset.sortValue;
-                } else {
-                    aValue = aCell.textContent.trim();
-                    bValue = bCell.textContent.trim();
+                if (minerDetails.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-24 text-muted">Детальные записи майнеров отсутствуют</td></tr>';
+                    return;
                 }
                 
-                // Обработка пустых значений
-                if (aValue === '-' || aValue === '') aValue = '';
-                if (bValue === '-' || bValue === '') bValue = '';
+                let html = '';
+                minerDetails.forEach(detail => {
+                    const isActive = detail.active !== null ? detail.active : true;
+                    const productCount = productCounts[detail.id] || 0;
+                    const activeClass = isActive ? '' : 'inactive-row';
+                    
+                    html += `<tr class="miner-detail-row ${activeClass}" data-active="${isActive}">`;
+                    html += `<td>${escapeHtml(String(detail.id || ''))}</td>`;
+                    html += `<td><a href="/private/miner-details/${detail.id}" class="text-primary hover-text-decoration-underline fw-semibold">${escapeHtml(detail.standardName || '-')}</a></td>`;
+                    html += `<td>${escapeHtml(detail.manufacturer || '-')}</td>`;
+                    html += `<td>${escapeHtml(detail.series || '-')}</td>`;
+                    html += `<td>${escapeHtml(detail.hashrate || '-')}</td>`;
+                    html += `<td><span class="badge bg-info">${productCount}</span></td>`;
+                    html += `<td>${escapeHtml(detail.powerConsumption || '-')}</td>`;
+                    html += `<td class="text-center">`;
+                    html += `<button type="button" class="btn btn-sm toggle-active-btn ${isActive ? 'btn-success' : 'btn-danger'}" data-id="${detail.id}" data-active="${isActive}" title="${isActive ? 'Деактивировать' : 'Активировать'}">`;
+                    html += `<i class="fe ${isActive ? 'fe-check' : 'fe-x'}"></i> <span>${isActive ? 'Активен' : 'Неактивен'}</span>`;
+                    html += `</button>`;
+                    html += `</td>`;
+                    html += `<td class="text-center">`;
+                    html += `<div class="d-flex gap-2 justify-content-center">`;
+                    html += `<a href="/private/miner-details/${detail.id}" class="btn btn-sm btn-primary" title="Просмотр всех записей"><i class="fe fe-eye me-1"></i> Просмотр</a>`;
+                    html += `<a href="/private/miner-details/${detail.id}/edit" class="btn btn-sm btn-secondary" title="Редактировать"><i class="fe fe-edit me-1"></i> Редактировать</a>`;
+                    html += `</div>`;
+                    html += `</td>`;
+                    html += `</tr>`;
+                });
                 
-                let comparison = 0;
+                tbody.innerHTML = html;
                 
-                // Специальная обработка для числовых значений
-                if (sortType === 'id' || sortType === 'products') {
-                    const aNum = parseInt(aValue) || 0;
-                    const bNum = parseInt(bValue) || 0;
-                    comparison = aNum - bNum;
-                } else {
-                    // Текстовая сортировка
-                    aValue = aValue.toLowerCase();
-                    bValue = bValue.toLowerCase();
-                    if (aValue < bValue) comparison = -1;
-                    else if (aValue > bValue) comparison = 1;
+                // Применяем фильтр по активности после обновления таблицы
+                if (typeof window.applyActiveFilter === 'function') {
+                    setTimeout(() => {
+                        window.applyActiveFilter();
+                    }, 50);
                 }
-                
-                return direction === 'asc' ? comparison : -comparison;
-            });
-            
-            // Очищаем tbody
-            tbody.innerHTML = '';
-            
-            // Добавляем отсортированные строки
-            rows.forEach(row => tbody.appendChild(row));
-            
-            // Добавляем скрытые строки обратно
-            hiddenRows.forEach(row => {
-                row.style.display = 'none';
-                tbody.appendChild(row);
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке MinerDetails:', error);
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Ошибка загрузки данных: ' + escapeHtml(error.message) + '</td></tr>';
             });
         }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализируем текущие параметры сортировки из URL
+            const urlParams = new URLSearchParams(window.location.search);
+            currentSortBy = urlParams.get('sortBy') || 'id';
+            currentSortDir = urlParams.get('sortDir') || 'ASC';
+            
+            const sortableHeaders = document.querySelectorAll('.miner-details-table thead th.sortable');
+            
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const sortBy = this.getAttribute('data-sort');
+                    if (!sortBy) return;
+                    
+                    // Определяем новое направление сортировки
+                    let newSortDir = 'ASC';
+                    if (currentSortBy === sortBy) {
+                        // Если кликнули по тому же столбцу, меняем направление
+                        newSortDir = currentSortDir === 'ASC' ? 'DESC' : 'ASC';
+                    }
+                    
+                    // Обновляем таблицу через AJAX
+                    loadMinerDetailsTable(sortBy, newSortDir);
+                });
+            });
+        });
         
         // Принудительно восстанавливаем прокрутку страницы
         (function() {

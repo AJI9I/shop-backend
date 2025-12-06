@@ -9,11 +9,8 @@
     <title>Приватная панель - MinerHive</title>
     <meta name="Description" content="Панель управления интернет-магазином MinerHive">
     
-    <!-- Yandex Verification -->
-    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
-    
     <!-- Favicon -->
-    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
+    <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}" href="../assets/images/brand-logos/favicon.ico" type="image/x-icon">
     
     <!-- Choices JS -->
     <script th:src="@{/bootstrap-theme/assets/libs/choices.js/public/assets/scripts/choices.min.js}" src="../assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
@@ -367,7 +364,6 @@
                 <li class="list-group-item"><a th:href="@{/private/miner-details}" class="text-dark">Детали майнеров</a></li>
                 <li class="list-group-item"><a th:href="@{/private/profitability}" class="text-dark">Калькулятор доходности</a></li>
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/users}" class="text-dark">Пользователи</a></li>
-                <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/redirects}" class="text-dark">Управление редиректами</a></li>
             </ul>
         </div>
     </div>
@@ -569,15 +565,6 @@
                             </a>
                         </li>
                         <!-- End::slide -->
-
-                        <!-- Start::slide -->
-                        <li class="slide" sec:authorize="hasRole('ADMIN')">
-                            <a th:href="@{/private/redirects}" class="side-menu__item">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                <span class="side-menu__label">Управление редиректами</span>
-                            </a>
-                        </li>
-                        <!-- End::slide -->
                     </ul>
                 </nav>
                 <!-- End::nav -->
@@ -740,26 +727,6 @@
                                 </div>
                                 <div class="mt-3">
                                     <a th:href="@{/private/users}" class="btn btn-secondary btn-sm">Управление пользователями <i class="fe fe-arrow-right ms-1"></i></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Управление редиректами (только для администраторов) -->
-                    <div class="col-xl-4 col-lg-6 col-md-6" sec:authorize="hasRole('ADMIN')">
-                        <div class="card custom-card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar avatar-md bg-teal-transparent rounded-circle me-3">
-                                        <i class="fe fe-arrow-right-left fs-20"></i>
-                                    </div>
-                                    <div class="flex-fill">
-                                        <h6 class="mb-1 fw-semibold">Управление редиректами</h6>
-                                        <p class="mb-0 text-muted fs-12">Создание и управление редиректами, просмотр 404 ошибок</p>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <a th:href="@{/private/redirects}" class="btn btn-teal btn-sm">Управление редиректами <i class="fe fe-arrow-right ms-1"></i></a>
                                 </div>
                             </div>
                         </div>

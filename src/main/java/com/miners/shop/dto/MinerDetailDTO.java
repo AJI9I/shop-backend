@@ -21,7 +21,6 @@ public class MinerDetailDTO {
     
     private Long id;
     private String standardName;
-    private String slug;
     private String manufacturer;
     private String series;
     private String hashrate;
@@ -54,7 +53,6 @@ public class MinerDetailDTO {
         MinerDetailDTO dto = MinerDetailDTO.builder()
                 .id(minerDetail.getId())
                 .standardName(minerDetail.getStandardName())
-                .slug(minerDetail.getSlug())
                 .manufacturer(minerDetail.getManufacturer())
                 .series(minerDetail.getSeries())
                 .hashrate(minerDetail.getHashrate())

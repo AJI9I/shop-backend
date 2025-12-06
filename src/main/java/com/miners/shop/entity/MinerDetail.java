@@ -32,14 +32,6 @@ public class MinerDetail {
     private String standardName;
     
     /**
-     * SEO-friendly URL slug для товара
-     * (например: "antminer-s19j-pro-104th")
-     * Генерируется автоматически из standardName, но может быть изменен вручную
-     */
-    @Column(unique = true, length = 255)
-    private String slug;
-    
-    /**
      * Производитель майнера (редактируемый)
      */
     @Column(length = 100)

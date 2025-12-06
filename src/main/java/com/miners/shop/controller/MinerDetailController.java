@@ -3,14 +3,12 @@ package com.miners.shop.controller;
 import com.miners.shop.dto.MinerDetailDTO;
 import com.miners.shop.entity.MinerDetail;
 import com.miners.shop.entity.Product;
-import com.miners.shop.repository.MinerDetailRepository;
 import com.miners.shop.repository.ProductRepository;
 import com.miners.shop.service.ImageUploadService;
 import com.miners.shop.service.MinerDetailExcelService;
 import com.miners.shop.service.MinerDetailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +34,6 @@ import java.util.stream.Collectors;
 public class MinerDetailController {
     
     private final MinerDetailService minerDetailService;
-    private final MinerDetailRepository minerDetailRepository;
     private final ProductRepository productRepository;
     private final MinerDetailExcelService excelService;
     private final ImageUploadService imageUploadService;
@@ -53,58 +50,24 @@ public class MinerDetailController {
      * 5. Потребление (powerConsumption)
      */
     @GetMapping
-    public String list(
-            @RequestParam(required = false, defaultValue = "id") String sortBy,
-            @RequestParam(required = false, defaultValue = "ASC") String sortDir,
-            Model model) {
-        // Определяем направление сортировки
-        Sort.Direction direction = 
-            sortDir.equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        
-        List<MinerDetail> minerDetails;
-        Map<Long, Long> productCounts = new HashMap<>();
-        
-        // Если сортировка по productCount, загружаем без сортировки и сортируем вручную
-        if ("productCount".equals(sortBy)) {
-            // Загружаем все данные без сортировки
-            minerDetails = minerDetailRepository.findAll();
-            
-            // Подсчитываем количество товаров для каждого MinerDetail
-            for (MinerDetail md : minerDetails) {
-                long productCount = productRepository.findByMinerDetailId(md.getId()).size();
-                productCounts.put(md.getId(), productCount);
-            }
-            
-            // Сортируем вручную по количеству товаров
-            minerDetails.sort((md1, md2) -> {
-                long count1 = productCounts.getOrDefault(md1.getId(), 0L);
-                long count2 = productCounts.getOrDefault(md2.getId(), 0L);
-                int comparison = Long.compare(count1, count2);
-                return direction == Sort.Direction.DESC ? -comparison : comparison;
-            });
-        } else {
-            // Для остальных полей используем стандартную сортировку Spring Data
-            Sort sort = Sort.by(direction, sortBy);
-            minerDetails = minerDetailRepository.findAll(sort);
-            
-            // Подсчитываем количество товаров для каждого MinerDetail
-            for (MinerDetail md : minerDetails) {
-                long productCount = productRepository.findByMinerDetailId(md.getId()).size();
-                productCounts.put(md.getId(), productCount);
-            }
-        }
-        
+    public String list(Model model) {
+        List<MinerDetail> minerDetails = minerDetailService.getAllMinerDetails();
         List<MinerDetailDTO> dtos = minerDetails.stream()
                 .map(MinerDetailDTO::fromEntity)
                 .collect(Collectors.toList());
+        
+        // Добавляем количество товаров для каждого MinerDetail
+        Map<Long, Integer> productCounts = new HashMap<>();
+        for (MinerDetail detail : minerDetails) {
+            int count = detail.getProducts() != null ? detail.getProducts().size() : 0;
+            productCounts.put(detail.getId(), count);
+        }
         
         model.addAttribute("minerDetails", dtos);
         model.addAttribute("productCounts", productCounts);
         model.addAttribute("manufacturers", minerDetailService.getDistinctManufacturers());
         model.addAttribute("series", minerDetailService.getDistinctSeries());
         model.addAttribute("algorithms", minerDetailService.getDistinctAlgorithms());
-        model.addAttribute("sortBy", sortBy);
-        model.addAttribute("sortDir", sortDir);
         
         // Добавляем пустой объект для формы создания
         if (!model.containsAttribute("minerDetail")) {
@@ -112,87 +75,6 @@ public class MinerDetailController {
         }
         
         return "miner-details/list";
-    }
-    
-    /**
-     * API endpoint для получения отсортированного списка MinerDetails (AJAX)
-     */
-    @GetMapping(value = "/api/list", produces = "application/json;charset=UTF-8")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getMinerDetailsList(
-            @RequestParam(required = false, defaultValue = "id") String sortBy,
-            @RequestParam(required = false, defaultValue = "ASC") String sortDir) {
-        try {
-            // Определяем направление сортировки
-            Sort.Direction direction = 
-                sortDir.equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC;
-            
-            List<MinerDetail> minerDetails;
-            Map<Long, Long> productCounts = new HashMap<>();
-            
-            // Если сортировка по productCount, загружаем без сортировки и сортируем вручную
-            if ("productCount".equals(sortBy)) {
-                // Загружаем все данные без сортировки
-                minerDetails = minerDetailRepository.findAll();
-                
-                // Подсчитываем количество товаров для каждого MinerDetail
-                for (MinerDetail md : minerDetails) {
-                    long productCount = productRepository.findByMinerDetailId(md.getId()).size();
-                    productCounts.put(md.getId(), productCount);
-                }
-                
-                // Сортируем вручную по количеству товаров
-                minerDetails.sort((md1, md2) -> {
-                    long count1 = productCounts.getOrDefault(md1.getId(), 0L);
-                    long count2 = productCounts.getOrDefault(md2.getId(), 0L);
-                    int comparison = Long.compare(count1, count2);
-                    return direction == Sort.Direction.DESC ? -comparison : comparison;
-                });
-            } else {
-                // Для остальных полей используем стандартную сортировку Spring Data
-                Sort sort = Sort.by(direction, sortBy);
-                minerDetails = minerDetailRepository.findAll(sort);
-                
-                // Подсчитываем количество товаров для каждого MinerDetail
-                for (MinerDetail md : minerDetails) {
-                    long productCount = productRepository.findByMinerDetailId(md.getId()).size();
-                    productCounts.put(md.getId(), productCount);
-                }
-            }
-            
-            // Преобразуем в DTO
-            List<Map<String, Object>> dtos = minerDetails.stream()
-                    .map(md -> {
-                        Map<String, Object> dto = new HashMap<>();
-                        MinerDetailDTO detailDto = MinerDetailDTO.fromEntity(md);
-                        dto.put("id", detailDto.getId());
-                        dto.put("standardName", detailDto.getStandardName());
-                        dto.put("manufacturer", detailDto.getManufacturer());
-                        dto.put("series", detailDto.getSeries());
-                        dto.put("hashrate", detailDto.getHashrate());
-                        dto.put("powerConsumption", detailDto.getPowerConsumption());
-                        dto.put("active", detailDto.getActive());
-                        dto.put("productCount", productCounts.getOrDefault(md.getId(), 0L));
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("minerDetails", dtos);
-            response.put("productCounts", productCounts);
-            response.put("sortBy", sortBy);
-            response.put("sortDir", sortDir);
-            
-            return ResponseEntity.ok()
-                    .header("Content-Type", "application/json;charset=UTF-8")
-                    .body(response);
-        } catch (Exception e) {
-            log.error("Ошибка при получении списка MinerDetails: {}", e.getMessage(), e);
-            Map<String, Object> error = new HashMap<>();
-            error.put("success", false);
-            error.put("error", "Ошибка при получении данных: " + e.getMessage());
-            return ResponseEntity.status(500).body(error);
-        }
     }
     
     /**

@@ -22,9 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import jakarta.servlet.http.HttpServletRequest;
-import com.miners.shop.util.SeoUtil;
-import com.miners.shop.util.SchemaOrgUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,62 +47,34 @@ public class HomeController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size,
             @RequestParam(required = false) String chatType,
-            HttpServletRequest request,
             Model model) {
-        
-        long startTime = System.currentTimeMillis();
         
         // Статистика сообщений
         long totalMessages = messageService.getTotalMessages();
         long groupMessages = messageService.getMessagesCountByType("group");
         long personalMessages = messageService.getMessagesCountByType("personal");
         
-        // Получаем MinerDetail с предложениями для Bitmain и MicroBT
+        // Получаем MinerDetail с предложениями для Bitmain (первые 4 с наибольшим количеством предложений)
         List<MinerDetail> bitmainMinerDetails = minerDetailRepository.findAllWithOffersByManufacturers(List.of("Bitmain"));
         List<MinerDetail> microbtMinerDetails = minerDetailRepository.findAllWithOffersByManufacturers(List.of("MicroBT"));
         
-        // ОПТИМИЗАЦИЯ: Загружаем все продукты и предложения одним батч-запросом
-        List<Long> allMinerDetailIds = new java.util.ArrayList<>();
-        allMinerDetailIds.addAll(bitmainMinerDetails.stream().map(MinerDetail::getId).toList());
-        allMinerDetailIds.addAll(microbtMinerDetails.stream().map(MinerDetail::getId).toList());
-        
-        // Загружаем все продукты для всех MinerDetail одним запросом
-        List<Product> allProducts = productRepository.findByMinerDetailIdIn(allMinerDetailIds);
-        Map<Long, List<Product>> productsByMinerDetailId = allProducts.stream()
-                .collect(Collectors.groupingBy(p -> p.getMinerDetail().getId()));
-        
-        // Загружаем все предложения одним запросом
-        List<Long> allProductIds = allProducts.stream().map(Product::getId).toList();
-        final Map<Long, List<Offer>> offersByProductId;
-        if (!allProductIds.isEmpty()) {
-            List<Offer> allOffers = offerRepository.findByProductIdIn(allProductIds);
-            offersByProductId = allOffers.stream()
-                    .collect(Collectors.groupingBy(o -> o.getProduct().getId()));
-        } else {
-            offersByProductId = new HashMap<>();
-        }
-        
-        // Вычисляем количество предложений для каждого MinerDetail
-        Map<Long, Integer> offersCountByMinerDetailId = new HashMap<>();
-        for (Map.Entry<Long, List<Product>> entry : productsByMinerDetailId.entrySet()) {
-            int totalOffers = entry.getValue().stream()
-                    .mapToInt(p -> offersByProductId.getOrDefault(p.getId(), List.of()).size())
-                    .sum();
-            offersCountByMinerDetailId.put(entry.getKey(), totalOffers);
-        }
+        // Функция для подсчета количества предложений и сортировки
+        java.util.function.Function<MinerDetail, Integer> countOffers = minerDetail -> {
+            List<Product> linkedProducts = productRepository.findByMinerDetailId(minerDetail.getId());
+            List<Long> productIds = linkedProducts.stream().map(Product::getId).toList();
+            if (productIds.isEmpty()) return 0;
+            List<Offer> offers = offerRepository.findByProductIdIn(productIds);
+            return offers.size();
+        };
         
         // Сортируем по количеству предложений (по убыванию) и берем первые 4
         List<MinerDetail> topBitmain = bitmainMinerDetails.stream()
-                .sorted((md1, md2) -> Integer.compare(
-                    offersCountByMinerDetailId.getOrDefault(md2.getId(), 0),
-                    offersCountByMinerDetailId.getOrDefault(md1.getId(), 0)))
+                .sorted((md1, md2) -> Integer.compare(countOffers.apply(md2), countOffers.apply(md1)))
                 .limit(4)
                 .collect(Collectors.toList());
         
         List<MinerDetail> topMicroBT = microbtMinerDetails.stream()
-                .sorted((md1, md2) -> Integer.compare(
-                    offersCountByMinerDetailId.getOrDefault(md2.getId(), 0),
-                    offersCountByMinerDetailId.getOrDefault(md1.getId(), 0)))
+                .sorted((md1, md2) -> Integer.compare(countOffers.apply(md2), countOffers.apply(md1)))
                 .limit(4)
                 .collect(Collectors.toList());
         
@@ -115,19 +84,15 @@ public class HomeController {
         minersByManufacturer.put("MicroBT", topMicroBT);
         
         // Для каждого MinerDetail вычисляем статистику (минимальная цена, количество предложений)
-        // ОПТИМИЗАЦИЯ: Используем уже загруженные данные
         Map<Long, Map<String, Object>> minerStats = new HashMap<>();
         Map<Long, String> imageUrls = new HashMap<>();
         
         for (MinerDetail minerDetail : topBitmain) {
-            processMinerDetailOptimized(minerDetail, productsByMinerDetailId, offersByProductId, minerStats, imageUrls);
+            processMinerDetail(minerDetail, minerStats, imageUrls);
         }
         for (MinerDetail minerDetail : topMicroBT) {
-            processMinerDetailOptimized(minerDetail, productsByMinerDetailId, offersByProductId, minerStats, imageUrls);
+            processMinerDetail(minerDetail, minerStats, imageUrls);
         }
-        
-        long endTime = System.currentTimeMillis();
-        log.debug("Время выполнения home(): {} мс", (endTime - startTime));
         
         model.addAttribute("totalMessages", totalMessages);
         model.addAttribute("groupMessages", groupMessages);
@@ -136,17 +101,6 @@ public class HomeController {
         model.addAttribute("minerStats", minerStats);
         model.addAttribute("imageUrls", imageUrls);
         
-        // SEO meta теги
-        model.addAttribute("pageTitle", "Купить майнер для майнинга - ASIC майнеры Bitmain, MicroBT | MinerHive");
-        model.addAttribute("pageDescription", "Купить майнер для майнинга криптовалют. Широкий выбор ASIC майнеров от Bitmain, MicroBT, Canaan. Новые и б/у майнеры с гарантией. Где купить майнер в Москве - доставка по всей России.");
-        model.addAttribute("pageKeywords", "купить майнер, майнер купить, где купить майнер, asic майнер, майнер для майнинга, майнер биткоин, bitmain, antminer");
-        model.addAttribute("canonicalUrl", SeoUtil.generateCanonicalUrl(request));
-        model.addAttribute("ogImage", SeoUtil.getBaseUrl() + "/assets/images/logo/logo.png");
-        
-        // Schema.org разметка
-        model.addAttribute("organizationSchema", SchemaOrgUtil.generateOrganizationSchema());
-        model.addAttribute("websiteSchema", SchemaOrgUtil.generateWebSiteSchema());
-        
         return "index-new";
     }
     
@@ -154,25 +108,19 @@ public class HomeController {
      * Обрабатывает MinerDetail и вычисляет статистику (минимальная цена, количество предложений)
      * Ищет минимальную цену сначала за последние 24 часа, если нет - за все время
      * Не показывает цену 0
-     * ОПТИМИЗИРОВАННАЯ ВЕРСИЯ: использует уже загруженные данные вместо новых запросов к БД
      */
-    private void processMinerDetailOptimized(
-            MinerDetail minerDetail,
-            Map<Long, List<Product>> productsByMinerDetailId,
-            Map<Long, List<Offer>> offersByProductId,
-            Map<Long, Map<String, Object>> minerStats,
-            Map<Long, String> imageUrls) {
-        
-        List<Product> linkedProducts = productsByMinerDetailId.getOrDefault(minerDetail.getId(), List.of());
-        List<Offer> allOffers = linkedProducts.stream()
-                .flatMap(p -> offersByProductId.getOrDefault(p.getId(), List.of()).stream())
-                .collect(Collectors.toList());
+    private void processMinerDetail(MinerDetail minerDetail, Map<Long, Map<String, Object>> minerStats, Map<Long, String> imageUrls) {
+        List<Product> linkedProducts = productRepository.findByMinerDetailId(minerDetail.getId());
+        List<Long> productIds = linkedProducts.stream().map(Product::getId).toList();
         
         BigDecimal minPrice = null;
-        int totalOffersCount = allOffers.size();
+        int totalOffersCount = 0;
         String currency = "RUB";
         
-        if (!allOffers.isEmpty()) {
+        if (!productIds.isEmpty()) {
+            List<Offer> allOffers = offerRepository.findByProductIdIn(productIds);
+            totalOffersCount = allOffers.size();
+            
             // Фильтруем только предложения на продажу (SELL)
             List<Offer> sellOffers = allOffers.stream()
                     .filter(offer -> offer.getOperationType() == OperationType.SELL)

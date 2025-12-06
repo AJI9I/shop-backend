@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- SEO мета-теги (включая favicon) -->
-    <th:block th:replace="~{fragments/seo :: seo-head(${pageTitle}, ${pageDescription}, ${pageKeywords}, ${canonicalUrl}, ${ogImage})}"></th:block>
-    
+    <!-- Title -->
+    <title th:text="${minerDetail != null && minerDetail.standardName != null ? 'Майнер ' + minerDetail.standardName + ' - MinerHive' : 'Майнер ' + product.model + ' - MinerHive'}">Майнер - MinerHive</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
+
     <!-- Bootstrap -->
     <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
     <!-- select 2 -->
@@ -18,7 +19,6 @@
     <link rel="stylesheet" th:href="@{/assets/css/jquery-ui.css}" href="assets/css/jquery-ui.css">
     <!-- Main css -->
     <link rel="stylesheet" th:href="@{/assets/css/main.css}" href="assets/css/main.css">
-    
     <!-- Custom styles для таблицы предложений -->
     <style>
         /* Предотвращаем перенос текста в ссылках header-top */
@@ -29,68 +29,6 @@
         /* Убираем верхний отступ у секции деталей товара */
         .product-details.py-80 {
             padding-top: 0 !important;
-        }
-        
-        /* Стили для breadcrumbs */
-        .breadcrumb.py-26 {
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-        
-        .breadcrumb-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
-        
-        .breadcrumb-wrapper nav {
-            display: flex;
-            align-items: center;
-        }
-        
-        .breadcrumb ol {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0;
-        }
-        
-        .breadcrumb-item {
-            display: flex;
-            align-items: center;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-        
-        .breadcrumb-item + .breadcrumb-item::before {
-            content: ">";
-            padding: 0 8px;
-            color: #6c757d;
-            font-weight: 400;
-            display: inline-block;
-        }
-        
-        .breadcrumb-item a {
-            color: #495057;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-        
-        .breadcrumb-item a:hover {
-            color: var(--main-two-600, #007bff);
-            text-decoration: none;
-        }
-        
-        .breadcrumb-item.active {
-            color: var(--main-two-600, #007bff);
-            font-weight: 500;
-        }
-        
-        .breadcrumb-item.active span {
-            color: var(--main-two-600, #007bff);
         }
         
         /* Деловой стиль таблицы предложений */
@@ -390,8 +328,6 @@
     </style>
 </head> 
 <body>
-    <!-- Schema.org разметка -->
-    <div th:replace="~{fragments/schema-org :: schema-org}"></div>
     
 <!--==================== Preloader Start ====================-->
   <div class="preloader">
@@ -555,10 +491,33 @@
 <!-- ==================== Header End ==================== -->
 
     <!-- ========================= Breadcrumb Start =============================== -->
-<div class="breadcrumb py-26 bg-main-two-50" th:if="${breadcrumbs != null and !breadcrumbs.isEmpty()}">
+<div class="breadcrumb py-26 bg-main-two-50">
     <div class="container container-lg">
-        <div class="breadcrumb-wrapper">
-            <div th:replace="~{fragments/breadcrumbs :: breadcrumbs(${breadcrumbs})}"></div>
+        <div class="breadcrumb-wrapper flex-between flex-wrap gap-16">
+            <h6 class="mb-0">Детали товара</h6>
+            <ul class="flex-align gap-8 flex-wrap">
+                <li class="text-sm">
+                    <a th:href="@{/}" class="text-gray-900 flex-align gap-8 hover-text-main-two-600">
+                        <i class="ph ph-house"></i>
+                        Главная
+                    </a>
+                </li>
+                <li class="flex-align">
+                    <i class="ph ph-caret-right"></i>
+                </li>
+                <li class="text-sm">
+                    <a th:href="@{/products}" class="text-gray-900 flex-align gap-8 hover-text-main-two-600">
+                        Товары
+                    </a>
+                </li>
+                <li class="flex-align">
+                    <i class="ph ph-caret-right"></i>
+                </li>
+                <li class="flex-align">
+                    <i class="ph ph-caret-right"></i>
+                </li>
+                <li class="text-sm text-main-two-600" th:utext="${minerDetail != null && minerDetail.standardName != null ? minerDetail.standardName : product.model}">Модель майнера</li>
+            </ul>
         </div>
     </div>
 </div>
@@ -591,8 +550,8 @@
                                         <div class="product-details__thumb flex-center h-100">
                                             <img id="mainProductImage" th:if="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}" 
                                                  th:src="@{${product.imageUrl}}" 
-                                                 th:alt="${minerDetail != null && minerDetail.standardName != null ? minerDetail.standardName + ' - ASIC майнер' + (minerDetail.manufacturer != null ? ' ' + minerDetail.manufacturer : '') : (product.model != null ? product.model + ' - ASIC майнер' : 'ASIC майнер')}"
-                                                 alt="ASIC майнер"
+                                                 th:alt="${minerDetail != null && minerDetail.standardName != null ? minerDetail.standardName : product.model}"
+                                                 alt="Майнер"
                                                  style="max-width: 100%; max-height: 500px; object-fit: contain; padding: 20px;"
                                                  onerror="this.onerror=null; this.src='/assets/images/thumbs/product-img1.png';">
                                             <div th:unless="${product.imageUrl != null && !#strings.isEmpty(product.imageUrl)}" 
@@ -1828,7 +1787,6 @@
                     const clientName = document.getElementById('clientName').value.trim();
                     const clientPhone = document.getElementById('clientPhone').value.trim();
                     const message = document.getElementById('requestMessage').value.trim();
-                    const consentPersonalData = document.getElementById('consentPersonalData').checked;
                     
                     // Валидация
                     if (!clientName) {
@@ -1838,11 +1796,6 @@
                     
                     if (!clientPhone) {
                         alert('Пожалуйста, укажите ваш телефон');
-                        return;
-                    }
-                    
-                    if (!consentPersonalData) {
-                        alert('Необходимо дать согласие на обработку персональных данных и ознакомиться с Политикой конфиденциальности');
                         return;
                     }
                     
@@ -1862,8 +1815,7 @@
                             offerId: parseInt(offerId),
                             clientName: clientName,
                             clientPhone: clientPhone,
-                            message: message || null,
-                            consentPersonalData: consentPersonalData
+                            message: message || null
                         })
                     })
                     .then(response => {
@@ -2031,15 +1983,6 @@
                                       placeholder="Укажите дополнительные детали, если необходимо"></textarea>
                         </div>
                         
-                        <div class="mb-24">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="consentPersonalData" name="consentPersonalData" required>
-                                <label class="form-check-label" for="consentPersonalData">
-                                    Я согласен(а) на <a th:href="@{/personal-data-consent}" target="_blank" class="text-main-two-600">обработку персональных данных</a> и с <a th:href="@{/privacy-policy}" target="_blank" class="text-main-two-600">Политикой конфиденциальности</a> <span class="text-danger">*</span>
-                                </label>
-                            </div>
-                        </div>
-                        
                         <div class="alert alert-info mb-0">
                             <i class="ph ph-info"></i> 
                             <small>Мы свяжемся с вами в ближайшее время для уточнения деталей.</small>
@@ -2069,9 +2012,6 @@
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/105468809" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <!-- /Yandex.Metrika counter -->
-
-    <!-- Cookie Consent Banner -->
-    <th:block th:replace="~{fragments/cookie-consent :: cookie-consent-banner}"></th:block>
 
     </body>
 </html>

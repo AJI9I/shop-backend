@@ -52,13 +52,6 @@ public class PublicRequestController {
                 return ResponseEntity.badRequest().body(error);
             }
             
-            // Валидация согласия
-            if (createDTO.consentPersonalData() == null || !createDTO.consentPersonalData()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("error", "Необходимо дать согласие на обработку персональных данных и ознакомиться с Политикой конфиденциальности");
-                return ResponseEntity.badRequest().body(error);
-            }
-            
             // Создаем заявку
             Request request = requestService.createRequest(createDTO);
             

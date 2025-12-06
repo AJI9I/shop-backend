@@ -6,11 +6,14 @@
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Создание новой детальной записи - MinerHive</title>
-    <meta name="Description" content="Создание новой детальной информации о майнере">
+    <title>Создание майнера компании - MinerHive</title>
+    <meta name="Description" content="Создание нового майнера компании">
+    
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
     
     <!-- Favicon -->
-    <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}" href="../assets/images/brand-logos/favicon.ico" type="image/x-icon">
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
     
     <!-- Bootstrap Css -->
     <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" href="../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -239,6 +242,7 @@
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/products/table}" class="text-dark">Таблица товаров</a></li>
                 <li class="list-group-item"><a th:href="@{/private/requests}" class="text-dark">Заявки</a></li>
                 <li class="list-group-item"><a th:href="@{/private/miner-details}" class="text-dark">Детали майнеров</a></li>
+                <li class="list-group-item"><a th:href="@{/private/company-miners}" class="text-dark">Майнеры компании</a></li>
                 <li class="list-group-item"><a th:href="@{/private/profitability}" class="text-dark">Калькулятор доходности</a></li>
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/users}" class="text-dark">Пользователи</a></li>
             </ul>
@@ -402,9 +406,18 @@
 
                         <!-- Start::slide -->
                         <li class="slide">
-                            <a th:href="@{/private/miner-details}" class="side-menu__item active">
+                            <a th:href="@{/private/miner-details}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                                 <span class="side-menu__label">Детали майнеров</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide -->
+                        <li class="slide">
+                            <a th:href="@{/private/company-miners}" class="side-menu__item active">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                                <span class="side-menu__label">Майнеры компании</span>
                             </a>
                         </li>
                         <!-- End::slide -->
@@ -445,18 +458,18 @@
                 <!-- Page Header -->
                 <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
                     <div class="my-auto">
-                        <h5 class="page-title fs-21 mb-1">Создание новой детальной записи</h5>
+                        <h5 class="page-title fs-21 mb-1">Создание майнера компании</h5>
                         <nav>
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
                                 <li class="breadcrumb-item"><a th:href="@{/private}">Панель управления</a></li>
-                                <li class="breadcrumb-item"><a th:href="@{/private/miner-details}">Детали майнеров</a></li>
+                                <li class="breadcrumb-item"><a th:href="@{/private/company-miners}">Майнеры компании</a></li>
                                 <li class="breadcrumb-item active" aria-current="page">Создание</li>
                             </ol>
                         </nav>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
-                        <a th:href="@{/private/miner-details}" 
+                        <a th:href="@{/private/company-miners}" 
                            class="btn btn-secondary btn-sm">
                             <i class="fe fe-x me-1"></i> Отмена
                         </a>
@@ -468,50 +481,13 @@
                 <div class="row">
                     <div class="col-xl-12">
                         <!-- Форма создания -->
-                        <form th:action="@{/private/miner-details}" 
-                              th:object="${minerDetail}" 
-                              method="post"
-                              enctype="multipart/form-data">
+                        <form th:action="@{/private/company-miners}" 
+                              th:object="${companyMiner}" 
+                              method="post">
                             
                             <div class="row">
                                 <!-- Левая колонка - основная информация -->
                                 <div class="col-xl-8">
-                                    <!-- Изображение -->
-                                    <div class="card custom-card mb-3">
-                                        <div class="card-header">
-                                            <div class="card-title">Изображение майнера</div>
-                                        </div>
-                                        <div class="card-body">
-                                            <!-- Поле для загрузки нового изображения -->
-                                            <div class="mb-3">
-                                                <label for="imageFile" class="form-label">
-                                                    <i class="fe fe-image"></i> Загрузить изображение
-                                                </label>
-                                                <input type="file" 
-                                                       class="form-control" 
-                                                       id="imageFile" 
-                                                       name="imageFile" 
-                                                       accept="image/*">
-                                                <div class="form-text">
-                                                    Поддерживаемые форматы: JPG, PNG, GIF, WEBP. Максимальный размер: 10 МБ.
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Поле для ввода URL изображения (альтернатива загрузке) -->
-                                            <div class="mb-3">
-                                                <label for="imageUrl" class="form-label">Или укажите URL изображения</label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="imageUrl" 
-                                                       th:field="*{imageUrl}" 
-                                                       placeholder="/img/miner-details/filename.jpg">
-                                                <div class="form-text">
-                                                    Если указан URL, он будет использован вместо загруженного файла.
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
                                     <!-- Основная информация -->
                                     <div class="card custom-card mb-3">
                                         <div class="card-header">
@@ -519,167 +495,152 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="mb-3">
-                                                <label for="standardName" class="form-label">Стандартизированное название <span class="text-danger">*</span></label>
-                                                <input type="text" 
-                                                       class="form-control" 
-                                                       id="standardName" 
-                                                       th:field="*{standardName}" 
-                                                       required>
+                                                <label for="minerDetailId" class="form-label">Детальная запись майнера <span class="text-danger">*</span></label>
+                                                <select class="form-select" 
+                                                        id="minerDetailId" 
+                                                        name="minerDetailId" 
+                                                        required>
+                                                    <option value="">Выберите майнера</option>
+                                                    <option th:each="minerDetail : ${minerDetails}" 
+                                                            th:value="${minerDetail.id}" 
+                                                            th:text="${minerDetail.standardName}">
+                                                    </option>
+                                                </select>
                                             </div>
                                             
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
-                                                    <label for="manufacturer" class="form-label">Производитель</label>
-                                                    <input type="text" 
+                                                    <label for="price" class="form-label">Цена <span class="text-danger">*</span></label>
+                                                    <input type="number" 
                                                            class="form-control" 
-                                                           id="manufacturer" 
-                                                           th:field="*{manufacturer}">
+                                                           id="price" 
+                                                           name="price" 
+                                                           step="0.01" 
+                                                           min="0.01" 
+                                                           required>
                                                 </div>
                                                 
                                                 <div class="col-md-6 mb-3">
-                                                    <label for="series" class="form-label">Серия</label>
-                                                    <input type="text" 
+                                                    <label for="currencyId" class="form-label">Валюта <span class="text-danger">*</span></label>
+                                                    <select class="form-select" 
+                                                            id="currencyId" 
+                                                            name="currencyId" 
+                                                            required>
+                                                        <option value="">Выберите валюту</option>
+                                                        <option th:each="currency : ${currencies}" 
+                                                                th:value="${currency.id}" 
+                                                                th:text="${currency.code + ' (' + currency.symbol + ')'}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label for="priceOld" class="form-label">Старая цена</label>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       id="priceOld" 
+                                                       name="priceOld" 
+                                                       step="0.01" 
+                                                       min="0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Хэшрейт и количество -->
+                                    <div class="card custom-card mb-3">
+                                        <div class="card-header">
+                                            <div class="card-title">Хэшрейт и количество</div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="hashrateMin" class="form-label">Мин. хэшрейт <span class="text-danger">*</span></label>
+                                                    <input type="number" 
                                                            class="form-control" 
-                                                           id="series" 
-                                                           th:field="*{series}">
+                                                           id="hashrateMin" 
+                                                           name="hashrateMin" 
+                                                           step="0.01" 
+                                                           min="0" 
+                                                           required>
+                                                </div>
+                                                
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="hashrateMax" class="form-label">Макс. хэшрейт</label>
+                                                    <input type="number" 
+                                                           class="form-control" 
+                                                           id="hashrateMax" 
+                                                           name="hashrateMax" 
+                                                           step="0.01" 
+                                                           min="0">
+                                                </div>
+                                                
+                                                <div class="col-md-4 mb-3">
+                                                    <label for="hashrateUnitId" class="form-label">Единица измерения <span class="text-danger">*</span></label>
+                                                    <select class="form-select" 
+                                                            id="hashrateUnitId" 
+                                                            name="hashrateUnitId" 
+                                                            required>
+                                                        <option value="">Выберите единицу</option>
+                                                        <option th:each="unit : ${hashrateUnits}" 
+                                                                th:value="${unit.id}" 
+                                                                th:text="${unit.name + ' (' + unit.abbreviation + ')'}">
+                                                        </option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="quantity" class="form-label">Количество <span class="text-danger">*</span></label>
+                                                    <input type="number" 
+                                                           class="form-control" 
+                                                           id="quantity" 
+                                                           name="quantity" 
+                                                           min="0" 
+                                                           required>
+                                                </div>
+                                                
+                                                <div class="col-md-6 mb-3">
+                                                    <label for="lowStockThreshold" class="form-label">Порог низкого остатка</label>
+                                                    <input type="number" 
+                                                           class="form-control" 
+                                                           id="lowStockThreshold" 
+                                                           name="lowStockThreshold" 
+                                                           min="0">
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <!-- Технические характеристики -->
+                                    <!-- Состояние и активность -->
                                     <div class="card custom-card mb-3">
                                         <div class="card-header">
-                                            <div class="card-title">Технические характеристики</div>
+                                            <div class="card-title">Состояние и активность</div>
                                         </div>
                                         <div class="card-body">
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="hashrate" class="form-label">Хэшрейт</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="hashrate" 
-                                                           th:field="*{hashrate}" 
-                                                           placeholder="860 TH/s">
-                                                </div>
-                                                
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="algorithm" class="form-label">Алгоритм</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="algorithm" 
-                                                           th:field="*{algorithm}" 
-                                                           placeholder="SHA-256">
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="powerConsumption" class="form-label">Потребление энергии</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="powerConsumption" 
-                                                           th:field="*{powerConsumption}" 
-                                                           placeholder="11180 Вт/ч">
-                                                </div>
-                                                
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="coins" class="form-label">Добываемые монеты</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="coins" 
-                                                           th:field="*{coins}" 
-                                                           placeholder="BTC/BCH/BCV">
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="powerSource" class="form-label">Источник питания</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="powerSource" 
-                                                           th:field="*{powerSource}" 
-                                                           placeholder="Интегрированный">
-                                                </div>
-                                                
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="cooling" class="form-label">Охлаждение</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="cooling" 
-                                                           th:field="*{cooling}" 
-                                                           placeholder="Водяное">
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="row">
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="operatingTemperature" class="form-label">Рабочая температура</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="operatingTemperature" 
-                                                           th:field="*{operatingTemperature}" 
-                                                           placeholder="от 0 до 40 °С">
-                                                </div>
-                                                
-                                                <div class="col-md-6 mb-3">
-                                                    <label for="dimensions" class="form-label">Размеры</label>
-                                                    <input type="text" 
-                                                           class="form-control" 
-                                                           id="dimensions" 
-                                                           th:field="*{dimensions}" 
-                                                           placeholder="900 x 486.2 x 132 мм">
-                                                </div>
-                                            </div>
-                                            
                                             <div class="mb-3">
-                                                <label for="noiseLevel" class="form-label">Уровень шума</label>
+                                                <label for="condition" class="form-label">Состояние</label>
                                                 <input type="text" 
                                                        class="form-control" 
-                                                       id="noiseLevel" 
-                                                       th:field="*{noiseLevel}" 
-                                                       placeholder="40 дБ">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Описания -->
-                                    <div class="card custom-card mb-3">
-                                        <div class="card-header">
-                                            <div class="card-title">Описания</div>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="mb-3">
-                                                <label for="description" class="form-label">Основное описание</label>
-                                                <textarea class="form-control summernote" 
-                                                          id="description" 
-                                                          th:field="*{description}" 
-                                                          rows="5"></textarea>
+                                                       id="condition" 
+                                                       name="condition" 
+                                                       maxlength="500" 
+                                                       placeholder="Новое, Б/У, Восстановленное и т.д.">
                                             </div>
                                             
                                             <div class="mb-3">
-                                                <label for="features" class="form-label">Особенности оборудования</label>
-                                                <textarea class="form-control summernote" 
-                                                          id="features" 
-                                                          th:field="*{features}" 
-                                                          rows="5"></textarea>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="placementInfo" class="form-label">Рекомендации по размещению</label>
-                                                <textarea class="form-control summernote" 
-                                                          id="placementInfo" 
-                                                          th:field="*{placementInfo}" 
-                                                          rows="5"></textarea>
-                                            </div>
-                                            
-                                            <div class="mb-3">
-                                                <label for="producerInfo" class="form-label">Информация о производителе</label>
-                                                <textarea class="form-control summernote" 
-                                                          id="producerInfo" 
-                                                          th:field="*{producerInfo}" 
-                                                          rows="5"></textarea>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" 
+                                                           type="checkbox" 
+                                                           id="active" 
+                                                           name="active" 
+                                                           value="true" 
+                                                           checked>
+                                                    <label class="form-check-label" for="active">
+                                                        Активен (отображается на публичной странице)
+                                                    </label>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -696,7 +657,7 @@
                                             <button type="submit" class="btn btn-primary w-100 mb-2">
                                                 <i class="fe fe-save me-1"></i> Создать запись
                                             </button>
-                                            <a th:href="@{/private/miner-details}" 
+                                            <a th:href="@{/private/company-miners}" 
                                                class="btn btn-secondary w-100">
                                                 <i class="fe fe-x me-1"></i> Отмена
                                             </a>
