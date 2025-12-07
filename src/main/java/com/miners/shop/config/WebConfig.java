@@ -133,6 +133,20 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/bootstrapTheme/HTML/dist/")
                 .setCachePeriod(31536000)  // 1 год
                 .resourceChain(true);
+        
+        // Раздаем favicon из resources/favIco/
+        // Основной favicon.ico доступен по /favicon.ico
+        registry.addResourceHandler("/favicon.ico")
+                .addResourceLocations("classpath:/favIco/")
+                .setCachePeriod(31536000)  // 1 год
+                .resourceChain(true);
+        
+        // Раздаем дополнительные иконки из resources/favIco/media/
+        // Доступны по /favicon/media/...
+        registry.addResourceHandler("/favicon/media/**")
+                .addResourceLocations("classpath:/favIco/media/")
+                .setCachePeriod(31536000)  // 1 год
+                .resourceChain(true);
     }
     
     @Override

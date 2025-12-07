@@ -30,6 +30,7 @@ public class RedirectInterceptor implements HandlerInterceptor {
             url.startsWith("/img/") || 
             url.startsWith("/assets/") || 
             url.startsWith("/bootstrap-theme/") ||
+            url.startsWith("/favicon/") || // Пропускаем все favicon ресурсы
             url.startsWith("/api/") ||
             url.startsWith("/private/redirects") || // Пропускаем страницу управления редиректами
             url.equals("/favicon.ico") ||

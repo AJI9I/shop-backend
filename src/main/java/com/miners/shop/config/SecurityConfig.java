@@ -72,6 +72,9 @@ public class SecurityConfig {
                     .requestMatchers("/private/profitability", "/private/profitability/**").hasAnyRole("ADMIN", "MANAGER")
                     .requestMatchers("/private/miner-details", "/private/miner-details/**").hasAnyRole("ADMIN", "MANAGER")
                     
+                    // Майнеры компании - доступны администраторам и менеджерам
+                    .requestMatchers("/private/company-miners", "/private/company-miners/**").hasAnyRole("ADMIN", "MANAGER")
+                    
                     // Предложения - доступны администраторам и менеджерам
                     .requestMatchers("/private/offers", "/private/offers/**").hasAnyRole("ADMIN", "MANAGER")
                     

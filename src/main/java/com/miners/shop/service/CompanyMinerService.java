@@ -39,10 +39,31 @@ public class CompanyMinerService {
      */
     @Transactional(readOnly = true)
     public List<CompanyMinerDTO.CompanyMinerInfo> getAllCompanyMiners() {
-        List<CompanyMiner> companyMiners = companyMinerRepository.findAll();
-        return companyMiners.stream()
-                .map(CompanyMinerDTO::fromEntity)
-                .collect(Collectors.toList());
+        try {
+            log.info("Начало получения всех майнеров компании");
+            // Используем метод с JOIN FETCH для загрузки всех связанных сущностей
+            List<CompanyMiner> companyMiners = companyMinerRepository.findAllWithRelations();
+            log.info("Найдено майнеров компании в БД: {}", companyMiners.size());
+            
+            List<CompanyMinerDTO.CompanyMinerInfo> result = companyMiners.stream()
+                    .map(companyMiner -> {
+                        try {
+                            return CompanyMinerDTO.fromEntity(companyMiner);
+                        } catch (Exception e) {
+                            log.error("Ошибка при преобразовании CompanyMiner в DTO (ID: {}): {}", 
+                                    companyMiner.getId(), e.getMessage(), e);
+                            return null;
+                        }
+                    })
+                    .filter(dto -> dto != null)
+                    .collect(Collectors.toList());
+            
+            log.info("Успешно преобразовано майнеров компании в DTO: {}", result.size());
+            return result;
+        } catch (Exception e) {
+            log.error("Ошибка при получении всех майнеров компании: {}", e.getMessage(), e);
+            throw e;
+        }
     }
     
     /**
@@ -199,6 +220,7 @@ public class CompanyMinerService {
                 .collect(Collectors.toList());
     }
 }
+
 
 
 

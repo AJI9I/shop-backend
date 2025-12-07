@@ -6,11 +6,17 @@
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Заявки - MinerHive</title>
-    <meta name="Description" content="Просмотр и управление заявками клиентов">
+    <title>Майнеры компании - MinerHive</title>
+    <meta name="Description" content="Управление майнерами компании">
+    
+    <!-- Yandex Verification -->
+    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
     
     <!-- Favicon -->
     <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
+    
+    <!-- Choices JS -->
+    <script th:src="@{/bootstrap-theme/assets/libs/choices.js/public/assets/scripts/choices.min.js}" src="../assets/libs/choices.js/public/assets/scripts/choices.min.js"></script>
     
     <!-- Bootstrap Css -->
     <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" href="../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -30,14 +36,17 @@
     <!-- Color Picker Css -->
     <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/flatpickr/flatpickr.min.css}" href="../assets/libs/flatpickr/flatpickr.min.css">
     <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/@simonwep/pickr/themes/nano.min.css}" href="../assets/libs/@simonwep/pickr/themes/nano.min.css">
+
+    <!-- Choices Css -->
+    <link rel="stylesheet" th:href="@{/bootstrap-theme/assets/libs/choices.js/public/assets/styles/choices.min.css}" href="../assets/libs/choices.js/public/assets/styles/choices.min.css">
     
-    <!-- Custom styles для таблицы заявок -->
+    <!-- Custom styles для таблицы -->
     <style>
-        .requests-table {
+        .miner-details-table {
             font-size: 0.875rem;
         }
         
-        .requests-table thead th {
+        .miner-details-table thead th {
             background-color: #2c3e50;
             color: #ffffff;
             font-weight: 600;
@@ -48,138 +57,16 @@
             white-space: nowrap;
         }
         
-        .requests-table tbody td {
+        .miner-details-table tbody td {
             padding: 8px 12px;
             vertical-align: middle;
         }
         
-        .requests-table tbody tr {
-            transition: background-color 0.15s ease;
-        }
-        
-        .requests-table tbody tr:hover {
-            background-color: #e8f4f8;
-            cursor: pointer;
-        }
-        
-        .status-badge {
-            font-size: 0.7rem;
-            padding: 4px 10px;
-            font-weight: 500;
-            border-radius: 4px;
-        }
-        
-        .status-new {
-            background-color: #0d6efd;
-            color: white;
-        }
-        
-        .status-processed {
-            background-color: #ffc107;
-            color: #000;
-        }
-        
-        .status-closed {
-            background-color: #198754;
-            color: white;
-        }
-        
-        .status-cancelled {
-            background-color: #dc3545;
-            color: white;
-        }
-        
-        /* Восстановление прокрутки страницы */
-        html, body {
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
+        .miner-details-table tbody tr.inactive-row {
+            opacity: 0.6;
+            background-color: #f8f9fa;
         }
     </style>
-    
-    <!-- Fix for missing DOM elements - MUST be before other scripts -->
-    <script>
-        // Ensure all required DOM elements exist before scripts execute
-        (function() {
-            function ensureElements() {
-                // Ensure horizontal menu exists in the correct location
-                let horizontalMenu = document.querySelector('.horizontal-menu');
-                if (!horizontalMenu) {
-                    let headerCenter = document.querySelector('.main-header-center');
-                    if (!headerCenter) {
-                        const headerContentLeft = document.querySelector('.header-content-left');
-                        if (headerContentLeft) {
-                            headerCenter = document.createElement('div');
-                            headerCenter.className = 'main-header-center d-none d-lg-block';
-                            headerCenter.style.display = 'none';
-                            const headerElement = headerContentLeft.querySelector('.header-element');
-                            if (headerElement) {
-                                headerElement.appendChild(headerCenter);
-                            } else {
-                                headerContentLeft.appendChild(headerCenter);
-                            }
-                        }
-                    }
-                    if (headerCenter) {
-                        horizontalMenu = document.createElement('nav');
-                        horizontalMenu.className = 'horizontal-menu';
-                        horizontalMenu.style.display = 'none';
-                        headerCenter.appendChild(horizontalMenu);
-                    }
-                }
-                
-                // Ensure loader element exists
-                let loader = document.getElementById('loader');
-                if (!loader) {
-                    loader = document.createElement('div');
-                    loader.id = 'loader';
-                    loader.style.display = 'none';
-                    if (document.body) {
-                        document.body.insertBefore(loader, document.body.firstChild);
-                    }
-                }
-                
-                // Ensure switcher-canvas exists
-                let switcherCanvas = document.getElementById('switcher-canvas');
-                if (!switcherCanvas) {
-                    switcherCanvas = document.createElement('div');
-                    switcherCanvas.className = 'offcanvas offcanvas-end';
-                    switcherCanvas.id = 'switcher-canvas';
-                    switcherCanvas.setAttribute('tabindex', '-1');
-                    switcherCanvas.setAttribute('aria-labelledby', 'offcanvasRightLabel');
-                    switcherCanvas.style.display = 'none';
-                    if (document.body) {
-                        document.body.appendChild(switcherCanvas);
-                    }
-                }
-                
-                // Ensure header-sidebar exists
-                let headerSidebar = document.getElementById('header-sidebar');
-                if (!headerSidebar) {
-                    headerSidebar = document.createElement('div');
-                    headerSidebar.className = 'offcanvas offcanvas-end';
-                    headerSidebar.id = 'header-sidebar';
-                    headerSidebar.setAttribute('tabindex', '-1');
-                    headerSidebar.setAttribute('aria-labelledby', 'sidebarLabel');
-                    headerSidebar.style.display = 'none';
-                    if (document.body) {
-                        document.body.appendChild(headerSidebar);
-                    }
-                }
-            }
-            
-            // Run when DOM is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', ensureElements);
-            } else {
-                ensureElements();
-            }
-            
-            // Also run immediately to catch early script execution
-            if (document.body) {
-                ensureElements();
-            }
-        })();
-    </script>
 </head> 
 
 <body>
@@ -189,7 +76,6 @@
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
-    <!-- Page Loader -->
 
     <!-- Start Switcher -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="switcher-canvas" aria-labelledby="offcanvasRightLabel">
@@ -276,6 +162,7 @@
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/products/table}" class="text-dark">Таблица товаров</a></li>
                 <li class="list-group-item"><a th:href="@{/private/requests}" class="text-dark">Заявки</a></li>
                 <li class="list-group-item"><a th:href="@{/private/miner-details}" class="text-dark">Детали майнеров</a></li>
+                <li class="list-group-item"><a th:href="@{/private/company-miners}" class="text-dark">Майнеры компании</a></li>
                 <li class="list-group-item"><a th:href="@{/private/profitability}" class="text-dark">Калькулятор доходности</a></li>
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/users}" class="text-dark">Пользователи</a></li>
             </ul>
@@ -430,7 +317,7 @@
 
                         <!-- Start::slide -->
                         <li class="slide">
-                            <a th:href="@{/private/requests}" class="side-menu__item active">
+                            <a th:href="@{/private/requests}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
                                 <span class="side-menu__label">Заявки</span>
                             </a>
@@ -442,6 +329,15 @@
                             <a th:href="@{/private/miner-details}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                                 <span class="side-menu__label">Детали майнеров</span>
+                            </a>
+                        </li>
+                        <!-- End::slide -->
+
+                        <!-- Start::slide -->
+                        <li class="slide">
+                            <a th:href="@{/private/company-miners}" class="side-menu__item active">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+                                <span class="side-menu__label">Майнеры компании</span>
                             </a>
                         </li>
                         <!-- End::slide -->
@@ -482,222 +378,150 @@
                 <!-- Page Header -->
                 <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
                     <div class="my-auto">
-                        <h5 class="page-title fs-21 mb-1">Заявки клиентов</h5>
+                        <h5 class="page-title fs-21 mb-1">Майнеры компании</h5>
                         <nav>
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
                                 <li class="breadcrumb-item"><a th:href="@{/private}">Панель управления</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Заявки</li>
+                                <li class="breadcrumb-item active" aria-current="page">Майнеры компании</li>
                             </ol>
                         </nav>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="text-muted" th:text="${companyMiners != null ? companyMiners.size() : 0} + ' записей'">0 записей</span>
+                        <a th:href="@{/private/company-miners/create}" class="btn btn-primary btn-sm" title="Создать новый майнер компании">
+                            <i class="fe fe-plus me-1"></i> Создать новый
+                        </a>
                     </div>
                 </div>
                 <!-- Page Header Close -->
 
                 <!-- Start::row-1 -->
                 <div class="row">
-                    <!-- Статистика -->
-                    <div class="col-xl-12" th:if="${statistics != null}">
-                        <div class="row g-3 mb-4">
-                            <div class="col-xl-3 col-lg-6 col-md-6">
-                                <div class="card custom-card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar avatar-md bg-primary-transparent rounded-circle me-3">
-                                                <i class="fe fe-circle fs-20"></i>
-                                            </div>
-                                            <div class="flex-fill">
-                                                <h6 class="mb-1 fw-semibold" th:text="${statistics.NEW}">0</h6>
-                                                <p class="mb-0 text-muted fs-12">Новые</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6">
-                                <div class="card custom-card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar avatar-md bg-warning-transparent rounded-circle me-3">
-                                                <i class="fe fe-clock fs-20"></i>
-                                            </div>
-                                            <div class="flex-fill">
-                                                <h6 class="mb-1 fw-semibold" th:text="${statistics.PROCESSED}">0</h6>
-                                                <p class="mb-0 text-muted fs-12">В обработке</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6">
-                                <div class="card custom-card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar avatar-md bg-success-transparent rounded-circle me-3">
-                                                <i class="fe fe-check-circle fs-20"></i>
-                                            </div>
-                                            <div class="flex-fill">
-                                                <h6 class="mb-1 fw-semibold" th:text="${statistics.CLOSED}">0</h6>
-                                                <p class="mb-0 text-muted fs-12">Закрыты</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6">
-                                <div class="card custom-card">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="avatar avatar-md bg-info-transparent rounded-circle me-3">
-                                                <i class="fe fe-list fs-20"></i>
-                                            </div>
-                                            <div class="flex-fill">
-                                                <h6 class="mb-1 fw-semibold" th:text="${statistics.TOTAL}">0</h6>
-                                                <p class="mb-0 text-muted fs-12">Всего</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
                     <div class="col-xl-12">
                         <div class="card custom-card">
                             <div class="card-header">
-                                <div class="card-title">Список заявок</div>
+                                <div class="card-title">Список майнеров компании</div>
                             </div>
                             <div class="card-body">
-                                <!-- Фильтры по статусу -->
-                                <div class="mb-3">
-                                    <div class="d-flex align-items-center flex-wrap gap-2">
-                                        <span class="text-muted fw-semibold">Фильтр по статусу:</span>
-                                        <a th:href="@{/private/requests}" 
-                                           class="btn btn-sm" 
-                                           th:classappend="${currentStatus == '' || currentStatus == null} ? 'btn-primary' : 'btn-outline-primary'">
-                                            Все
-                                        </a>
-                                        <a th:href="@{/private/requests(status='NEW')}" 
-                                           class="btn btn-sm" 
-                                           th:classappend="${currentStatus == 'NEW'} ? 'btn-primary' : 'btn-outline-primary'">
-                                            Новые
-                                        </a>
-                                        <a th:href="@{/private/requests(status='PROCESSED')}" 
-                                           class="btn btn-sm" 
-                                           th:classappend="${currentStatus == 'PROCESSED'} ? 'btn-primary' : 'btn-outline-primary'">
-                                            В обработке
-                                        </a>
-                                        <a th:href="@{/private/requests(status='CLOSED')}" 
-                                           class="btn btn-sm" 
-                                           th:classappend="${currentStatus == 'CLOSED'} ? 'btn-primary' : 'btn-outline-primary'">
-                                            Закрыты
-                                        </a>
-                                        <a th:href="@{/private/requests(status='CANCELLED')}" 
-                                           class="btn btn-sm" 
-                                           th:classappend="${currentStatus == 'CANCELLED'} ? 'btn-primary' : 'btn-outline-primary'">
-                                            Отменены
-                                        </a>
-                                    </div>
+                                <!-- Сообщения об успехе/ошибке -->
+                                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <span th:utext="${successMessage}"></span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <span th:utext="${errorMessage}"></span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
                                 
-                                <!-- Таблица заявок -->
+                                <!-- Таблица с основными параметрами -->
                                 <div class="table-responsive">
-                                    <table class="table requests-table text-nowrap">
+                                    <table class="table table-hover text-nowrap miner-details-table">
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
-                                                <th>Клиент</th>
-                                                <th>Телефон</th>
-                                                <th>Товар</th>
-                                                <th>Предложение</th>
-                                                <th>Сообщение</th>
-                                                <th>Статус</th>
-                                                <th>Дата создания</th>
-                                                <th>Действия</th>
+                                                <th>Майнер</th>
+                                                <th>Цена</th>
+                                                <th>Хэшрейт</th>
+                                                <th>Количество</th>
+                                                <th>Состояние</th>
+                                                <th class="text-center">Активность</th>
+                                                <th class="text-center">Действия</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr th:each="request : ${requests.content}" 
-                                                th:onclick="'window.location.href=\'/private/requests/' + ${request.id} + '\''">
-                                                <td th:text="${request.id}">-</td>
-                                                <td>
-                                                    <span class="fw-semibold" th:text="${request.clientName}">-</span>
-                                                </td>
-                                                <td>
-                                                    <a th:href="'tel:' + ${request.clientPhone}" 
-                                                       class="text-primary hover-text-decoration-underline" 
-                                                       th:text="${request.clientPhone}"
-                                                       onclick="event.stopPropagation();">-</a>
-                                                </td>
-                                                <td>
-                                                    <a th:href="@{'/products/' + ${request.offer.product.id}}" 
-                                                       class="text-primary hover-text-decoration-underline"
-                                                       th:text="${request.offer.product.model}"
-                                                       onclick="event.stopPropagation();">-</a>
-                                                </td>
-                                                <td>
-                                                    <span th:if="${request.offer.price != null}">
-                                                        <span th:text="${request.offer.price}"></span>
-                                                        <span th:utext="' ' + ${request.offer.currency}"></span>
-                                                    </span>
-                                                    <span th:if="${request.offer.price == null}" class="text-muted">-</span>
-                                                </td>
-                                                <td style="max-width: 250px;">
-                                                    <span th:if="${request.message != null && !#strings.isEmpty(request.message)}" 
-                                                          class="text-muted small"
-                                                          th:utext="${#strings.abbreviate(request.message, 100)}">-</span>
-                                                    <span th:if="${request.message == null || #strings.isEmpty(request.message)}" 
-                                                          class="text-muted">-</span>
-                                                </td>
-                                                <td>
-                                                    <span th:switch="${request.status.name()}">
-                                                        <span th:case="'NEW'" class="status-badge status-new">Новая</span>
-                                                        <span th:case="'PROCESSED'" class="status-badge status-processed">В обработке</span>
-                                                        <span th:case="'CLOSED'" class="status-badge status-closed">Закрыта</span>
-                                                        <span th:case="'CANCELLED'" class="status-badge status-cancelled">Отменена</span>
-                                                    </span>
-                                                </td>
-                                                <td th:text="${#temporals.format(request.createdAt, 'dd.MM.yyyy HH:mm')}">Дата</td>
-                                                <td onclick="event.stopPropagation();">
-                                                    <a th:href="@{'/private/requests/' + ${request.id}}" 
-                                                       class="btn btn-sm btn-primary">
-                                                        <i class="fe fe-eye"></i> Просмотр
-                                                    </a>
+                                            <!-- Пустое состояние -->
+                                            <tr th:if="${companyMiners == null || companyMiners.isEmpty()}">
+                                                <td colspan="8" class="text-center py-24 text-muted">
+                                                    Майнеры компании отсутствуют
                                                 </td>
                                             </tr>
-                                            <tr th:if="${#lists.isEmpty(requests.content)}">
-                                                <td colspan="9" class="text-center py-48 text-muted">
-                                                    <div class="mb-3">
-                                                        <i class="fe fe-inbox fs-48 text-muted"></i>
+                                            
+                                            <!-- Записи майнеров компании -->
+                                            <tr th:each="companyMiner : ${companyMiners}"
+                                                th:classappend="${companyMiner.active == null || companyMiner.active == false} ? 'inactive-row' : ''">
+                                                <!-- ID -->
+                                                <td th:text="${companyMiner.id}">ID</td>
+                                                
+                                                <!-- Название майнера -->
+                                                <td>
+                                                    <a th:href="@{/private/miner-details/{id}(id=${companyMiner.minerDetailId})}" 
+                                                       class="text-primary hover-text-decoration-underline fw-semibold"
+                                                       th:utext="${companyMiner.minerDetailName} ?: 'Не указано'">
+                                                        Название
+                                                    </a>
+                                                </td>
+                                                
+                                                <!-- Цена -->
+                                                <td>
+                                                    <span th:if="${companyMiner.price != null}" 
+                                                          th:text="${#numbers.formatDecimal(companyMiner.price, 0, 'COMMA', 0, 'POINT')} + ' ' + (companyMiner.currencySymbol ?: companyMiner.currencyCode ?: '')">
+                                                        Цена
+                                                    </span>
+                                                    <span th:if="${companyMiner.price == null}" class="text-muted">-</span>
+                                                    <span th:if="${companyMiner.priceOld != null}" 
+                                                          class="text-muted text-decoration-line-through ms-2"
+                                                          th:text="${#numbers.formatDecimal(companyMiner.priceOld, 0, 'COMMA', 0, 'POINT')}">
+                                                    </span>
+                                                </td>
+                                                
+                                                <!-- Хэшрейт -->
+                                                <td>
+                                                    <span th:if="${companyMiner.hashrateMin != null}">
+                                                        <span th:text="${#numbers.formatDecimal(companyMiner.hashrateMin, 0, 'COMMA', 0, 'POINT')}"></span>
+                                                        <span th:if="${companyMiner.hashrateMax != null}">
+                                                            - <span th:text="${#numbers.formatDecimal(companyMiner.hashrateMax, 0, 'COMMA', 0, 'POINT')}"></span>
+                                                        </span>
+                                                        <span th:text="' ' + (companyMiner.hashrateUnitAbbreviation ?: '')"></span>
+                                                    </span>
+                                                    <span th:if="${companyMiner.hashrateMin == null}" class="text-muted">-</span>
+                                                </td>
+                                                
+                                                <!-- Количество -->
+                                                <td>
+                                                    <span class="badge bg-info" th:text="${companyMiner.quantity ?: 0}">0</span>
+                                                    <span th:if="${companyMiner.lowStockThreshold != null && companyMiner.quantity != null && companyMiner.quantity <= companyMiner.lowStockThreshold}" 
+                                                          class="badge bg-warning ms-1" 
+                                                          title="Низкий остаток">
+                                                        Низкий остаток
+                                                    </span>
+                                                </td>
+                                                
+                                                <!-- Состояние -->
+                                                <td th:utext="${companyMiner.condition ?: '-'}">Состояние</td>
+                                                
+                                                <!-- Активность -->
+                                                <td class="text-center">
+                                                    <span th:if="${companyMiner.active != null && companyMiner.active == true}" 
+                                                          class="badge bg-success">Активен</span>
+                                                    <span th:if="${companyMiner.active == null || companyMiner.active == false}" 
+                                                          class="badge bg-secondary">Неактивен</span>
+                                                </td>
+                                                
+                                                <!-- Действия -->
+                                                <td class="text-center">
+                                                    <div class="d-flex gap-2 justify-content-center">
+                                                        <a th:href="@{/private/company-miners/{id}/edit(id=${companyMiner.id})}" 
+                                                           class="btn btn-sm btn-primary"
+                                                           title="Редактировать">
+                                                            <i class="fe fe-edit me-1"></i> Редактировать
+                                                        </a>
+                                                        <form th:action="@{/private/company-miners/{id}/delete(id=${companyMiner.id})}" 
+                                                              method="post" 
+                                                              class="d-inline"
+                                                              th:onsubmit="return confirm('Вы уверены, что хотите удалить этот майнер компании?');">
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-danger"
+                                                                    title="Удалить">
+                                                                <i class="fe fe-trash me-1"></i> Удалить
+                                                            </button>
+                                                        </form>
                                                     </div>
-                                                    <h5 class="text-muted mb-2">Заявок пока нет</h5>
-                                                    <p class="text-muted mb-0">Заявки появятся здесь после отправки клиентами</p>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                
-                                <!-- Пагинация -->
-                                <nav th:if="${requests.totalPages > 1}" class="mt-3" aria-label="Навигация по страницам">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item" th:classappend="${requests.first} ? 'disabled'">
-                                            <a class="page-link" 
-                                               th:href="@{/private/requests(page=${requests.number - 1}, status=${currentStatus != null and currentStatus != '' ? currentStatus : null})}">Предыдущая</a>
-                                        </li>
-                                        <li th:each="pageNum : ${#numbers.sequence(0, requests.totalPages - 1)}" 
-                                            class="page-item" 
-                                            th:classappend="${pageNum == requests.number} ? 'active'">
-                                            <a class="page-link" 
-                                               th:href="@{/private/requests(page=${pageNum}, status=${currentStatus != null and currentStatus != '' ? currentStatus : null})}"
-                                               th:text="${pageNum + 1}">1</a>
-                                        </li>
-                                        <li class="page-item" th:classappend="${requests.last} ? 'disabled'">
-                                            <a class="page-link" 
-                                               th:href="@{/private/requests(page=${requests.number + 1}, status=${currentStatus != null and currentStatus != '' ? currentStatus : null})}">Следующая</a>
-                                        </li>
-                                    </ul>
-                                </nav>
                             </div>
                         </div>
                     </div>
@@ -747,11 +571,11 @@
     
     <!-- Custom-Switcher JS -->
     <script th:src="@{/bootstrap-theme/assets/js/custom-switcher.min.js}" src="../assets/js/custom-switcher.min.js"></script>
-
+    
     <!-- Custom JS -->
     <script th:src="@{/bootstrap-theme/assets/js/custom.js}" src="../assets/js/custom.js"></script>
     
-    <!-- Main Theme Js - Loaded at the end to ensure DOM elements are ready -->
+    <!-- Main Theme Js -->
     <script th:src="@{/bootstrap-theme/assets/js/main.js}" src="../assets/js/main.js"></script>
 
 </body>

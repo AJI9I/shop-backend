@@ -89,7 +89,6 @@ public class CompanyMinerDTO {
     /**
      * DTO для обновления майнера компании
      */
-    @Builder
     public record UpdateCompanyMinerDTO(
             @NotNull @DecimalMin(value = "0.0", inclusive = false) BigDecimal price,
             @NotNull Long currencyId,
@@ -102,12 +101,30 @@ public class CompanyMinerDTO {
             Boolean active,
             Integer lowStockThreshold,
             List<UpdateCustomFieldDTO> customFields
-    ) {}
+    ) {
+        // Статический метод для создания builder-подобного объекта
+        public static UpdateCompanyMinerDTO of(
+                BigDecimal price,
+                Long currencyId,
+                BigDecimal priceOld,
+                BigDecimal hashrateMin,
+                BigDecimal hashrateMax,
+                Long hashrateUnitId,
+                Integer quantity,
+                String condition,
+                Boolean active,
+                Integer lowStockThreshold,
+                List<UpdateCustomFieldDTO> customFields) {
+            return new UpdateCompanyMinerDTO(
+                    price, currencyId, priceOld, hashrateMin, hashrateMax,
+                    hashrateUnitId, quantity, condition, active, lowStockThreshold, customFields
+            );
+        }
+    }
     
     /**
      * DTO для обновления дополнительного поля
      */
-    @Builder
     public record UpdateCustomFieldDTO(
             String fieldName,
             String fieldValue,

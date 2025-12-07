@@ -6,11 +6,8 @@
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Детали майнеров - MinerHive</title>
-    <meta name="Description" content="Управление деталями майнеров">
-    
-    <!-- Yandex Verification -->
-    <meta name="yandex-verification" content="501f7cbb3e1af62f" />
+    <title>Майнеры компании - MinerHive</title>
+    <meta name="Description" content="Управление майнерами компании">
     
     <!-- Favicon -->
     <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
@@ -42,10 +39,10 @@
     
     <!-- Custom styles для таблицы -->
     <style>
-        /* Восстановление прокрутки страницы - полная версия */
+        /* Восстановление прокрутки страницы */
         html {
             overflow-x: hidden !important;
-            overflow-y: scroll !important; /* Всегда показываем полосу прокрутки */
+            overflow-y: scroll !important;
             height: 100% !important;
         }
         
@@ -57,7 +54,6 @@
             position: relative !important;
         }
         
-        /* Основной контейнер страницы должен прокручиваться */
         .page {
             overflow-x: hidden !important;
             overflow-y: visible !important;
@@ -65,7 +61,6 @@
             min-height: 100vh !important;
         }
         
-        /* Контент должен прокручиваться */
         .main-content, .app-content {
             overflow-x: hidden !important;
             overflow-y: visible !important;
@@ -73,13 +68,11 @@
             min-height: 100vh !important;
         }
         
-        /* Гарантируем, что body может прокручиваться даже с модальными окнами */
         body.modal-open {
             overflow-y: scroll !important;
             padding-right: 0 !important;
         }
         
-        /* Принудительно показываем стандартную полосу прокрутки */
         ::-webkit-scrollbar {
             width: 10px !important;
             height: 10px !important;
@@ -99,17 +92,16 @@
             background: #555 !important;
         }
         
-        /* Для Firefox */
         html {
             scrollbar-width: thin !important;
             scrollbar-color: #888 #f1f1f1 !important;
         }
         
-        .miner-details-table {
+        .company-miners-table {
             font-size: 0.875rem;
         }
         
-        .miner-details-table thead th {
+        .company-miners-table thead th {
             background-color: #2c3e50;
             color: #ffffff;
             font-weight: 600;
@@ -120,46 +112,27 @@
             white-space: nowrap;
         }
         
-        .miner-details-table tbody td {
+        .company-miners-table tbody td {
             padding: 8px 12px;
             vertical-align: middle;
         }
         
-        /* Стили для неактивных записей */
-        .miner-details-table tbody tr.inactive-row {
+        .company-miners-table tbody tr.inactive-row {
             opacity: 0.6;
             background-color: #f8f9fa;
         }
-        
-        .miner-details-table thead th.sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .miner-details-table thead th.sortable:hover {
-            background-color: #34495e;
-        }
-        
-        .sort-icon {
-            margin-left: 8px;
-            font-size: 0.75rem;
-        }
     </style>
     
-    <!-- Fix for missing DOM elements - MUST be before other scripts -->
+    <!-- Fix for missing DOM elements -->
     <script>
-        // Агрессивный обработчик ошибок для подавления ошибок из скриптов темы
-        // Устанавливается самым первым, до всех остальных скриптов
         (function() {
             'use strict';
             
-            // Функция для проверки, нужно ли подавить ошибку
             function shouldSuppressError(message, filename, stack) {
                 const messageStr = String(message || '');
                 const filenameStr = String(filename || '');
                 const stackStr = String(stack || '');
                 
-                // Проверяем по всем параметрам
                 const checks = [
                     messageStr.includes('Cannot read properties of null'),
                     messageStr.includes('addEventListener'),
@@ -168,15 +141,12 @@
                     filenameStr.includes('custom-switcher'),
                     filenameStr.includes('custom.js'),
                     stackStr.includes('custom-switcher'),
-                    stackStr.includes('custom.js'),
-                    stackStr.includes('switcherClick'),
-                    filenameStr.includes('custom-switcher.min.js')
+                    stackStr.includes('custom.js')
                 ];
                 
                 return checks.some(function(check) { return check; });
             }
             
-            // Перехватываем console.error
             if (typeof console !== 'undefined' && console.error) {
                 const originalError = console.error.bind(console);
                 console.error = function(...args) {
@@ -185,26 +155,12 @@
                     }).join(' ');
                     
                     if (shouldSuppressError(errorText, '', '')) {
-                        return; // Подавляем вывод
+                        return;
                     }
                     originalError.apply(console, args);
                 };
             }
             
-            // Перехватываем window.onerror (старый способ)
-            const originalOnError = window.onerror;
-            window.onerror = function(message, filename, lineno, colno, error) {
-                const stack = error && error.stack ? error.stack : '';
-                if (shouldSuppressError(message, filename, stack)) {
-                    return true; // Подавляем ошибку
-                }
-                if (originalOnError) {
-                    return originalOnError.apply(window, arguments);
-                }
-                return false;
-            };
-            
-            // Перехватываем через addEventListener (новый способ)
             window.addEventListener('error', function(e) {
                 const error = e.error || {};
                 const stack = error.stack || '';
@@ -215,9 +171,8 @@
                     e.stopImmediatePropagation();
                     return true;
                 }
-            }, true); // Используем capture phase для раннего перехвата
+            }, true);
             
-            // Перехватываем unhandledrejection
             window.addEventListener('unhandledrejection', function(e) {
                 const reason = e.reason || {};
                 let reasonStr = '';
@@ -237,15 +192,12 @@
             }, true);
         })();
         
-        // Ensure all required DOM elements exist before scripts execute
         (function() {
             function ensureElements() {
-                // Ensure horizontal menu exists in the correct location
                 let horizontalMenu = document.querySelector('.horizontal-menu');
                 if (!horizontalMenu) {
                     let headerCenter = document.querySelector('.main-header-center');
                     if (!headerCenter) {
-                        // Find header-element or create it
                         const headerContentLeft = document.querySelector('.header-content-left');
                         if (headerContentLeft) {
                             headerCenter = document.createElement('div');
@@ -267,7 +219,6 @@
                     }
                 }
                 
-                // Ensure loader element exists
                 let loader = document.getElementById('loader');
                 if (!loader) {
                     loader = document.createElement('div');
@@ -278,7 +229,6 @@
                     }
                 }
                 
-                // Ensure switcher-canvas exists
                 let switcherCanvas = document.getElementById('switcher-canvas');
                 if (!switcherCanvas) {
                     switcherCanvas = document.createElement('div');
@@ -292,7 +242,6 @@
                     }
                 }
                 
-                // Ensure header-sidebar exists
                 let headerSidebar = document.getElementById('header-sidebar');
                 if (!headerSidebar) {
                     headerSidebar = document.createElement('div');
@@ -307,15 +256,12 @@
                 }
             }
             
-            // Run when DOM is ready
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', ensureElements);
             } else {
-                // DOM already loaded
                 ensureElements();
             }
             
-            // Also run immediately to catch early script execution
             if (document.body) {
                 ensureElements();
             }
@@ -330,7 +276,6 @@
             <span class="visually-hidden">Loading...</span>
         </div>
     </div>
-    <!-- Page Loader -->
 
     <!-- Start Switcher -->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="switcher-canvas" aria-labelledby="offcanvasRightLabel">
@@ -368,41 +313,40 @@
                     </div>
                 </div>
                 <div class="tab-pane fade border-0" id="switcher-profile" role="tabpanel" aria-labelledby="switcher-profile-tab" tabindex="0">
-                        <div class="">
-                            <p class="switcher-style-head">Menu Colors:</p>
-                            <div class="d-flex switcher-style pb-2">
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-light" checked>
-                                    <label class="form-check-label" for="switcher-menu-light">Light</label>
-                                </div>
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-dark">
-                                    <label class="form-check-label" for="switcher-menu-dark">Dark</label>
-                                </div>
-                                <div class="form-check switch-select">
-                                    <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-primary">
-                                    <label class="form-check-label" for="switcher-menu-primary">Primary</label>
-                                </div>
+                    <div class="">
+                        <p class="switcher-style-head">Menu Colors:</p>
+                        <div class="d-flex switcher-style pb-2">
+                            <div class="form-check switch-select me-2">
+                                <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-light" checked>
+                                <label class="form-check-label" for="switcher-menu-light">Light</label>
+                            </div>
+                            <div class="form-check switch-select me-2">
+                                <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-dark">
+                                <label class="form-check-label" for="switcher-menu-dark">Dark</label>
+                            </div>
+                            <div class="form-check switch-select">
+                                <input class="form-check-input" type="radio" name="menu-colors" id="switcher-menu-primary">
+                                <label class="form-check-label" for="switcher-menu-primary">Primary</label>
                             </div>
                         </div>
-                        <div class="">
-                            <p class="switcher-style-head">Header Colors:</p>
-                            <div class="d-flex switcher-style pb-2">
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-light" checked>
-                                    <label class="form-check-label" for="switcher-header-light">Light</label>
-                                </div>
-                                <div class="form-check switch-select me-2">
-                                    <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-dark">
-                                    <label class="form-check-label" for="switcher-header-dark">Dark</label>
-                                </div>
+                    </div>
+                    <div class="">
+                        <p class="switcher-style-head">Header Colors:</p>
+                        <div class="d-flex switcher-style pb-2">
+                            <div class="form-check switch-select me-2">
+                                <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-light" checked>
+                                <label class="form-check-label" for="switcher-header-light">Light</label>
                             </div>
+                            <div class="form-check switch-select me-2">
+                                <input class="form-check-input" type="radio" name="header-colors" id="switcher-header-dark">
+                                <label class="form-check-label" for="switcher-header-dark">Dark</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- End Switcher -->
 
     <!-- Start::Off-canvas sidebar-->
     <div class="offcanvas offcanvas-end" tabindex="-1" id="header-sidebar" aria-labelledby="sidebarLabel">
@@ -417,21 +361,18 @@
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/products/table}" class="text-dark">Таблица товаров</a></li>
                 <li class="list-group-item"><a th:href="@{/private/requests}" class="text-dark">Заявки</a></li>
                 <li class="list-group-item"><a th:href="@{/private/miner-details}" class="text-dark">Детали майнеров</a></li>
+                <li class="list-group-item"><a th:href="@{/private/company-miners}" class="text-dark">Майнеры компании</a></li>
                 <li class="list-group-item"><a th:href="@{/private/profitability}" class="text-dark">Калькулятор доходности</a></li>
                 <li class="list-group-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/private/users}" class="text-dark">Пользователи</a></li>
             </ul>
         </div>
     </div>
-    <!-- End::Off-canvas sidebar-->
 
     <div class="page">
         <!-- app-header -->
         <header class="app-header">
-            <!-- Start::main-header-container -->
             <div class="main-header-container container-fluid">
-                <!-- Start::header-content-left -->
                 <div class="header-content-left">
-                    <!-- Start::header-element -->
                     <div class="header-element">
                         <div class="horizontal-logo">
                             <a th:href="@{/}" class="header-logo">
@@ -442,53 +383,30 @@
                             </a>
                         </div>
                     </div>
-                    <!-- End::header-element -->
-
-                    <!-- Start::header-element -->
                     <div class="header-element">
-                        <!-- Start::header-link -->
                         <a aria-label="Hide Sidebar" class="sidemenu-toggle header-link animated-arrow hor-toggle horizontal-navtoggle" data-bs-toggle="sidebar" href="javascript:void(0);">
                             <i class="header-icon fe fe-align-left"></i>
                         </a>
-                        <!-- End::header-link -->
-                        <!-- Horizontal Menu Container (hidden, but needed for scripts) -->
                         <div class="main-header-center d-none d-lg-block" style="display: none !important;">
                             <nav class="horizontal-menu"></nav>
                         </div>
                     </div>
-                    <!-- End::header-element -->
                 </div>
-                <!-- End::header-content-left -->
-
-                <!-- Start::header-content-right -->
                 <div class="header-content-right">
-                    <!-- Start::header-element -->
                     <div class="header-element header-sidebar">
-                        <!-- Start::header-link-->
                         <a href="javascript:void(0);" class="header-link" data-bs-toggle="offcanvas" data-bs-target="#header-sidebar">
                             <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                         </a>
-                        <!-- End::header-link-->
                     </div>
-                    <!-- End::header-element -->
-
-                    <!-- Start::header-element -->
                     <div class="header-element">
-                        <!-- Start::header-link|switcher-icon -->
                         <a href="javascript:void(0);" class="header-link switcher-icon" data-bs-toggle="offcanvas" data-bs-target="#switcher-canvas">
                             <svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" width="24" height="24" viewBox="0 0 24 24"><path d="M12 16c2.206 0 4-1.794 4-4s-1.794-4-4-4-4 1.794-4 4 1.794 4 4 4zm0-6c1.084 0 2 .916 2 2s-.916 2-2 2-2-.916-2-2 .916-2 2-2z"></path><path d="m2.845 16.136 1 1.73c.531.917 1.809 1.261 2.73.73l.529-.306A8.1 8.1 0 0 0 9 19.402V20c0 1.103.897 2 2 2h2c1.103 0 2-.897 2-2v-.598a8.132 8.132 0 0 0 1.896-1.111l.529.306c.923.53 2.198.188 2.731-.731l.999-1.729a2.001 2.001 0 0 0-.731-2.732l-.505-.292a7.718 7.718 0 0 0 0-2.224l.505-.292a2.002 2.002 0 0 0 .731-2.732l-.999-1.729c-.531-.92-1.808-1.265-2.731-.732l-.529.306A8.1 8.1 0 0 0 15 4.598V4c0-1.103-.897-2-2-2h-2c-1.103 0-2 .897-2 2v.598a8.132 8.132 0 0 0-1.896 1.111l-.529-.306c-.924-.531-2.2-.187-2.731.732l-.999 1.729a2.001 2.001 0 0 0 .731 2.732l.505.292a7.683 7.683 0 0 0 0 2.223l-.505.292a2.003 2.003 0 0 0-.731 2.733zm3.326-2.758A5.703 5.703 0 0 1 6 12c0-.462.058-.926.17-1.378a.999.999 0 0 0-.47-1.108l-1.123-.65.998-1.729 1.145.662a.997.997 0 0 0 1.188-.142 6.071 6.071 0 0 1 2.384-1.399A1 1 0 0 0 11 5.3V4h2v1.3a1 1 0 0 0 .708.956 6.083 6.083 0 0 1 2.384 1.399.999.999 0 0 0 1.188.142l1.144-.661 1 1.729-1.124.649a1 1 0 0 0-.47 1.108c.112.452.17.916.17 1.378 0 .461-.058.925-.171 1.378a1 1 0 0 0 .471 1.108l1.123.649-.998 1.729-1.145-.661a.996.996 0 0 0-1.188.142 6.071 6.071 0 0 1-2.384 1.399A1 1 0 0 0 13 18.7l.002 1.3H11v-1.3a1 1 0 0 0-.708-.956 6.083 6.083 0 0 1-2.384-1.399.992.992 0 0 0-1.188-.141l-1.144.662-1-1.729 1.124-.651a1 1 0 0 0 .471-1.108z"></path></svg>
                         </a>
-                        <!-- End::header-link|switcher-icon -->
                     </div>
-                    <!-- End::header-element -->
-
-                    <!-- Start::header-element -->
                     <div class="header-element headerProfile-dropdown">
-                        <!-- Start::header-link|dropdown-toggle -->
                         <a href="javascript:void(0);" class="header-link dropdown-toggle" id="mainHeaderProfile" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                             <i class="fe fe-user fs-20"></i>
                         </a>
-                        <!-- End::header-link|dropdown-toggle -->
                         <ul class="main-header-dropdown dropdown-menu pt-0 header-profile-dropdown dropdown-menu-end main-profile-menu" aria-labelledby="mainHeaderProfile">
                             <li>
                                 <div class="main-header-profile bg-primary menu-header-content text-fixed-white">
@@ -504,18 +422,13 @@
                             <li><a class="dropdown-item d-flex" th:href="@{/}"><i class="bx bx-home fs-18 me-2 op-7"></i>Главная</a></li>
                             <li><a class="dropdown-item d-flex border-block-end" th:href="@{/logout}"><i class="bx bx-log-out fs-18 me-2 op-7"></i>Выход</a></li>
                         </ul>
-                    </div>  
-                    <!-- End::header-element -->
+                    </div>
                 </div>
-                <!-- End::header-content-right -->
             </div>
-            <!-- End::main-header-container -->
         </header>
-        <!-- /app-header -->
 
         <!-- Start::app-sidebar -->
         <aside class="app-sidebar sticky" id="sidebar">
-            <!-- Start::main-sidebar-header -->
             <div class="main-sidebar-header">
                 <a th:href="@{/}" class="header-logo">
                     <img th:src="@{/bootstrap-theme/assets/images/brand-logos/desktop-logo.png}" src="../assets/images/brand-logos/desktop-logo.png" alt="logo" class="desktop-logo">
@@ -524,98 +437,68 @@
                     <img th:src="@{/bootstrap-theme/assets/images/brand-logos/toggle-white.png}" src="../assets/images/brand-logos/toggle-white.png" alt="logo" class="toggle-white">
                 </a>
             </div>
-            <!-- End::main-sidebar-header -->
-
-            <!-- Start::main-sidebar -->
             <div class="main-sidebar" id="sidebar-scroll">
-                <!-- Start::nav -->
                 <nav class="main-menu-container nav nav-pills flex-column sub-open">
                     <div class="slide-left" id="slide-left">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M13.293 6.293 7.586 12l5.707 5.707 1.414-1.414L10.414 12l4.293-4.293z"></path> </svg>
                     </div>
                     <ul class="main-menu">
-                        <!-- Start::slide__category -->
                         <li class="slide__category"><span class="category-name">Главное</span></li>
-                        <!-- End::slide__category -->
-
-                        <!-- Start::slide -->
                         <li class="slide">
                             <a th:href="@{/private}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M5 5h4v6H5zm10 8h4v6h-4zM5 17h4v2H5zM15 5h4v2h-4z" opacity=".3"/><path d="M3 13h8V3H3v10zm2-8h4v6H5V5zm8 16h8V11h-8v10zm2-8h4v6h-4v-6zM13 3v6h8V3h-8zm6 4h-4V5h4v2zM3 21h8v-6H3v6zm2-4h4v2H5v-2z"/></svg>
                                 <span class="side-menu__label">Панель управления</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide__category -->
                         <li class="slide__category"><span class="category-name">Управление</span></li>
-                        <!-- End::slide__category -->
-
-                        <!-- Start::slide -->
                         <li class="slide" sec:authorize="hasRole('ADMIN')">
                             <a th:href="@{/private/messages}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
                                 <span class="side-menu__label">Сообщения</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
                         <li class="slide" sec:authorize="hasRole('ADMIN')">
                             <a th:href="@{/private/products/table}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 5H5v14h14V5zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" opacity=".3"/><path d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm2 0h14v14H5V5zm2 5h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
                                 <span class="side-menu__label">Таблица товаров</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
                         <li class="slide">
                             <a th:href="@{/private/requests}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
                                 <span class="side-menu__label">Заявки</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
                         <li class="slide">
-                            <a th:href="@{/private/miner-details}" class="side-menu__item active">
+                            <a th:href="@{/private/miner-details}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
                                 <span class="side-menu__label">Детали майнеров</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide -->
+                        <li class="slide">
+                            <a th:href="@{/private/company-miners}" class="side-menu__item active">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                <span class="side-menu__label">Майнеры компании</span>
+                            </a>
+                        </li>
                         <li class="slide">
                             <a th:href="@{/private/profitability}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
                                 <span class="side-menu__label">Калькулятор доходности</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
-
-                        <!-- Start::slide__category -->
                         <li class="slide__category" sec:authorize="hasRole('ADMIN')"><span class="category-name">Администрирование</span></li>
-                        <!-- End::slide__category -->
-
-                        <!-- Start::slide -->
                         <li class="slide" sec:authorize="hasRole('ADMIN')">
                             <a th:href="@{/private/users}" class="side-menu__item">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="side-menu__icon" viewBox="0 0 24 24"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-3.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-3.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                                 <span class="side-menu__label">Пользователи</span>
                             </a>
                         </li>
-                        <!-- End::slide -->
                     </ul>
                     <div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191" width="24" height="24" viewBox="0 0 24 24"> <path d="M10.707 17.707 16.414 12l-5.707-5.707-1.414 1.414L13.586 12l-4.293 4.293z"></path> </svg></div>
                 </nav>
-                <!-- End::nav -->
             </div>
-            <!-- End::main-sidebar -->
         </aside>
-        <!-- End::app-sidebar -->
 
         <!-- Start::app-content -->
         <div class="main-content app-content">
@@ -623,182 +506,145 @@
                 <!-- Page Header -->
                 <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
                     <div class="my-auto">
-                        <h5 class="page-title fs-21 mb-1">Детали майнеров</h5>
+                        <h5 class="page-title fs-21 mb-1">Майнеры компании</h5>
                         <nav>
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
                                 <li class="breadcrumb-item"><a th:href="@{/private}">Панель управления</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Детали майнеров</li>
+                                <li class="breadcrumb-item active" aria-current="page">Майнеры компании</li>
                             </ol>
                         </nav>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
-                        <span class="text-muted" th:text="${minerDetails != null ? minerDetails.size() : 0} + ' записей'">0 записей</span>
-                        <a th:href="@{/private/miner-details/new}" class="btn btn-primary btn-sm" title="Создать новую запись MinerDetail">
+                        <span class="text-muted" th:text="${companyMiners != null ? companyMiners.size() : 0} + ' записей'">0 записей</span>
+                        <a th:href="@{/private/company-miners/create}" class="btn btn-primary btn-sm" title="Создать новый майнер компании">
                             <i class="fe fe-plus me-1"></i> Создать новый
                         </a>
-                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal" title="Экспортировать записи в Excel">
-                            <i class="fe fe-download me-1"></i> Экспорт в Excel
-                        </button>
-                        <label for="importFile" class="btn btn-secondary btn-sm" title="Импортировать записи из Excel файла">
-                            <i class="fe fe-upload me-1"></i> Импорт из Excel
-                        </label>
-                        <input type="file" id="importFile" accept=".xlsx,.xls" style="display: none;">
                     </div>
                 </div>
-                <!-- Page Header Close -->
 
                 <!-- Start::row-1 -->
                 <div class="row">
                     <div class="col-xl-12">
                         <div class="card custom-card">
                             <div class="card-header">
-                                <div class="card-title">Список деталей майнеров</div>
+                                <div class="card-title">Список майнеров компании</div>
                             </div>
                             <div class="card-body">
                                 <!-- Сообщения об успехе/ошибке -->
-                                <div id="importMessage" class="alert" style="display: none; margin-bottom: 24px;"></div>
-                                
-                                <!-- Фильтр по активности -->
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold mb-2">Фильтр по активности</label>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <button type="button" 
-                                                class="btn btn-outline-primary active-filter-btn active" 
-                                                data-active-filter="all">
-                                            Все
-                                        </button>
-                                        <button type="button" 
-                                                class="btn btn-outline-success active-filter-btn" 
-                                                data-active-filter="true">
-                                            Только активные
-                                        </button>
-                                        <button type="button" 
-                                                class="btn btn-outline-secondary active-filter-btn" 
-                                                data-active-filter="false">
-                                            Только неактивные
-                                        </button>
-                                    </div>
+                                <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <span th:utext="${successMessage}"></span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <span th:utext="${errorMessage}"></span>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
                                 
-                                <!-- Таблица с основными параметрами -->
+                                <!-- Таблица -->
                                 <div class="table-responsive">
-                                    <table class="table miner-details-table text-nowrap">
+                                    <table class="table company-miners-table text-nowrap">
                                         <thead>
                                             <tr>
-                                                <th class="sortable" th:classappend="${sortBy == 'id'} ? 'sortable'" th:attr="data-sort=id">
-                                                    ID
-                                                    <span class="sort-icon" th:if="${sortBy == 'id'}">
-                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
-                                                    </span>
-                                                </th>
-                                                <th class="sortable" th:classappend="${sortBy == 'standardName'} ? 'sortable'" th:attr="data-sort=standardName">
-                                                    Название
-                                                    <span class="sort-icon" th:if="${sortBy == 'standardName'}">
-                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
-                                                    </span>
-                                                </th>
-                                                <th class="sortable" th:classappend="${sortBy == 'manufacturer'} ? 'sortable'" th:attr="data-sort=manufacturer">
-                                                    Производитель
-                                                    <span class="sort-icon" th:if="${sortBy == 'manufacturer'}">
-                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
-                                                    </span>
-                                                </th>
-                                                <th class="sortable" th:classappend="${sortBy == 'series'} ? 'sortable'" th:attr="data-sort=series">
-                                                    Серия
-                                                    <span class="sort-icon" th:if="${sortBy == 'series'}">
-                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
-                                                    </span>
-                                                </th>
-                                                <th class="sortable" th:classappend="${sortBy == 'hashrate'} ? 'sortable'" th:attr="data-sort=hashrate">
-                                                    Хэшрейт
-                                                    <span class="sort-icon" th:if="${sortBy == 'hashrate'}">
-                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
-                                                    </span>
-                                                </th>
-                                                <th class="sortable" th:classappend="${sortBy == 'productCount'} ? 'sortable'" th:attr="data-sort=productCount">
-                                                    Количество товаров
-                                                    <span class="sort-icon" th:if="${sortBy == 'productCount'}">
-                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
-                                                    </span>
-                                                </th>
-                                                <th class="sortable" th:classappend="${sortBy == 'powerConsumption'} ? 'sortable'" th:attr="data-sort=powerConsumption">
-                                                    Потребление
-                                                    <span class="sort-icon" th:if="${sortBy == 'powerConsumption'}">
-                                                        <i th:classappend="${sortDir == 'ASC'} ? 'fe fe-arrow-up' : 'fe fe-arrow-down'"></i>
-                                                    </span>
-                                                </th>
+                                                <th>ID</th>
+                                                <th>Майнер</th>
+                                                <th>Цена</th>
+                                                <th>Хэшрейт</th>
+                                                <th>Состояние</th>
                                                 <th class="text-center">Активность</th>
                                                 <th class="text-center">Действия</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="minerDetailsTableBody">
-                                            <!-- Пустое состояние -->
-                                            <tr th:if="${minerDetails == null || minerDetails.isEmpty()}">
-                                                <td colspan="9" class="text-center py-24 text-muted">
-                                                    Детальные записи майнеров отсутствуют
+                                        <tbody>
+                                            <tr th:if="${companyMiners == null || companyMiners.isEmpty()}">
+                                                <td colspan="7" class="text-center py-24 text-muted">
+                                                    Майнеры компании отсутствуют
                                                 </td>
                                             </tr>
                                             
-                                            <!-- Записи майнеров -->
-                                            <tr th:each="detail : ${minerDetails}"
-                                                th:classappend="${detail.active == null || detail.active == false} ? 'inactive-row' : ''"
-                                                th:attr="data-active=${detail.active != null ? detail.active : true}"
-                                                class="miner-detail-row">
-                                                <!-- ID -->
-                                                <td th:text="${detail.id}">ID</td>
-                                                
-                                                <!-- Стандартизированное название -->
+                                            <tr th:each="companyMiner : ${companyMiners}"
+                                                th:classappend="${companyMiner.active == null || companyMiner.active == false} ? 'inactive-row' : ''">
+                                                <td th:text="${companyMiner.id}">ID</td>
                                                 <td>
-                                                    <a th:href="@{/private/miner-details/{id}(id=${detail.id})}" 
-                                                       class="text-primary hover-text-decoration-underline fw-semibold"
-                                                       th:utext="${detail.standardName}">
+                                                    <a th:if="${companyMiner.minerDetailId != null}"
+                                                       th:href="@{/private/miner-details/{id}(id=${companyMiner.minerDetailId})}" 
+                                                       class="text-primary text-decoration-none fw-semibold"
+                                                       th:text="${companyMiner.minerDetailName ?: 'Не указано'}">
                                                         Название
                                                     </a>
+                                                    <span th:if="${companyMiner.minerDetailId == null}" 
+                                                          th:text="${companyMiner.minerDetailName ?: 'Не указано'}">
+                                                        Название
+                                                    </span>
                                                 </td>
-                                                
-                                                <!-- Производитель -->
-                                                <td th:utext="${detail.manufacturer} ?: '-'">Производитель</td>
-                                                
-                                                <!-- Серия -->
-                                                <td th:utext="${detail.series} ?: '-'">Серия</td>
-                                                
-                                                <!-- Хэшрейт -->
-                                                <td th:utext="${detail.hashrate} ?: '-'">Хэшрейт</td>
-                                                
-                                                <!-- Количество товаров -->
                                                 <td>
-                                                    <span class="badge bg-info" th:text="${productCounts != null ? (productCounts.get(detail.id) ?: 0) : (detail.productIds != null ? detail.productIds.size() : 0)}">0</span>
+                                                    <div th:if="${companyMiner.price != null}">
+                                                        <div class="d-flex align-items-center gap-1">
+                                                            <span class="fw-semibold" 
+                                                                  th:text="${#numbers.formatDecimal(companyMiner.price, 1, 'COMMA', 2, 'POINT')}">
+                                                                Цена
+                                                            </span>
+                                                            <span th:if="${companyMiner.currencySymbol != null}" 
+                                                                  class="text-muted small"
+                                                                  th:text="${companyMiner.currencySymbol}">
+                                                            </span>
+                                                            <span th:if="${companyMiner.currencySymbol == null && companyMiner.currencyCode != null}" 
+                                                                  class="text-muted small"
+                                                                  th:text="${companyMiner.currencyCode}">
+                                                            </span>
+                                                        </div>
+                                                        <div th:if="${companyMiner.priceOld != null}" class="mt-1">
+                                                            <small class="text-muted text-decoration-line-through"
+                                                                   th:text="${#numbers.formatDecimal(companyMiner.priceOld, 1, 'COMMA', 2, 'POINT')}">
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <span th:if="${companyMiner.price == null}" class="text-muted">-</span>
                                                 </td>
-                                                
-                                                <!-- Потребление -->
-                                                <td th:utext="${detail.powerConsumption} ?: '-'">Потребление</td>
-                                                
-                                                <!-- Активность -->
+                                                <td>
+                                                    <div th:if="${companyMiner.hashrateMin != null}" class="d-flex align-items-center gap-1">
+                                                        <span th:text="${#numbers.formatDecimal(companyMiner.hashrateMin, 1, 'COMMA', 2, 'POINT')}"></span>
+                                                        <span th:if="${companyMiner.hashrateMax != null}">
+                                                            <span class="text-muted">-</span>
+                                                            <span th:text="${#numbers.formatDecimal(companyMiner.hashrateMax, 1, 'COMMA', 2, 'POINT')}"></span>
+                                                        </span>
+                                                        <span th:if="${companyMiner.hashrateUnitAbbreviation != null}" 
+                                                              class="text-muted small"
+                                                              th:text="${companyMiner.hashrateUnitAbbreviation}">
+                                                        </span>
+                                                    </div>
+                                                    <span th:if="${companyMiner.hashrateMin == null}" class="text-muted">-</span>
+                                                </td>
+                                                <td>
+                                                    <span th:if="${companyMiner.condition != null}" 
+                                                          th:utext="${companyMiner.condition}">
+                                                        Состояние
+                                                    </span>
+                                                    <span th:if="${companyMiner.condition == null}" class="text-muted">-</span>
+                                                </td>
                                                 <td class="text-center">
-                                                    <button type="button" 
-                                                            class="btn btn-sm toggle-active-btn"
-                                                            th:classappend="${detail.active != null && detail.active == true} ? 'btn-success' : 'btn-danger'"
-                                                            th:attr="data-id=${detail.id}, data-active=${detail.active != null ? detail.active : true}"
-                                                            th:title="${detail.active != null && detail.active == true} ? 'Деактивировать' : 'Активировать'">
-                                                        <i th:classappend="${detail.active != null && detail.active == true} ? 'fe fe-check' : 'fe fe-x'"></i>
-                                                        <span th:text="${detail.active != null && detail.active == true} ? 'Активен' : 'Неактивен'">Активен</span>
-                                                    </button>
+                                                    <span th:if="${companyMiner.active != null && companyMiner.active == true}" 
+                                                          class="badge bg-success">Активен</span>
+                                                    <span th:if="${companyMiner.active == null || companyMiner.active == false}" 
+                                                          class="badge bg-secondary">Неактивен</span>
                                                 </td>
-                                                
-                                                <!-- Действия -->
                                                 <td class="text-center">
                                                     <div class="d-flex gap-2 justify-content-center">
-                                                        <a th:href="@{/private/miner-details/{id}(id=${detail.id})}" 
+                                                        <a th:href="@{/private/company-miners/{id}/edit(id=${companyMiner.id})}" 
                                                            class="btn btn-sm btn-primary"
-                                                           title="Просмотр всех записей">
-                                                            <i class="fe fe-eye me-1"></i> Просмотр
-                                                        </a>
-                                                        <a th:href="@{/private/miner-details/{id}/edit(id=${detail.id})}" 
-                                                           class="btn btn-sm btn-secondary"
                                                            title="Редактировать">
-                                                            <i class="fe fe-edit me-1"></i> Редактировать
+                                                            <i class="fe fe-edit"></i>
                                                         </a>
+                                                        <form th:action="@{/private/company-miners/{id}/delete(id=${companyMiner.id})}" 
+                                                              method="post" 
+                                                              class="d-inline"
+                                                              th:onsubmit="return confirm('Вы уверены, что хотите удалить этот майнер компании?');">
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-danger"
+                                                                    title="Удалить">
+                                                                <i class="fe fe-trash"></i>
+                                                            </button>
+                                                        </form>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -809,10 +655,8 @@
                         </div>
                     </div>
                 </div>
-                <!-- row closed -->
             </div>
         </div>
-        <!-- End::app-content -->
 
         <!-- Footer Start -->
         <footer class="footer mt-auto py-3 bg-white text-center">
@@ -820,7 +664,6 @@
                 <span class="text-muted">© 2025 <a href="javascript:void(0);" class="text-dark fw-semibold">MinerHive</a>. Все права защищены.</span>
             </div>
         </footer>
-        <!-- Footer End -->
     </div>
 
     <!-- Scroll To Top -->
@@ -828,91 +671,6 @@
         <span class="arrow"><i class="las la-angle-double-up"></i></span>
     </div>
     <div id="responsive-overlay"></div>
-    <!-- Scroll To Top -->
-
-    <!-- Модальное окно для выбора фильтров экспорта -->
-    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exportModalLabel">Экспорт в Excel</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-3">Выберите фильтры для экспорта. Если ничего не выбрано, будут экспортированы все записи.</p>
-                    
-                    <!-- Фильтр по производителям -->
-                    <div class="mb-3" th:if="${manufacturers != null && !manufacturers.isEmpty()}">
-                        <label class="form-label fw-semibold">Производители:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllManufacturers">
-                            <label class="form-check-label" for="selectAllManufacturers">
-                                Выбрать все
-                            </label>
-                        </div>
-                        <div class="ms-3 mt-2" style="max-height: 150px; overflow-y: auto;">
-                            <div th:each="manufacturer : ${manufacturers}" class="form-check">
-                                <input class="form-check-input manufacturer-checkbox" 
-                                       type="checkbox" 
-                                       th:id="'manufacturer_' + ${manufacturer}"
-                                       th:value="${manufacturer}">
-                                <label class="form-check-label" th:for="'manufacturer_' + ${manufacturer}" th:text="${manufacturer}">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Фильтр по сериям -->
-                    <div class="mb-3" th:if="${series != null && !series.isEmpty()}">
-                        <label class="form-label fw-semibold">Серии:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllSeries">
-                            <label class="form-check-label" for="selectAllSeries">
-                                Выбрать все
-                            </label>
-                        </div>
-                        <div class="ms-3 mt-2" style="max-height: 150px; overflow-y: auto;">
-                            <div th:each="serie : ${series}" class="form-check">
-                                <input class="form-check-input series-checkbox" 
-                                       type="checkbox" 
-                                       th:id="'series_' + ${serie}"
-                                       th:value="${serie}">
-                                <label class="form-check-label" th:for="'series_' + ${serie}" th:text="${serie}">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Фильтр по моделям -->
-                    <div class="mb-3" th:if="${minerDetails != null && !minerDetails.isEmpty()}">
-                        <label class="form-label fw-semibold">Модели:</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="selectAllModels">
-                            <label class="form-check-label" for="selectAllModels">
-                                Выбрать все
-                            </label>
-                        </div>
-                        <div class="ms-3 mt-2" style="max-height: 150px; overflow-y: auto;">
-                            <div th:each="detail : ${minerDetails}" class="form-check">
-                                <input class="form-check-input model-checkbox" 
-                                       type="checkbox" 
-                                       th:id="'model_' + ${detail.id}"
-                                       th:value="${detail.standardName}">
-                                <label class="form-check-label" th:for="'model_' + ${detail.id}" th:utext="${detail.standardName}">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                    <button type="button" class="btn btn-success" id="confirmExportBtn">
-                        <i class="fe fe-download me-1"></i> Экспортировать
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Popper JS -->
     <script th:src="@{/bootstrap-theme/assets/libs/@popperjs/core/umd/popper.min.js}" src="../assets/libs/@popperjs/core/umd/popper.min.js"></script>
@@ -942,584 +700,8 @@
     <!-- Custom JS -->
     <script th:src="@{/bootstrap-theme/assets/js/custom.js}" src="../assets/js/custom.js"></script>
     
-    <!-- Main Theme Js - Loaded at the end to ensure DOM elements are ready -->
+    <!-- Main Theme Js -->
     <script th:src="@{/bootstrap-theme/assets/js/main.js}" src="../assets/js/main.js"></script>
-
-    <!-- JavaScript для экспорта/импорта -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Обработка "Выбрать все" для производителей
-            const selectAllManufacturers = document.getElementById('selectAllManufacturers');
-            if (selectAllManufacturers) {
-                selectAllManufacturers.addEventListener('change', function() {
-                    document.querySelectorAll('.manufacturer-checkbox').forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                });
-            }
-            
-            // Обработка "Выбрать все" для серий
-            const selectAllSeries = document.getElementById('selectAllSeries');
-            if (selectAllSeries) {
-                selectAllSeries.addEventListener('change', function() {
-                    document.querySelectorAll('.series-checkbox').forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                });
-            }
-            
-            // Обработка "Выбрать все" для моделей
-            const selectAllModels = document.getElementById('selectAllModels');
-            if (selectAllModels) {
-                selectAllModels.addEventListener('change', function() {
-                    document.querySelectorAll('.model-checkbox').forEach(checkbox => {
-                        checkbox.checked = this.checked;
-                    });
-                });
-            }
-            
-            // Экспорт данных в Excel с фильтрами
-            const confirmExportBtn = document.getElementById('confirmExportBtn');
-            if (confirmExportBtn) {
-                confirmExportBtn.addEventListener('click', function() {
-                    console.log('Начало экспорта данных в Excel...');
-                    
-                    // Собираем выбранные фильтры
-                    const selectedManufacturers = [];
-                    document.querySelectorAll('.manufacturer-checkbox:checked').forEach(checkbox => {
-                        selectedManufacturers.push(checkbox.value);
-                    });
-                    
-                    const selectedSeries = [];
-                    document.querySelectorAll('.series-checkbox:checked').forEach(checkbox => {
-                        selectedSeries.push(checkbox.value);
-                    });
-                    
-                    const selectedModels = [];
-                    document.querySelectorAll('.model-checkbox:checked').forEach(checkbox => {
-                        selectedModels.push(checkbox.value);
-                    });
-                    
-                    console.log('Выбранные фильтры:', {
-                        manufacturers: selectedManufacturers,
-                        series: selectedSeries,
-                        models: selectedModels
-                    });
-                    
-                    // Формируем URL с параметрами
-                    const params = new URLSearchParams();
-                    if (selectedManufacturers.length > 0) {
-                        selectedManufacturers.forEach(m => params.append('manufacturers', m));
-                    }
-                    if (selectedSeries.length > 0) {
-                        selectedSeries.forEach(s => params.append('series', s));
-                    }
-                    if (selectedModels.length > 0) {
-                        selectedModels.forEach(m => params.append('standardNames', m));
-                    }
-                    
-                    const url = '/private/miner-details/export' + (params.toString() ? '?' + params.toString() : '');
-                    console.log('URL экспорта:', url);
-                    
-                    // Показываем индикатор загрузки
-                    const btn = this;
-                    const originalHtml = btn.innerHTML;
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fe fe-loader me-1"></i> Экспорт...';
-                    
-                    // Выполняем запрос на экспорт
-                    fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.text().then(text => {
-                                throw new Error('Ошибка при экспорте: ' + response.statusText + ' - ' + text);
-                            });
-                        }
-                        return response.blob();
-                    })
-                    .then(blob => {
-                        console.log('Excel файл получен, создаем ссылку для скачивания...');
-                        
-                        // Создаем ссылку для скачивания
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.download = 'miner-details-export-' + new Date().toISOString().split('T')[0] + '.xlsx';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        URL.revokeObjectURL(url);
-                        
-                        console.log('Файл успешно скачан');
-                        
-                        // Закрываем модальное окно
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
-                        if (modal) {
-                            modal.hide();
-                        }
-                        
-                        // Показываем сообщение об успехе
-                        showMessage('Экспорт завершен успешно! Файл Excel скачан.', 'success');
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при экспорте:', error);
-                        showMessage('Ошибка при экспорте: ' + error.message, 'danger');
-                    })
-                    .finally(() => {
-                        // Восстанавливаем кнопку
-                        btn.disabled = false;
-                        btn.innerHTML = originalHtml;
-                    });
-                });
-            }
-            
-            // Импорт данных из Excel
-            const importFile = document.getElementById('importFile');
-            if (importFile) {
-                importFile.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (!file) {
-                        return;
-                    }
-                    
-                    console.log('Начало импорта данных из Excel файла:', file.name);
-                    
-                    // Проверяем тип файла
-                    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-                        showMessage('Ошибка: выберите Excel файл (.xlsx или .xls)', 'danger');
-                        this.value = ''; // Очищаем выбор файла
-                        return;
-                    }
-                    
-                    // Показываем подтверждение
-                    if (!confirm('Вы уверены, что хотите импортировать данные из Excel? Существующие записи будут обновлены по ID.')) {
-                        this.value = ''; // Очищаем выбор файла
-                        return;
-                    }
-                    
-                    // Показываем индикатор загрузки
-                    showMessage('Импорт данных из Excel...', 'info');
-                    
-                    // Создаем FormData для отправки файла
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    
-                    // Отправляем файл на сервер
-                    fetch('/private/miner-details/import', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            return response.text().then(text => {
-                                throw new Error('Ошибка при импорте: ' + response.statusText + ' - ' + text);
-                            });
-                        }
-                        return response.json();
-                    })
-                    .then(result => {
-                        console.log('Результат импорта:', result);
-                        
-                        if (result.success) {
-                            let message = 'Импорт завершен успешно!<br>';
-                            message += 'Обновлено записей: ' + result.updated + '<br>';
-                            message += 'Всего обработано: ' + result.total;
-                            
-                            if (result.errors > 0) {
-                                message += '<br>Ошибок: ' + result.errors;
-                                if (result.errorDetails && result.errorDetails.length > 0) {
-                                    message += '<br><small>' + result.errorDetails.slice(0, 5).join('<br>') + '</small>';
-                                }
-                            }
-                            
-                            showMessage(message, 'success');
-                            
-                            // Перезагружаем страницу через 2 секунды
-                            setTimeout(function() {
-                                window.location.reload();
-                            }, 2000);
-                        } else {
-                            showMessage('Ошибка при импорте: ' + (result.error || 'Неизвестная ошибка'), 'danger');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при импорте:', error);
-                        showMessage('Ошибка при импорте: ' + error.message, 'danger');
-                    })
-                    .finally(() => {
-                        this.value = ''; // Очищаем выбор файла
-                    });
-                });
-            }
-            
-            // Функция для показа сообщений
-            function showMessage(message, type) {
-                const alertClass = 'alert-' + type;
-                const messageDiv = document.getElementById('importMessage');
-                if (messageDiv) {
-                    messageDiv.className = 'alert ' + alertClass;
-                    messageDiv.innerHTML = message;
-                    messageDiv.style.display = 'block';
-                    
-                    // Автоматически скрываем через 5 секунд (кроме success, который скрывается при перезагрузке)
-                    if (type !== 'success') {
-                        setTimeout(function() {
-                            messageDiv.style.display = 'none';
-                        }, 5000);
-                    }
-                }
-            }
-        });
-        
-        // Обработка переключения активности MinerDetail
-        document.addEventListener('DOMContentLoaded', function() {
-            // Используем делегирование событий для динамически созданных кнопок
-            document.addEventListener('click', function(e) {
-                const button = e.target.closest('.toggle-active-btn');
-                if (!button) {
-                    return;
-                }
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const id = button.dataset.id;
-                const currentActive = button.dataset.active === 'true';
-                const newActive = !currentActive;
-                
-                if (!id) {
-                    console.error('ID не найден для кнопки переключения активности');
-                    return;
-                }
-                
-                console.log('Переключение активности для MinerDetail ID:', id, 'Новое состояние:', newActive);
-                
-                // Блокируем кнопку во время запроса
-                button.disabled = true;
-                const originalHtml = button.innerHTML;
-                button.innerHTML = '<i class="fe fe-loader"></i> Обновление...';
-                
-                // Отправляем AJAX запрос
-                fetch(`/private/miner-details/api/${id}/toggle-active`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ active: newActive })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.error || 'Ошибка при обновлении активности');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Активность успешно обновлена:', data);
-                    
-                    // Обновляем состояние кнопки
-                    button.dataset.active = newActive.toString();
-                    
-                    if (newActive) {
-                        button.className = 'btn btn-sm btn-success toggle-active-btn';
-                        button.innerHTML = '<i class="fe fe-check"></i> Активен';
-                        button.title = 'Деактивировать';
-                    } else {
-                        button.className = 'btn btn-sm btn-danger toggle-active-btn';
-                        button.innerHTML = '<i class="fe fe-x"></i> Неактивен';
-                        button.title = 'Активировать';
-                    }
-                    
-                    // Обновляем строку таблицы визуально (добавляем стиль для неактивных)
-                    const row = button.closest('tr');
-                    if (row) {
-                        row.dataset.active = newActive.toString();
-                        if (newActive) {
-                            row.classList.remove('inactive-row');
-                            row.classList.remove('table-secondary', 'opacity-75');
-                        } else {
-                            row.classList.add('inactive-row');
-                            row.classList.add('table-secondary', 'opacity-75');
-                        }
-                        
-                        // Применяем фильтр после обновления
-                        setTimeout(() => {
-                            if (typeof window.applyActiveFilter === 'function') {
-                                window.applyActiveFilter();
-                            }
-                        }, 100);
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка при переключении активности:', error);
-                    alert('Ошибка при обновлении активности: ' + error.message);
-                    // Восстанавливаем кнопку
-                    button.innerHTML = originalHtml;
-                })
-                .finally(() => {
-                    button.disabled = false;
-                });
-            });
-            
-            // Фильтрация по активности
-            window.activeFilter = 'all'; // По умолчанию показываем все
-            
-            window.applyActiveFilter = function() {
-                const rows = document.querySelectorAll('.miner-detail-row');
-                rows.forEach(row => {
-                    const isActive = row.dataset.active === 'true';
-                    
-                    if (window.activeFilter === 'all') {
-                        row.style.display = '';
-                    } else if (window.activeFilter === 'true') {
-                        row.style.display = isActive ? '' : 'none';
-                    } else if (window.activeFilter === 'false') {
-                        row.style.display = isActive ? 'none' : '';
-                    }
-                });
-            };
-            
-            // Обработчики кликов на кнопки фильтра активности
-            document.addEventListener('click', function(e) {
-                const button = e.target.closest('.active-filter-btn');
-                if (!button) {
-                    return;
-                }
-                
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Убираем активное состояние у всех кнопок фильтра
-                document.querySelectorAll('.active-filter-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                // Добавляем активное состояние к нажатой кнопке
-                button.classList.add('active');
-                
-                // Обновляем фильтр
-                window.activeFilter = button.dataset.activeFilter || 'all';
-                
-                console.log('Фильтр по активности изменен на:', window.activeFilter);
-                
-                // Применяем фильтр
-                window.applyActiveFilter();
-            });
-            
-            // Применяем фильтр при загрузке страницы
-            window.applyActiveFilter();
-        });
-        
-        // Обработка сортировки по столбцам (AJAX)
-        let currentSortBy = 'id';
-        let currentSortDir = 'ASC';
-        
-        function updateSortIcons(sortBy, sortDir) {
-            document.querySelectorAll('.miner-details-table thead th.sortable').forEach(header => {
-                const iconSpan = header.querySelector('.sort-icon');
-                const headerSort = header.getAttribute('data-sort');
-                
-                if (iconSpan) {
-                    iconSpan.remove();
-                }
-                
-                if (headerSort === sortBy) {
-                    const newIconSpan = document.createElement('span');
-                    newIconSpan.className = 'sort-icon';
-                    const icon = document.createElement('i');
-                    icon.className = sortDir === 'ASC' ? 'fe fe-arrow-up' : 'fe fe-arrow-down';
-                    newIconSpan.appendChild(icon);
-                    header.appendChild(newIconSpan);
-                }
-            });
-        }
-        
-        function loadMinerDetailsTable(sortBy, sortDir) {
-            const tbody = document.querySelector('.miner-details-table tbody');
-            if (!tbody) return;
-            
-            // Показываем индикатор загрузки
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Загрузка...</span></div></td></tr>';
-            
-            const url = `/private/miner-details/api/list?sortBy=${sortBy}&sortDir=${sortDir}`;
-            
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error('Ошибка загрузки данных: ' + response.status);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                currentSortBy = data.sortBy || sortBy;
-                currentSortDir = data.sortDir || sortDir;
-                
-                updateSortIcons(currentSortBy, currentSortDir);
-                
-                const minerDetails = data.minerDetails || [];
-                const productCounts = data.productCounts || {};
-                
-                if (minerDetails.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-24 text-muted">Детальные записи майнеров отсутствуют</td></tr>';
-                    return;
-                }
-                
-                let html = '';
-                minerDetails.forEach(detail => {
-                    const isActive = detail.active !== null ? detail.active : true;
-                    const productCount = productCounts[detail.id] || 0;
-                    const activeClass = isActive ? '' : 'inactive-row';
-                    
-                    html += `<tr class="miner-detail-row ${activeClass}" data-active="${isActive}">`;
-                    html += `<td>${escapeHtml(String(detail.id || ''))}</td>`;
-                    html += `<td><a href="/private/miner-details/${detail.id}" class="text-primary hover-text-decoration-underline fw-semibold">${escapeHtml(detail.standardName || '-')}</a></td>`;
-                    html += `<td>${escapeHtml(detail.manufacturer || '-')}</td>`;
-                    html += `<td>${escapeHtml(detail.series || '-')}</td>`;
-                    html += `<td>${escapeHtml(detail.hashrate || '-')}</td>`;
-                    html += `<td><span class="badge bg-info">${productCount}</span></td>`;
-                    html += `<td>${escapeHtml(detail.powerConsumption || '-')}</td>`;
-                    html += `<td class="text-center">`;
-                    html += `<button type="button" class="btn btn-sm toggle-active-btn ${isActive ? 'btn-success' : 'btn-danger'}" data-id="${detail.id}" data-active="${isActive}" title="${isActive ? 'Деактивировать' : 'Активировать'}">`;
-                    html += `<i class="fe ${isActive ? 'fe-check' : 'fe-x'}"></i> <span>${isActive ? 'Активен' : 'Неактивен'}</span>`;
-                    html += `</button>`;
-                    html += `</td>`;
-                    html += `<td class="text-center">`;
-                    html += `<div class="d-flex gap-2 justify-content-center">`;
-                    html += `<a href="/private/miner-details/${detail.id}" class="btn btn-sm btn-primary" title="Просмотр всех записей"><i class="fe fe-eye me-1"></i> Просмотр</a>`;
-                    html += `<a href="/private/miner-details/${detail.id}/edit" class="btn btn-sm btn-secondary" title="Редактировать"><i class="fe fe-edit me-1"></i> Редактировать</a>`;
-                    html += `</div>`;
-                    html += `</td>`;
-                    html += `</tr>`;
-                });
-                
-                tbody.innerHTML = html;
-                
-                // Применяем фильтр по активности после обновления таблицы
-                if (typeof window.applyActiveFilter === 'function') {
-                    setTimeout(() => {
-                        window.applyActiveFilter();
-                    }, 50);
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка при загрузке MinerDetails:', error);
-                tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-danger">Ошибка загрузки данных: ' + escapeHtml(error.message) + '</td></tr>';
-            });
-        }
-        
-        function escapeHtml(text) {
-            if (!text) return '';
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // Инициализируем текущие параметры сортировки из URL
-            const urlParams = new URLSearchParams(window.location.search);
-            currentSortBy = urlParams.get('sortBy') || 'id';
-            currentSortDir = urlParams.get('sortDir') || 'ASC';
-            
-            const sortableHeaders = document.querySelectorAll('.miner-details-table thead th.sortable');
-            
-            sortableHeaders.forEach(header => {
-                header.addEventListener('click', function() {
-                    const sortBy = this.getAttribute('data-sort');
-                    if (!sortBy) return;
-                    
-                    // Определяем новое направление сортировки
-                    let newSortDir = 'ASC';
-                    if (currentSortBy === sortBy) {
-                        // Если кликнули по тому же столбцу, меняем направление
-                        newSortDir = currentSortDir === 'ASC' ? 'DESC' : 'ASC';
-                    }
-                    
-                    // Обновляем таблицу через AJAX
-                    loadMinerDetailsTable(sortBy, newSortDir);
-                });
-            });
-        });
-        
-        // Принудительно восстанавливаем прокрутку страницы
-        (function() {
-            function restoreScrollbar() {
-                // Восстанавливаем прокрутку для html - ВСЕГДА показываем полосу прокрутки
-                document.documentElement.style.overflowY = 'scroll'; // scroll = всегда видна полоса
-                document.documentElement.style.overflowX = 'hidden';
-                document.documentElement.style.height = '100%';
-                
-                // Восстанавливаем прокрутку для body
-                document.body.style.overflowY = 'auto';
-                document.body.style.overflowX = 'hidden';
-                document.body.style.height = 'auto';
-                document.body.style.minHeight = '100vh';
-                document.body.style.maxHeight = 'none';
-                document.body.style.position = 'relative';
-                
-                // Восстанавливаем прокрутку для контейнеров
-                const containers = document.querySelectorAll('.page, .main-content, .app-content');
-                containers.forEach(function(container) {
-                    container.style.overflowY = 'visible';
-                    container.style.overflowX = 'hidden';
-                    container.style.height = 'auto';
-                    container.style.minHeight = '100vh';
-                    container.style.maxHeight = 'none';
-                });
-                
-                // Удаляем modal-open класс, если он блокирует прокрутку
-                if (document.body.classList.contains('modal-open')) {
-                    document.body.style.overflowY = 'scroll'; // Все равно показываем прокрутку
-                    document.body.style.paddingRight = '';
-                }
-                
-                // Удаляем кастомные скроллбары Simplebar, если они используются
-                const simplebarElements = document.querySelectorAll('[data-simplebar]');
-                simplebarElements.forEach(function(el) {
-                    el.removeAttribute('data-simplebar');
-                    el.style.overflowY = 'auto';
-                });
-            }
-            
-            // Выполняем сразу
-            restoreScrollbar();
-            
-            // Выполняем после загрузки DOM
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', restoreScrollbar);
-            }
-            
-            // Выполняем после полной загрузки страницы
-            window.addEventListener('load', function() {
-                restoreScrollbar();
-                // Повторяем через небольшие задержки для гарантии
-                setTimeout(restoreScrollbar, 100);
-                setTimeout(restoreScrollbar, 500);
-                setTimeout(restoreScrollbar, 1000);
-            });
-            
-            // Выполняем при изменении размера окна
-            window.addEventListener('resize', restoreScrollbar);
-        })();
-    </script>
 
 </body>
 </html>

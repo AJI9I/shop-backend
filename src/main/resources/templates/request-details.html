@@ -10,7 +10,7 @@
     <meta name="Description" content="Детальная информация о заявке">
     
     <!-- Favicon -->
-    <link rel="icon" th:href="@{/bootstrap-theme/assets/images/brand-logos/favicon.ico}" href="../assets/images/brand-logos/favicon.ico" type="image/x-icon">
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
     
     <!-- Bootstrap Css -->
     <link id="style" th:href="@{/bootstrap-theme/assets/libs/bootstrap/css/bootstrap.min.css}" href="../assets/libs/bootstrap/css/bootstrap.min.css" rel="stylesheet">

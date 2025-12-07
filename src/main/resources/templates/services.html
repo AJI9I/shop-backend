@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- SEO мета-теги -->
     <th:block th:replace="~{fragments/seo :: seo-head(${pageTitle}, ${pageDescription}, ${pageKeywords}, ${canonicalUrl}, ${ogImage})}"></th:block>
-    <link rel="shortcut icon" th:href="@{/assets/images/logo/favicon.png}" href="assets/images/logo/favicon.png">
+    <!-- Favicon -->
+    <th:block th:replace="~{fragments/favicon :: favicon-tags}"></th:block>
     <link rel="stylesheet" th:href="@{/assets/css/bootstrap.min.css}" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" th:href="@{/assets/css/select2.min.css}" href="assets/css/select2.min.css">
     <link rel="stylesheet" th:href="@{/assets/css/slick.css}" href="assets/css/slick.css">

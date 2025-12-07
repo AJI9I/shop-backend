@@ -8,7 +8,6 @@ import com.miners.shop.repository.CurrencyRepository;
 import com.miners.shop.repository.HashrateUnitRepository;
 import com.miners.shop.repository.MinerDetailRepository;
 import com.miners.shop.service.CompanyMinerService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -37,9 +36,17 @@ public class CompanyMinerController {
      */
     @GetMapping
     public String list(Model model) {
-        List<CompanyMinerDTO.CompanyMinerInfo> companyMiners = companyMinerService.getAllCompanyMiners();
-        model.addAttribute("companyMiners", companyMiners);
-        return "company-miners/list";
+        try {
+            log.info("Запрос списка майнеров компании");
+            List<CompanyMinerDTO.CompanyMinerInfo> companyMiners = companyMinerService.getAllCompanyMiners();
+            log.info("Найдено майнеров компании: {}", companyMiners.size());
+            model.addAttribute("companyMiners", companyMiners);
+            return "company-miners/list";
+        } catch (Exception e) {
+            log.error("Ошибка при получении списка майнеров компании: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "Ошибка при загрузке списка майнеров компании: " + e.getMessage());
+            return "company-miners/list";
+        }
     }
     
     /**
@@ -94,10 +101,56 @@ public class CompanyMinerController {
      */
     @PostMapping
     public String create(
-            @Valid @ModelAttribute("companyMiner") CompanyMinerDTO.CreateCompanyMinerDTO dto,
+            @RequestParam Long minerDetailId,
+            @RequestParam java.math.BigDecimal price,
+            @RequestParam Long currencyId,
+            @RequestParam(required = false) java.math.BigDecimal priceOld,
+            @RequestParam java.math.BigDecimal hashrateMin,
+            @RequestParam(required = false) java.math.BigDecimal hashrateMax,
+            @RequestParam Long hashrateUnitId,
+            @RequestParam Integer quantity,
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false, defaultValue = "true") Boolean active,
+            @RequestParam(required = false) Integer lowStockThreshold,
             RedirectAttributes redirectAttributes) {
         try {
-            log.info("Создание CompanyMiner для MinerDetail ID: {}", dto.minerDetailId());
+            log.info("Создание CompanyMiner для MinerDetail ID: {}", minerDetailId);
+            
+            // Валидация обязательных полей
+            if (minerDetailId == null) {
+                throw new IllegalArgumentException("MinerDetail обязателен");
+            }
+            if (price == null || price.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Цена должна быть больше 0");
+            }
+            if (currencyId == null) {
+                throw new IllegalArgumentException("Валюта обязательна");
+            }
+            if (hashrateMin == null || hashrateMin.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Минимальный хэшрейт обязателен и должен быть >= 0");
+            }
+            if (hashrateUnitId == null) {
+                throw new IllegalArgumentException("Единица измерения хэшрейта обязательна");
+            }
+            if (quantity == null || quantity < 0) {
+                throw new IllegalArgumentException("Количество обязательно и должно быть >= 0");
+            }
+            
+            // Создаем DTO вручную из параметров
+            CompanyMinerDTO.CreateCompanyMinerDTO dto = CompanyMinerDTO.CreateCompanyMinerDTO.builder()
+                    .minerDetailId(minerDetailId)
+                    .price(price)
+                    .currencyId(currencyId)
+                    .priceOld(priceOld)
+                    .hashrateMin(hashrateMin)
+                    .hashrateMax(hashrateMax)
+                    .hashrateUnitId(hashrateUnitId)
+                    .quantity(quantity)
+                    .condition(condition)
+                    .active(active != null ? active : true)
+                    .lowStockThreshold(lowStockThreshold)
+                    .customFields(null) // Пока не поддерживаем кастомные поля в форме
+                    .build();
             
             companyMinerService.createCompanyMiner(dto);
             
@@ -108,12 +161,12 @@ public class CompanyMinerController {
         } catch (IllegalArgumentException e) {
             log.error("Ошибка при создании CompanyMiner: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/private/company-miners/create?minerDetailId=" + dto.minerDetailId();
+            return "redirect:/private/company-miners/create?minerDetailId=" + minerDetailId;
         } catch (Exception e) {
             log.error("Неожиданная ошибка при создании CompanyMiner: {}", e.getMessage(), e);
             redirectAttributes.addFlashAttribute("errorMessage", 
                     "Произошла ошибка при создании майнера компании: " + e.getMessage());
-            return "redirect:/private/company-miners/create?minerDetailId=" + dto.minerDetailId();
+            return "redirect:/private/company-miners/create?minerDetailId=" + minerDetailId;
         }
     }
     
@@ -134,27 +187,29 @@ public class CompanyMinerController {
             List<HashrateUnit> hashrateUnits = hashrateUnitRepository.findAll();
             
             // Создаем DTO для формы редактирования
-            CompanyMinerDTO.UpdateCompanyMinerDTO updateDto = CompanyMinerDTO.UpdateCompanyMinerDTO.builder()
-                    .price(companyMiner.price())
-                    .currencyId(companyMiner.currencyId())
-                    .priceOld(companyMiner.priceOld())
-                    .hashrateMin(companyMiner.hashrateMin())
-                    .hashrateMax(companyMiner.hashrateMax())
-                    .hashrateUnitId(companyMiner.hashrateUnitId())
-                    .quantity(companyMiner.quantity())
-                    .condition(companyMiner.condition())
-                    .active(companyMiner.active())
-                    .lowStockThreshold(companyMiner.lowStockThreshold())
-                    .customFields(companyMiner.customFields() != null 
-                            ? companyMiner.customFields().stream()
-                                    .map(f -> CompanyMinerDTO.UpdateCustomFieldDTO.builder()
-                                            .fieldName(f.fieldName())
-                                            .fieldValue(f.fieldValue())
-                                            .displayOrder(f.displayOrder())
-                                            .build())
-                                    .toList()
-                            : null)
-                    .build();
+            List<CompanyMinerDTO.UpdateCustomFieldDTO> customFieldsList = companyMiner.customFields() != null 
+                    ? companyMiner.customFields().stream()
+                            .map(f -> new CompanyMinerDTO.UpdateCustomFieldDTO(
+                                    f.fieldName(),
+                                    f.fieldValue(),
+                                    f.displayOrder()
+                            ))
+                            .toList()
+                    : null;
+            
+            CompanyMinerDTO.UpdateCompanyMinerDTO updateDto = new CompanyMinerDTO.UpdateCompanyMinerDTO(
+                    companyMiner.price(),
+                    companyMiner.currencyId(),
+                    companyMiner.priceOld(),
+                    companyMiner.hashrateMin(),
+                    companyMiner.hashrateMax(),
+                    companyMiner.hashrateUnitId(),
+                    companyMiner.quantity(),
+                    companyMiner.condition(),
+                    companyMiner.active(),
+                    companyMiner.lowStockThreshold(),
+                    customFieldsList
+            );
             
             model.addAttribute("companyMiner", updateDto);
             model.addAttribute("companyMinerInfo", companyMiner);
@@ -177,10 +232,51 @@ public class CompanyMinerController {
     @PostMapping("/{id}")
     public String update(
             @PathVariable Long id,
-            @Valid @ModelAttribute("companyMiner") CompanyMinerDTO.UpdateCompanyMinerDTO dto,
+            @RequestParam java.math.BigDecimal price,
+            @RequestParam Long currencyId,
+            @RequestParam(required = false) java.math.BigDecimal priceOld,
+            @RequestParam java.math.BigDecimal hashrateMin,
+            @RequestParam(required = false) java.math.BigDecimal hashrateMax,
+            @RequestParam Long hashrateUnitId,
+            @RequestParam Integer quantity,
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false, defaultValue = "true") Boolean active,
+            @RequestParam(required = false) Integer lowStockThreshold,
             RedirectAttributes redirectAttributes) {
         try {
             log.info("Обновление CompanyMiner с ID: {}", id);
+            
+            // Валидация обязательных полей
+            if (price == null || price.compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Цена должна быть больше 0");
+            }
+            if (currencyId == null) {
+                throw new IllegalArgumentException("Валюта обязательна");
+            }
+            if (hashrateMin == null || hashrateMin.compareTo(java.math.BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Минимальный хэшрейт обязателен и должен быть >= 0");
+            }
+            if (hashrateUnitId == null) {
+                throw new IllegalArgumentException("Единица измерения хэшрейта обязательна");
+            }
+            if (quantity == null || quantity < 0) {
+                throw new IllegalArgumentException("Количество обязательно и должно быть >= 0");
+            }
+            
+            // Создаем DTO вручную из параметров
+            CompanyMinerDTO.UpdateCompanyMinerDTO dto = new CompanyMinerDTO.UpdateCompanyMinerDTO(
+                    price,
+                    currencyId,
+                    priceOld,
+                    hashrateMin,
+                    hashrateMax,
+                    hashrateUnitId,
+                    quantity,
+                    condition,
+                    active != null ? active : true,
+                    lowStockThreshold,
+                    null // Пока не поддерживаем кастомные поля в форме
+            );
             
             companyMinerService.updateCompanyMiner(id, dto);
             

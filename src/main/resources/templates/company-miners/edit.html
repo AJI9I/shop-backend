@@ -6,8 +6,8 @@
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Создание майнера компании - MinerHive</title>
-    <meta name="Description" content="Создание нового майнера компании">
+    <title>Редактирование майнера компании - MinerHive</title>
+    <meta name="Description" content="Редактирование майнера компании">
     
     <!-- Yandex Verification -->
     <meta name="yandex-verification" content="501f7cbb3e1af62f" />
@@ -458,13 +458,13 @@
                 <!-- Page Header -->
                 <div class="d-md-flex d-block align-items-center justify-content-between my-4 page-header-breadcrumb">
                     <div class="my-auto">
-                        <h5 class="page-title fs-21 mb-1">Создание майнера компании</h5>
+                        <h5 class="page-title fs-21 mb-1">Редактирование майнера компании</h5>
                         <nav>
                             <ol class="breadcrumb mb-0">
                                 <li class="breadcrumb-item"><a th:href="@{/}">Главная</a></li>
                                 <li class="breadcrumb-item"><a th:href="@{/private}">Панель управления</a></li>
                                 <li class="breadcrumb-item"><a th:href="@{/private/company-miners}">Майнеры компании</a></li>
-                                <li class="breadcrumb-item active" aria-current="page">Создание</li>
+                                <li class="breadcrumb-item active" aria-current="page">Редактирование</li>
                             </ol>
                         </nav>
                     </div>
@@ -480,8 +480,8 @@
                 <!-- Start::row-1 -->
                 <div class="row">
                     <div class="col-xl-12">
-                        <!-- Форма создания -->
-                        <form th:action="@{/private/company-miners}" 
+                        <!-- Форма редактирования -->
+                        <form th:action="@{/private/company-miners/{id}(id=${companyMinerInfo.id})}" 
                               th:object="${companyMiner}" 
                               method="post">
                             
@@ -499,13 +499,16 @@
                                                 <select class="form-select" 
                                                         id="minerDetailId" 
                                                         name="minerDetailId" 
-                                                        required>
+                                                        required
+                                                        disabled>
                                                     <option value="">Выберите майнера</option>
                                                     <option th:each="minerDetail : ${minerDetails}" 
                                                             th:value="${minerDetail.id}" 
+                                                            th:selected="${minerDetail.id == companyMinerInfo.minerDetailId}"
                                                             th:text="${minerDetail.standardName}">
                                                     </option>
                                                 </select>
+                                                <small class="form-text text-muted">Детальная запись майнера не может быть изменена</small>
                                             </div>
                                             
                                             <div class="row">
@@ -514,7 +517,7 @@
                                                     <input type="number" 
                                                            class="form-control" 
                                                            id="price" 
-                                                           name="price" 
+                                                           th:field="*{price}" 
                                                            step="0.01" 
                                                            min="0.01" 
                                                            required>
@@ -524,7 +527,7 @@
                                                     <label for="currencyId" class="form-label">Валюта <span class="text-danger">*</span></label>
                                                     <select class="form-select" 
                                                             id="currencyId" 
-                                                            name="currencyId" 
+                                                            th:field="*{currencyId}" 
                                                             required>
                                                         <option value="">Выберите валюту</option>
                                                         <option th:each="currency : ${currencies}" 
@@ -540,7 +543,7 @@
                                                 <input type="number" 
                                                        class="form-control" 
                                                        id="priceOld" 
-                                                       name="priceOld" 
+                                                       th:field="*{priceOld}" 
                                                        step="0.01" 
                                                        min="0">
                                             </div>
@@ -559,7 +562,7 @@
                                                     <input type="number" 
                                                            class="form-control" 
                                                            id="hashrateMin" 
-                                                           name="hashrateMin" 
+                                                           th:field="*{hashrateMin}" 
                                                            step="0.01" 
                                                            min="0" 
                                                            required>
@@ -570,7 +573,7 @@
                                                     <input type="number" 
                                                            class="form-control" 
                                                            id="hashrateMax" 
-                                                           name="hashrateMax" 
+                                                           th:field="*{hashrateMax}" 
                                                            step="0.01" 
                                                            min="0">
                                                 </div>
@@ -579,7 +582,7 @@
                                                     <label for="hashrateUnitId" class="form-label">Единица измерения <span class="text-danger">*</span></label>
                                                     <select class="form-select" 
                                                             id="hashrateUnitId" 
-                                                            name="hashrateUnitId" 
+                                                            th:field="*{hashrateUnitId}" 
                                                             required>
                                                         <option value="">Выберите единицу</option>
                                                         <option th:each="unit : ${hashrateUnits}" 
@@ -596,7 +599,7 @@
                                                     <input type="number" 
                                                            class="form-control" 
                                                            id="quantity" 
-                                                           name="quantity" 
+                                                           th:field="*{quantity}" 
                                                            min="0" 
                                                            required>
                                                 </div>
@@ -606,7 +609,7 @@
                                                     <input type="number" 
                                                            class="form-control" 
                                                            id="lowStockThreshold" 
-                                                           name="lowStockThreshold" 
+                                                           th:field="*{lowStockThreshold}" 
                                                            min="0">
                                                 </div>
                                             </div>
@@ -624,7 +627,7 @@
                                                 <input type="text" 
                                                        class="form-control" 
                                                        id="condition" 
-                                                       name="condition" 
+                                                       th:field="*{condition}" 
                                                        maxlength="500" 
                                                        placeholder="Новое, Б/У, Восстановленное и т.д.">
                                             </div>
@@ -634,9 +637,8 @@
                                                     <input class="form-check-input" 
                                                            type="checkbox" 
                                                            id="active" 
-                                                           name="active" 
-                                                           value="true" 
-                                                           checked>
+                                                           th:field="*{active}" 
+                                                           value="true">
                                                     <label class="form-check-label" for="active">
                                                         Активен (отображается на публичной странице)
                                                     </label>
@@ -655,7 +657,7 @@
                                         </div>
                                         <div class="card-body">
                                             <button type="submit" class="btn btn-primary w-100 mb-2">
-                                                <i class="fe fe-save me-1"></i> Создать запись
+                                                <i class="fe fe-save me-1"></i> Сохранить изменения
                                             </button>
                                             <a th:href="@{/private/company-miners}" 
                                                class="btn btn-secondary w-100">
@@ -671,8 +673,8 @@
                                         </div>
                                         <div class="card-body">
                                             <p class="mb-0 text-muted small">
-                                                Заполните обязательные поля (отмечены <span class="text-danger">*</span>) для создания новой записи.
-                                                Остальные поля можно заполнить позже при редактировании.
+                                                Измените необходимые поля и нажмите "Сохранить изменения" для обновления записи.
+                                                Детальная запись майнера не может быть изменена.
                                             </p>
                                         </div>
                                     </div>
