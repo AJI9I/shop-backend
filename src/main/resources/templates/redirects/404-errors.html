@@ -348,7 +348,14 @@
                     redirectType: 301
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || `HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showAlert('Редирект успешно создан', 'success');
@@ -359,7 +366,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Ошибка при создании редиректа', 'danger');
+                showAlert('Ошибка при создании редиректа: ' + error.message, 'danger');
             });
         }
 
@@ -374,7 +381,14 @@
                     'Content-Type': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || `HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showAlert('Старые ошибки успешно удалены', 'success');
@@ -385,7 +399,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Ошибка при очистке', 'danger');
+                showAlert('Ошибка при очистке: ' + error.message, 'danger');
             });
         }
 

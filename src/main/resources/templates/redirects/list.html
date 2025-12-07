@@ -442,12 +442,21 @@
                     redirectType: redirectType
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || `HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showAlert('Редирект успешно создан', 'success');
                     const modal = bootstrap.Modal.getInstance(document.getElementById('createRedirectModal'));
-                    modal.hide();
+                    if (modal) {
+                        modal.hide();
+                    }
                     document.getElementById('createRedirectForm').reset();
                     setTimeout(() => location.reload(), 1000);
                 } else {
@@ -456,7 +465,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Ошибка при создании редиректа', 'danger');
+                showAlert('Ошибка при создании редиректа: ' + error.message, 'danger');
             });
         }
 
@@ -492,12 +501,21 @@
                     active: active
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || `HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showAlert('Редирект успешно обновлен', 'success');
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editRedirectModal'));
-                    modal.hide();
+                    if (modal) {
+                        modal.hide();
+                    }
                     setTimeout(() => location.reload(), 1000);
                 } else {
                     showAlert(data.error || 'Ошибка при обновлении редиректа', 'danger');
@@ -505,7 +523,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Ошибка при обновлении редиректа', 'danger');
+                showAlert('Ошибка при обновлении редиректа: ' + error.message, 'danger');
             });
         }
 
@@ -520,7 +538,14 @@
                     'Content-Type': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || `HTTP error! status: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     showAlert('Редирект успешно удален', 'success');
@@ -531,7 +556,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('Ошибка при удалении редиректа', 'danger');
+                showAlert('Ошибка при удалении редиректа: ' + error.message, 'danger');
             });
         }
 
