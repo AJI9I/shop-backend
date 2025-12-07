@@ -1530,202 +1530,46 @@
             
             // Функция показа детальной информации о предложении
             function showOfferDetails(offerId) {
-                console.log('🎯 [OFFER_DETAILS] ========== НАЧАЛО showOfferDetails ==========');
-                console.log('🎯 [OFFER_DETAILS] ID предложения:', offerId);
+                console.log('Открываем модальное окно для предложения ID:', offerId);
                 
                 const modalElement = document.getElementById('offerDetailsModal');
                 const modalContent = document.getElementById('offerDetailsContent');
                 
                 if (!modalElement || !modalContent) {
-                    console.error('❌ [OFFER_DETAILS] Модальное окно или его содержимое не найдено!');
-                    console.error('❌ [OFFER_DETAILS] modalElement:', modalElement);
-                    console.error('❌ [OFFER_DETAILS] modalContent:', modalContent);
+                    console.error('Модальное окно не найдено!');
                     return;
                 }
                 
-                console.log('✅ [OFFER_DETAILS] Элементы модального окна найдены');
-                console.log('🔍 [OFFER_DETAILS] Расположение модального окна в DOM:', {
-                    parentElement: modalElement.parentElement ? modalElement.parentElement.tagName : 'нет родителя',
-                    isInBody: modalElement.parentElement === document.body || modalElement.closest('body') !== null,
-                    isInPage: modalElement.closest('.page') !== null,
-                    computedStyles: {
-                        display: window.getComputedStyle(modalElement).display,
-                        visibility: window.getComputedStyle(modalElement).visibility,
-                        opacity: window.getComputedStyle(modalElement).opacity,
-                        zIndex: window.getComputedStyle(modalElement).zIndex,
-                        position: window.getComputedStyle(modalElement).position
-                    }
-                });
-                
-                // Показываем индикатор загрузки
-                console.log('⏳ [OFFER_DETAILS] Показываем индикатор загрузки');
                 modalContent.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Загрузка...</span></div></div>';
                 
-                console.log('🔧 [OFFER_DETAILS] Создаем экземпляр Bootstrap Modal');
                 const modal = new bootstrap.Modal(modalElement);
-                console.log('✅ [OFFER_DETAILS] Экземпляр Bootstrap Modal создан:', modal);
-                
-                // Проверяем состояние модального окна до открытия
-                console.log('🔍 [OFFER_DETAILS] Состояние модального окна ДО открытия:', {
-                    hasClassShow: modalElement.classList.contains('show'),
-                    display: window.getComputedStyle(modalElement).display,
-                    visibility: window.getComputedStyle(modalElement).visibility,
-                    zIndex: window.getComputedStyle(modalElement).zIndex
-                });
-                
-                console.log('🚀 [OFFER_DETAILS] Открываем модальное окно');
                 modal.show();
                 
-                // Проверяем состояние модального окна после открытия
-                setTimeout(function() {
-                    console.log('🔍 [OFFER_DETAILS] Состояние модального окна ПОСЛЕ открытия (через 100мс):', {
-                        hasClassShow: modalElement.classList.contains('show'),
-                        display: window.getComputedStyle(modalElement).display,
-                        visibility: window.getComputedStyle(modalElement).visibility,
-                        zIndex: window.getComputedStyle(modalElement).zIndex,
-                        bodyHasModalOpen: document.body.classList.contains('modal-open'),
-                        backdropExists: document.querySelector('.modal-backdrop') !== null
-                    });
-                }, 100);
-                
-                // Загружаем детальную информацию
                 const requestUrl = `/private/offers/${offerId}/details`;
-                console.log('🌐 [OFFER_DETAILS] Отправка fetch запроса на URL:', requestUrl);
-                console.log('🌐 [OFFER_DETAILS] Полный URL:', window.location.origin + requestUrl);
                 
-                const fetchStartTime = performance.now();
-                console.log('⏱️ [OFFER_DETAILS] Время начала fetch запроса:', fetchStartTime);
-                
-                console.log('🌐 [OFFER_DETAILS] Начинаем fetch запрос...');
-                
-                // Добавляем обработчик ошибок для всего промиса
-                let fetchPromise;
-                try {
-                    fetchPromise = fetch(requestUrl, {
-                        method: 'GET',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        credentials: 'same-origin'
-                    });
-                    console.log('🌐 [OFFER_DETAILS] Fetch промис создан:', fetchPromise);
-                    console.log('🌐 [OFFER_DETAILS] Тип промиса:', typeof fetchPromise);
-                    console.log('🌐 [OFFER_DETAILS] Промис является Promise:', fetchPromise instanceof Promise);
-                } catch (error) {
-                    console.error('❌ [OFFER_DETAILS] Ошибка при создании fetch запроса:', error);
-                    console.error('❌ [OFFER_DETAILS] Тип ошибки:', error.constructor.name);
-                    console.error('❌ [OFFER_DETAILS] Сообщение:', error.message);
-                    console.error('❌ [OFFER_DETAILS] Stack:', error.stack);
-                    modalContent.innerHTML = '<div class="alert alert-danger">Ошибка создания запроса: ' + escapeHtml(error.message) + '</div>';
-                    return;
-                }
-                
-                // Добавляем таймаут для диагностики
-                const timeoutId = setTimeout(function() {
-                    const elapsed = performance.now() - fetchStartTime;
-                    console.warn('⚠️ [OFFER_DETAILS] Fetch запрос выполняется более 10 секунд! Время:', elapsed.toFixed(2), 'мс');
-                    console.warn('⚠️ [OFFER_DETAILS] Это может указывать на проблему с сетью или сервером');
-                }, 10000);
-                
-                fetchPromise
-                .then(response => {
-                    clearTimeout(timeoutId);
-                    console.log('✅ [OFFER_DETAILS] Fetch промис разрешен, получен response');
-                    return response;
-                })
-                .catch(error => {
-                    clearTimeout(timeoutId);
-                    const fetchTime = performance.now() - fetchStartTime;
-                    console.error('❌ [OFFER_DETAILS] Ошибка сети при выполнении fetch за', fetchTime.toFixed(2), 'мс');
-                    console.error('❌ [OFFER_DETAILS] Тип ошибки:', error.constructor.name);
-                    console.error('❌ [OFFER_DETAILS] Сообщение:', error.message);
-                    console.error('❌ [OFFER_DETAILS] Stack:', error.stack);
-                    console.error('❌ [OFFER_DETAILS] Полный объект ошибки:', error);
-                    throw error;
+                fetch(requestUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
                 })
                 .then(response => {
-                    const fetchTime = performance.now() - fetchStartTime;
-                    console.log('📥 [OFFER_DETAILS] Получен ответ от сервера за', fetchTime.toFixed(2), 'мс');
-                    console.log('📥 [OFFER_DETAILS] Статус:', response.status, response.statusText);
-                    console.log('📥 [OFFER_DETAILS] Content-Type:', response.headers.get('Content-Type'));
-                    console.log('📥 [OFFER_DETAILS] URL ответа:', response.url);
-                    console.log('📥 [OFFER_DETAILS] Все заголовки ответа:', Object.fromEntries(response.headers.entries()));
-                    
                     if (!response.ok) {
-                        console.error('❌ [OFFER_DETAILS] Ошибка ответа сервера:', response.status, response.statusText);
                         return response.text().then(text => {
-                            console.error('❌ [OFFER_DETAILS] Текст ошибки от сервера (первые 500 символов):', text.substring(0, 500));
-                            throw new Error('Ошибка загрузки данных: ' + response.status + ' - ' + text.substring(0, 200));
+                            throw new Error('Ошибка загрузки данных: ' + response.status);
                         });
                     }
-                    
                     const contentType = response.headers.get('Content-Type');
                     if (!contentType || !contentType.includes('application/json')) {
-                        console.warn('⚠️ [OFFER_DETAILS] Content-Type не JSON:', contentType);
                         return response.text().then(text => {
-                            console.error('❌ [OFFER_DETAILS] Ответ не JSON, текст ответа (первые 500 символов):', text.substring(0, 500));
-                            throw new Error('Сервер вернул не JSON ответ. Content-Type: ' + contentType);
+                            throw new Error('Сервер вернул не JSON ответ');
                         });
                     }
-                    
-                    console.log('✅ [OFFER_DETAILS] Ответ валиден, парсим JSON...');
                     return response.json();
                 })
                 .then(data => {
-                    console.log('✅ [OFFER_DETAILS] Данные получены успешно');
-                    console.log('📋 [OFFER_DETAILS] Полный объект данных:', data);
-                    console.log('📋 [OFFER_DETAILS] Структура данных:', {
-                        hasOffer: !!data.offer,
-                        hasSourceMessage: !!data.sourceMessage,
-                        offerKeys: data.offer ? Object.keys(data.offer) : [],
-                        sourceMessageKeys: data.sourceMessage ? Object.keys(data.sourceMessage) : [],
-                        allKeys: Object.keys(data)
-                    });
-                    
-                    if (data.offer) {
-                        console.log('📋 [OFFER_DETAILS] Данные предложения (offer):', {
-                            id: data.offer.id,
-                            productModel: data.offer.productModel,
-                            manufacturer: data.offer.manufacturer,
-                            hashrate: data.offer.hashrate,
-                            sellerPhone: data.offer.sellerPhone,
-                            operationType: data.offer.operationType,
-                            price: data.offer.price,
-                            currency: data.offer.currency,
-                            quantity: data.offer.quantity,
-                            condition: data.offer.condition,
-                            location: data.offer.location,
-                            notes: data.offer.notes,
-                            createdAt: data.offer.createdAt,
-                            updatedAt: data.offer.updatedAt,
-                            sourceChatName: data.offer.sourceChatName
-                        });
-                    }
-                    
-                    if (data.sourceMessage) {
-                        console.log('📋 [OFFER_DETAILS] Данные исходного сообщения (sourceMessage):', {
-                            id: data.sourceMessage.id,
-                            messageId: data.sourceMessage.messageId,
-                            chatId: data.sourceMessage.chatId,
-                            chatName: data.sourceMessage.chatName,
-                            chatType: data.sourceMessage.chatType,
-                            senderId: data.sourceMessage.senderId,
-                            senderName: data.sourceMessage.senderName,
-                            senderPhoneNumber: data.sourceMessage.senderPhoneNumber,
-                            content: data.sourceMessage.content ? data.sourceMessage.content.substring(0, 200) + '...' : null,
-                            contentLength: data.sourceMessage.content ? data.sourceMessage.content.length : 0,
-                            timestamp: data.sourceMessage.timestamp,
-                            hasMedia: data.sourceMessage.hasMedia,
-                            messageType: data.sourceMessage.messageType,
-                            isForwarded: data.sourceMessage.isForwarded,
-                            isUpdate: data.sourceMessage.isUpdate,
-                            originalMessageId: data.sourceMessage.originalMessageId,
-                            createdAt: data.sourceMessage.createdAt
-                        });
-                    } else {
-                        console.log('⚠️ [OFFER_DETAILS] Исходное сообщение отсутствует (sourceMessage: null)');
-                    }
                     
                     // Формируем HTML с детальной информацией
                     let html = '<div class="container-fluid">';
@@ -1776,23 +1620,11 @@
                     }
                     
                     html += '</div>';
-                    
-                    const totalTime = performance.now() - fetchStartTime;
-                    console.log('⏱️ [OFFER_DETAILS] Общее время обработки:', totalTime.toFixed(2), 'мс');
-                    console.log('📝 [OFFER_DETAILS] Обновление содержимого модального окна');
                     modalContent.innerHTML = html;
-                    console.log('✅ [OFFER_DETAILS] ========== КОНЕЦ showOfferDetails (успешно) ==========');
                 })
                 .catch(error => {
-                    const totalTime = performance.now() - fetchStartTime;
-                    console.error('❌ [OFFER_DETAILS] ========== ОШИБКА в showOfferDetails ==========');
-                    console.error('❌ [OFFER_DETAILS] Время до ошибки:', totalTime.toFixed(2), 'мс');
-                    console.error('❌ [OFFER_DETAILS] Тип ошибки:', error.constructor.name);
-                    console.error('❌ [OFFER_DETAILS] Сообщение ошибки:', error.message);
-                    console.error('❌ [OFFER_DETAILS] Stack trace:', error.stack);
-                    console.error('❌ [OFFER_DETAILS] Полный объект ошибки:', error);
+                    console.error('Ошибка при загрузке деталей предложения:', error);
                     modalContent.innerHTML = '<div class="alert alert-danger">Ошибка загрузки данных: ' + escapeHtml(error.message) + '</div>';
-                    console.error('❌ [OFFER_DETAILS] ========== КОНЕЦ обработки ошибки ==========');
                 });
             }
             
